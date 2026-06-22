@@ -8,16 +8,52 @@ interface Props {
 
 const { title = "HIGHLIDE", description = "HIGHLIDE site layout" } =
     Astro.props;
+type NavItem = {
+    href: string;
+    label: string;
+    icon?: string;
+};
 
-const navItems = [
-    { href: "/", label: "Forside" },
-    { href: "/Produkt-overblik", label: "Produkter" },
-    { href: "/Butiks-info", label: "Butikker" },
-    { href: "/Profil", label: "Profil" },
-    { href: "/Gemte-produkter", label: "Gemte produkter" },
-    { href: "/Om-Highlide", label: "Om HIGHLIDE" },
-    { href: "/Hjaelp-kontakt", label: "Hjælp & Kontakt" },
-    { href: "/Auth", label: "Log ind" },
+type NavSection = {
+    heading?: string;
+    items: NavItem[];
+};
+
+const navSections: NavSection[] = [
+    {
+        heading: "Sider",
+        items: [
+            { href: "/", label: "Forside", icon: "/icons/Rektangler_icon.svg" },
+            {
+                href: "/Butiks-info",
+                label: "Butikker",
+                icon: "/icons/Butik_icon.svg",
+            },
+            {
+                href: "/Produkt-overblik",
+                label: "Produkter",
+                icon: "/icons/Produkt_icon.svg",
+            },
+        ],
+    },
+    {
+        heading: "Personligt",
+        items: [
+            { href: "/Profil", label: "Profil", icon: "/icons/Profil_icon.svg" },
+            {
+                href: "/Gemte-produkter",
+                label: "Favoritter",
+                icon: "/icons/Taske_icon.png",
+            },
+        ],
+    },
+    {
+        items: [
+            { href: "/Om-Highlide", label: "Om HIGHLIDE" },
+            { href: "/Hjaelp-kontakt", label: "Hjælp & Kontakt" },
+            { href: "/Auth", label: "Log ind" },
+        ],
+    },
 ];
 ---
 
@@ -116,21 +152,38 @@ const navItems = [
                         </svg>
                     </button>
                 </div>
-                <nav class="px-4 py-4">
-                    <ul class="space-y-1">
-                        {
-                            navItems.map((item) => (
-                                <li>
-                                    <a
-                                        class="block rounded-none px-0 py-2 text-sm font-medium text-[#1e1a17] transition hover:opacity-70"
-                                        href={item.href}
-                                    >
-                                        {item.label}
-                                    </a>
-                                </li>
-                            ))
-                        }
-                    </ul>
+                <nav class="space-y-6 px-4 py-5">
+                    {
+                        navSections.map((section) => (
+                            <section>
+                                {section.heading && (
+                                    <h2 class="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-[#6f655b]">
+                                        {section.heading}
+                                    </h2>
+                                )}
+                                <ul class="space-y-1">
+                                    {section.items.map((item) => (
+                                        <li>
+                                            <a
+                                                class="flex min-h-12 items-center gap-3 rounded-none px-0 py-3 text-base font-medium text-[#1e1a17] transition hover:opacity-70"
+                                                href={item.href}
+                                            >
+                                                {item.icon && (
+                                                    <img
+                                                        src={item.icon}
+                                                        alt=""
+                                                        aria-hidden="true"
+                                                        class="h-5 w-5 shrink-0 object-contain"
+                                                    />
+                                                )}
+                                                <span>{item.label}</span>
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+                        ))
+                    }
                 </nav>
             </aside>
 
