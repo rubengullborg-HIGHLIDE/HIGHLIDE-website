@@ -13,44 +13,44 @@ const clothes = [
         src: "/images/clothes/Blue_shirt.png",
         alt: "Blå skjorte",
         className:
-            "left-[-1rem] top-[-12%] w-20 -rotate-12 md:left-[-5rem] md:w-28 lg:w-32",
+            "left-[-0.75rem] top-[-8%] w-14 -rotate-12 sm:w-16 md:left-[-5rem] md:top-[-12%] md:w-28 lg:w-32",
     },
     {
         src: "/images/clothes/Brown_coat.png",
         alt: "Brun frakke",
         className:
-            "right-[-0.75rem] top-[-16%] w-24 rotate-12 md:right-[-5rem] md:w-32 lg:w-36",
+            "right-[-0.5rem] top-[-10%] w-16 rotate-12 sm:w-20 md:right-[-5rem] md:top-[-16%] md:w-32 lg:w-36",
     },
     {
         src: "/images/clothes/Striped_pants.png",
         alt: "Stribede bukser",
         className:
-            "left-[2%] bottom-[-12%] w-24 rotate-[-8deg] md:left-[-5rem] md:w-32 lg:w-36",
+            "left-[1%] bottom-[-8%] w-16 rotate-[-8deg] sm:w-20 md:left-[-5rem] md:bottom-[-12%] md:w-32 lg:w-36",
     },
     {
         src: "/images/clothes/Brown_shoes.png",
         alt: "Brune sko",
         className:
-            "right-[6%] bottom-[-12%] w-20 rotate-[10deg] md:right-[-5rem] md:w-28 lg:w-32",
+            "right-[3%] bottom-[-8%] w-14 rotate-[10deg] sm:w-16 md:right-[-5rem] md:bottom-[-12%] md:w-28 lg:w-32",
     },
 ];
 ---
 
-<section class="mx-auto -mt-4 w-full max-w-5xl py-8 md:-mt-8 md:py-12">
+<section class="mx-auto -mt-10 w-full max-w-5xl py-6 md:-mt-12 md:py-10">
     <div class="mx-auto max-w-3xl text-center">
-        <p class="mt-6 text-base leading-8 text-[#5c534b] md:text-lg">
+        <p class="mt-4 text-base leading-8 text-[#5c534b] md:text-lg">
             {text}
         </p>
     </div>
 
-    <div class="relative mt-10 md:mt-12">
+    <div class="relative mt-8 md:mt-10">
         <div class="relative mx-auto max-w-3xl overflow-visible">
             {
                 clothes.map((item) => (
                     <img
                         src={item.src}
                         alt={item.alt}
-                        class={`pointer-events-none absolute z-0 hidden select-none md:block ${item.className}`}
+                        class={`pointer-events-none absolute z-0 select-none ${item.className}`}
                     />
                 ))
             }
@@ -58,7 +58,7 @@ const clothes = [
             <img
                 src="/images/background/Walking_people.jpg"
                 alt="People walking"
-                class="relative z-10 mx-auto w-full max-w-3xl rounded-[2rem]"
+                class="relative z-10 mx-auto w-full max-w-3xl rounded-[1.5rem] sm:rounded-[2rem]"
             />
         </div>
     </div>
