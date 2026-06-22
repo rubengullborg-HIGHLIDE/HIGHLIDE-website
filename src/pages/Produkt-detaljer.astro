@@ -1,5 +1,10 @@
 ---
-import SiteLayout from '../layouts/SiteLayout.astro';
+import SearchSection from "../components/SearchSection.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+
+const searchQuery = Astro.url.searchParams.get("q") ?? "";
 ---
 
-<SiteLayout title="Produkt detaljer" description="HIGHLIDE product details page" />
+<SiteLayout title="Produkt detaljer" description="HIGHLIDE product details page">
+    <SearchSection action="/Produkt-detaljer" value={searchQuery} />
+</SiteLayout>
