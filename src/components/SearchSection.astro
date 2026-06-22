@@ -37,9 +37,10 @@ const {
                 name="q"
                 type="search"
                 placeholder={placeholder}
+                data-placeholder={placeholder}
                 value={value}
-                onfocus="this.dataset.placeholder = this.placeholder; this.placeholder = '';"
-                onblur="this.placeholder = this.value ? '' : (this.dataset.placeholder || '');"
+                onfocus="this.placeholder = '';"
+                onblur="if (!this.value) this.placeholder = this.dataset.placeholder || '';"
                 class="min-w-0 flex-1 border-0 bg-transparent px-4 py-3 text-base text-[#1e1a17] placeholder:text-[#8a8178] focus:outline-none"
             />
             <button
