@@ -491,6 +491,8 @@ const filteredProducts = normalizedQuery
         }
 
         .product-meta {
+            display: grid;
+            align-content: start;
             padding: 0.7rem 0.25rem 0;
         }
 
@@ -560,6 +562,27 @@ const filteredProducts = normalizedQuery
         #product-overview[data-zoom="2"] .product-grid {
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 1.6rem 1rem;
+        }
+
+        #product-overview[data-zoom="2"] .brand,
+        #product-overview[data-zoom="2"] .name {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-box-orient: vertical;
+            line-height: 1.25;
+            min-height: 2.5em;
+        }
+
+        #product-overview[data-zoom="2"] .brand {
+            -webkit-line-clamp: 2;
+        }
+
+        #product-overview[data-zoom="2"] .name {
+            -webkit-line-clamp: 2;
+        }
+
+        #product-overview[data-zoom="2"] .price {
+            margin-top: 0.4rem;
         }
 
         #product-overview[data-zoom="3"] .product-grid {
