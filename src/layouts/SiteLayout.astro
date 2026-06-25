@@ -9,6 +9,8 @@ interface Props {
 
 const { title = "HIGHLIDE", description = "HIGHLIDE site layout" } =
     Astro.props;
+const isMenuEnabled = false;
+
 type NavItem = {
     href: string;
     label: string;
@@ -88,11 +90,16 @@ const navSections: NavSection[] = [
                     class="mx-auto grid max-w-[1120px] grid-cols-[auto_1fr_auto] items-center px-4 py-4 md:px-8"
                 >
                     <button
-                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center bg-transparent text-[#1e1a17] transition hover:opacity-70"
+                        class:list={[
+                            "inline-flex h-11 w-11 shrink-0 items-center justify-center bg-transparent text-[#1e1a17] transition hover:opacity-70",
+                            !isMenuEnabled && "invisible pointer-events-none",
+                        ]}
                         type="button"
                         aria-label="Open menu"
                         aria-controls="site-drawer"
                         aria-expanded="false"
+                        aria-hidden={!isMenuEnabled ? "true" : undefined}
+                        disabled={!isMenuEnabled}
                         data-menu-button
                     >
                         <svg
