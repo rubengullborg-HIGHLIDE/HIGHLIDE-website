@@ -294,45 +294,48 @@ const filteredProducts = normalizedQuery
                 {
                     filteredProducts.length > 0 ? (
                         <>
-                            <div class="product-grid" data-product-grid>
+                            <div
+                                class="product-grid grid gap-4"
+                                data-product-grid
+                            >
                                 {filteredProducts.map((product) => (
                                     <article
-                                        class="product-card"
+                                        class="product-card text-[#1e1a17]"
                                         data-product-card
                                     >
-                                        <div class="product-image-wrap">
+                                        <div class="product-image-wrap relative aspect-[0.78] overflow-hidden rounded-[1.15rem] bg-gradient-to-b from-[#e8e1d4] to-[#d8d0c2]">
                                             <img
                                                 src={product.image}
                                                 alt={`${product.brand} ${product.name}`}
-                                                class="product-image"
+                                                class="product-image h-full w-full object-cover"
                                                 loading="lazy"
                                             />
-                                            <button
-                                                type="button"
-                                                class="save-button"
-                                                aria-label={`Gem ${product.brand} ${product.name}`}
+                                            <svg
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                aria-hidden="true"
+                                                class="h-5 w-5"
                                             >
-                                                <svg
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    aria-hidden="true"
-                                                    class="h-5 w-5"
-                                                >
-                                                    <path
-                                                        d="M7 4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75V21l-5-3.25L7 21V4.75Z"
-                                                        stroke="currentColor"
-                                                        stroke-width="1.7"
-                                                        stroke-linejoin="round"
-                                                    />
-                                                </svg>
-                                            </button>
+                                                <path
+                                                    d="M7 4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75V21l-5-3.25L7 21V4.75Z"
+                                                    stroke="currentColor"
+                                                    stroke-width="1.7"
+                                                    stroke-linejoin="round"
+                                                />
+                                            </svg>
                                         </div>
 
-                                        <div class="product-meta">
-                                            <p class="brand">{product.brand}</p>
-                                            <p class="name">{product.name}</p>
-                                            <p class="price">{product.price}</p>
-                                            <p class="details">
+                                        <div class="product-meta grid content-start px-1 pt-3">
+                                            <p class="brand text-[0.95rem] font-extrabold uppercase tracking-[0.1em]">
+                                                {product.brand}
+                                            </p>
+                                            <p class="name mt-[0.15rem] text-base text-[#6e645d]">
+                                                {product.name}
+                                            </p>
+                                            <p class="price mt-[0.55rem] text-[1.1rem] font-medium">
+                                                {product.price}
+                                            </p>
+                                            <p class="details mt-1 text-[0.9rem] uppercase text-[#8a8178]">
                                                 ⌖ {product.distance} •{" "}
                                                 {product.store}
                                             </p>
@@ -450,76 +453,6 @@ const filteredProducts = normalizedQuery
             border-radius: 999px;
             background: #4e1515;
             box-shadow: 0 4px 16px rgba(78, 21, 21, 0.24);
-        }
-
-        .product-grid {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .product-card {
-            color: #1e1a17;
-        }
-
-        .product-image-wrap {
-            position: relative;
-            overflow: hidden;
-            border-radius: 1.15rem;
-            background: linear-gradient(180deg, #e8e1d4 0%, #d8d0c2 100%);
-            aspect-ratio: 0.78;
-        }
-
-        .product-image {
-            height: 100%;
-            width: 100%;
-            object-fit: cover;
-        }
-
-        .save-button {
-            position: absolute;
-            right: 0.7rem;
-            top: 0.7rem;
-            display: inline-flex;
-            height: 2.25rem;
-            width: 2.25rem;
-            align-items: center;
-            justify-content: center;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #6f655b;
-            box-shadow: 0 8px 20px rgba(30, 26, 23, 0.1);
-        }
-
-        .product-meta {
-            display: grid;
-            align-content: start;
-            padding: 0.7rem 0.25rem 0;
-        }
-
-        .brand {
-            font-size: 0.95rem;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        .name {
-            margin-top: 0.15rem;
-            font-size: 1rem;
-            color: #6e645d;
-        }
-
-        .price {
-            margin-top: 0.55rem;
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-
-        .details {
-            margin-top: 0.25rem;
-            font-size: 0.9rem;
-            color: #8a8178;
-            text-transform: uppercase;
         }
 
         #product-overview[data-zoom="1"] .product-grid {
