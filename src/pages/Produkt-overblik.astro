@@ -3,8 +3,647 @@ import SearchSection from "../components/SearchSection.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
 
 const searchQuery = Astro.url.searchParams.get("q") ?? "";
+
+const allProducts = [
+    {
+        id: 1,
+        brand: "ACNE STUDIOS",
+        name: "Tailored Jacket",
+        price: "4.500 DKK",
+        distance: "0.4 km",
+        store: "Magasin",
+        image: "/images/clothes/Brown_coat.png",
+    },
+    {
+        id: 2,
+        brand: "NN07",
+        name: "Trench Coat",
+        price: "3.200 DKK",
+        distance: "1.2 km",
+        store: "Illum",
+        image: "/images/clothes/Blue_shirt.png",
+    },
+    {
+        id: 3,
+        brand: "COMMON PROJECTS",
+        name: "Achilles Low",
+        price: "2.800 DKK",
+        distance: "0.8 km",
+        store: "Wood Wood",
+        image: "/images/clothes/Brown_shoes.png",
+    },
+    {
+        id: 4,
+        brand: "OUR LEGACY",
+        name: "Camion Loafer",
+        price: "3.500 DKK",
+        distance: "2.1 km",
+        store: "Goods",
+        image: "/images/clothes/Brown_shoes.png",
+    },
+    {
+        id: 5,
+        brand: "MARNI",
+        name: "Leather Messenger",
+        price: "6.200 DKK",
+        distance: "0.5 km",
+        store: "Holly Golightly",
+        image: "/images/clothes/Striped_pants.png",
+    },
+    {
+        id: 6,
+        brand: "A.P.C.",
+        name: "Mac Coat",
+        price: "4.100 DKK",
+        distance: "1.5 km",
+        store: "Storm",
+        image: "/images/clothes/Brown_coat.png",
+    },
+    {
+        id: 7,
+        brand: "SAMSØE SAMSØE",
+        name: "Classic Shirt",
+        price: "900 DKK",
+        distance: "0.3 km",
+        store: "Illum",
+        image: "/images/clothes/Blue_shirt.png",
+    },
+    {
+        id: 8,
+        brand: "FILIPPA K",
+        name: "Wool Blazer",
+        price: "2.700 DKK",
+        distance: "1.9 km",
+        store: "Magasin",
+        image: "/images/clothes/Brown_coat.png",
+    },
+    {
+        id: 9,
+        brand: "TOTEME",
+        name: "Pinned Trouser",
+        price: "1.800 DKK",
+        distance: "0.7 km",
+        store: "Storm",
+        image: "/images/clothes/Striped_pants.png",
+    },
+    {
+        id: 10,
+        brand: "MONOKEL",
+        name: "Travel Sneaker",
+        price: "2.200 DKK",
+        distance: "2.4 km",
+        store: "Wood Wood",
+        image: "/images/clothes/Brown_shoes.png",
+    },
+    {
+        id: 11,
+        brand: "WOOD WOOD",
+        name: "Structured Coat",
+        price: "2.500 DKK",
+        distance: "1.0 km",
+        store: "Wood Wood",
+        image: "/images/clothes/Brown_coat.png",
+    },
+    {
+        id: 12,
+        brand: "ACNE STUDIOS",
+        name: "Relaxed Oxford",
+        price: "1.200 DKK",
+        distance: "0.4 km",
+        store: "Illum",
+        image: "/images/clothes/Blue_shirt.png",
+    },
+    {
+        id: 13,
+        brand: "MFPEN",
+        name: "Twill Trouser",
+        price: "1.600 DKK",
+        distance: "2.0 km",
+        store: "Goods",
+        image: "/images/clothes/Striped_pants.png",
+    },
+    {
+        id: 14,
+        brand: "C.QP",
+        name: "Racquet Sr",
+        price: "2.900 DKK",
+        distance: "0.9 km",
+        store: "Storm",
+        image: "/images/clothes/Brown_shoes.png",
+    },
+    {
+        id: 15,
+        brand: "NN07",
+        name: "Double Coat",
+        price: "4.200 DKK",
+        distance: "1.3 km",
+        store: "Magasin",
+        image: "/images/clothes/Brown_coat.png",
+    },
+    {
+        id: 16,
+        brand: "SAMSØE SAMSØE",
+        name: "Poplin Shirt",
+        price: "800 DKK",
+        distance: "1.1 km",
+        store: "Illum",
+        image: "/images/clothes/Blue_shirt.png",
+    },
+    {
+        id: 17,
+        brand: "A KIND OF GUISE",
+        name: "Wide Pleat",
+        price: "2.100 DKK",
+        distance: "1.6 km",
+        store: "Goods",
+        image: "/images/clothes/Striped_pants.png",
+    },
+    {
+        id: 18,
+        brand: "COMMON PROJECTS",
+        name: "Retro Runner",
+        price: "3.300 DKK",
+        distance: "0.6 km",
+        store: "Wood Wood",
+        image: "/images/clothes/Brown_shoes.png",
+    },
+    {
+        id: 19,
+        brand: "LEMAIRE",
+        name: "Soft Overcoat",
+        price: "5.400 DKK",
+        distance: "2.6 km",
+        store: "Storm",
+        image: "/images/clothes/Brown_coat.png",
+    },
+    {
+        id: 20,
+        brand: "A.P.C.",
+        name: "Atelier Shirt",
+        price: "1.100 DKK",
+        distance: "0.5 km",
+        store: "Magasin",
+        image: "/images/clothes/Blue_shirt.png",
+    },
+    {
+        id: 21,
+        brand: "BEAMS PLUS",
+        name: "Officer Pant",
+        price: "1.700 DKK",
+        distance: "1.8 km",
+        store: "Goods",
+        image: "/images/clothes/Striped_pants.png",
+    },
+    {
+        id: 22,
+        brand: "MIHARA YASUHIRO",
+        name: "Peterson Low",
+        price: "2.400 DKK",
+        distance: "2.2 km",
+        store: "Wood Wood",
+        image: "/images/clothes/Brown_shoes.png",
+    },
+    {
+        id: 23,
+        brand: "FILIPPA K",
+        name: "Clean Carcoat",
+        price: "3.800 DKK",
+        distance: "0.7 km",
+        store: "Illum",
+        image: "/images/clothes/Brown_coat.png",
+    },
+    {
+        id: 24,
+        brand: "SUNSPEL",
+        name: "Riviera Shirt",
+        price: "950 DKK",
+        distance: "1.4 km",
+        store: "Magasin",
+        image: "/images/clothes/Blue_shirt.png",
+    },
+];
+
+const normalizedQuery = searchQuery.trim().toLowerCase();
+const filteredProducts = normalizedQuery
+    ? allProducts.filter((product) =>
+          [product.brand, product.name, product.store].some((value) =>
+              value.toLowerCase().includes(normalizedQuery),
+          ),
+      )
+    : allProducts;
 ---
 
-<SiteLayout title="Produkt overblik" description="HIGHLIDE product overview page">
-    <SearchSection action="/Produkt-overblik" value={searchQuery} />
+<SiteLayout
+    title="Produkt overblik"
+    description="HIGHLIDE product overview page"
+>
+    <div class="mx-auto max-w-5xl" id="product-overview" data-zoom="2">
+        <SearchSection
+            action="/Produkt-overblik"
+            value={searchQuery}
+            compact={true}
+            placeholder="Søg efter brands, produkter eller butikker"
+        />
+
+        <section class="pb-12 pt-2 md:pb-16">
+            <div class="mb-5 flex items-end justify-between gap-4">
+                <div>
+                    <h1
+                        class="text-[1.9rem] font-semibold tracking-[-0.03em] text-[#1e1a17] md:text-[2.3rem]"
+                    >
+                        Produkt overblik
+                    </h1>
+                    <p class="mt-1 text-sm text-[#6e645d] md:text-base">
+                        {
+                            filteredProducts.length > 0
+                                ? `${filteredProducts.length} resultater${searchQuery ? ` for “${searchQuery}”` : ""}`
+                                : `Ingen resultater${searchQuery ? ` for “${searchQuery}”` : ""}`
+                        }
+                    </p>
+                </div>
+            </div>
+
+            <div class="p-1 md:p-2">
+                <div class="mb-6">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <h2
+                            class="text-[1.55rem] font-semibold tracking-[-0.03em] text-[#1e1a17]"
+                        >
+                            Zoom niveau
+                        </h2>
+                        <p
+                            class="text-sm font-semibold uppercase tracking-[0.25em] text-[#84786d]"
+                            data-zoom-label
+                        >
+                            Side 2 ud af 4
+                        </p>
+                    </div>
+
+                    <input
+                        class="zoom-slider h-2 w-full cursor-pointer appearance-none rounded-full bg-[#e8e5e1]"
+                        type="range"
+                        min="1"
+                        max="4"
+                        step="1"
+                        value="2"
+                        aria-label="Vælg zoom niveau"
+                        data-zoom-slider
+                    />
+                </div>
+
+                {
+                    filteredProducts.length > 0 ? (
+                        <>
+                            <div class="product-grid" data-product-grid>
+                                {filteredProducts.map((product) => (
+                                    <article
+                                        class="product-card"
+                                        data-product-card
+                                    >
+                                        <div class="product-image-wrap">
+                                            <img
+                                                src={product.image}
+                                                alt={`${product.brand} ${product.name}`}
+                                                class="product-image"
+                                                loading="lazy"
+                                            />
+                                            <button
+                                                type="button"
+                                                class="save-button"
+                                                aria-label={`Gem ${product.brand} ${product.name}`}
+                                            >
+                                                <svg
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    aria-hidden="true"
+                                                    class="h-5 w-5"
+                                                >
+                                                    <path
+                                                        d="M7 4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75V21l-5-3.25L7 21V4.75Z"
+                                                        stroke="currentColor"
+                                                        stroke-width="1.7"
+                                                        stroke-linejoin="round"
+                                                    />
+                                                </svg>
+                                            </button>
+                                        </div>
+
+                                        <div class="product-meta">
+                                            <p class="brand">{product.brand}</p>
+                                            <p class="name">{product.name}</p>
+                                            <p class="price">{product.price}</p>
+                                            <p class="details">
+                                                ⌖ {product.distance} •{" "}
+                                                {product.store}
+                                            </p>
+                                        </div>
+                                    </article>
+                                ))}
+                            </div>
+
+                            <div
+                                class="mt-8 flex justify-center"
+                                data-load-more-wrap
+                            >
+                                <button
+                                    type="button"
+                                    class="rounded-full border border-black/10 bg-white px-8 py-4 text-sm font-semibold uppercase tracking-[0.12em] text-[#1e1a17] shadow-[0_10px_30px_rgba(58,44,31,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_35px_rgba(58,44,31,0.12)]"
+                                    data-load-more
+                                >
+                                    Indlæs flere resultater
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <div class="rounded-[1.5rem] border border-dashed border-black/10 bg-[#f7f2ea] px-6 py-14 text-center">
+                            <p class="text-lg font-medium text-[#3e3530]">
+                                Vi kunne ikke finde nogle produkter.
+                            </p>
+                            <p class="mt-2 text-sm text-[#6e645d]">
+                                Prøv med et andet søgeord eller fjern din
+                                filtrering.
+                            </p>
+                        </div>
+                    )
+                }
+            </div>
+        </section>
+    </div>
+
+    <script is:inline>
+        const overview = document.getElementById("product-overview");
+        const slider = overview?.querySelector("[data-zoom-slider]");
+        const zoomLabel = overview?.querySelector("[data-zoom-label]");
+        const cards = [
+            ...(overview?.querySelectorAll("[data-product-card]") ?? []),
+        ];
+        const loadMoreButton = overview?.querySelector("[data-load-more]");
+        const loadMoreWrap = overview?.querySelector("[data-load-more-wrap]");
+
+        const zoomConfig = {
+            1: {
+                label: "Zoom 1 ud af 4",
+                initial: cards.length,
+                step: cards.length,
+            },
+            2: { label: "Zoom 2 ud af 4", initial: 6, step: 6 },
+            3: { label: "Zoom 3 ud af 4", initial: 4, step: 4 },
+            4: { label: "Zoom 4 ud af 4", initial: 3, step: 3 },
+        };
+
+        let visibleCount = zoomConfig[2]?.initial ?? cards.length;
+
+        const updateGrid = () => {
+            if (!overview || !slider) return;
+
+            const zoom = Number(slider.value);
+            const config = zoomConfig[zoom] ?? zoomConfig[2];
+            overview.dataset.zoom = String(zoom);
+            zoomLabel.textContent = config.label;
+
+            if (visibleCount < config.initial || zoom === 1) {
+                visibleCount = config.initial;
+            }
+
+            cards.forEach((card, index) => {
+                const shouldShow = zoom === 1 || index < visibleCount;
+                card.toggleAttribute("hidden", !shouldShow);
+            });
+
+            const allVisible = zoom === 1 || visibleCount >= cards.length;
+            loadMoreWrap?.toggleAttribute("hidden", allVisible);
+        };
+
+        slider?.addEventListener("input", () => {
+            const zoom = Number(slider.value);
+            const config = zoomConfig[zoom] ?? zoomConfig[2];
+            visibleCount = config.initial;
+            updateGrid();
+        });
+
+        loadMoreButton?.addEventListener("click", () => {
+            const zoom = Number(slider?.value ?? 2);
+            const config = zoomConfig[zoom] ?? zoomConfig[2];
+            visibleCount = Math.min(visibleCount + config.step, cards.length);
+            updateGrid();
+        });
+
+        updateGrid();
+    </script>
+
+    <style>
+        .zoom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 1.6rem;
+            width: 1.6rem;
+            border-radius: 999px;
+            background: #4e1515;
+            box-shadow: 0 4px 16px rgba(78, 21, 21, 0.24);
+            border: 0;
+        }
+
+        .zoom-slider::-moz-range-thumb {
+            height: 1.6rem;
+            width: 1.6rem;
+            border: 0;
+            border-radius: 999px;
+            background: #4e1515;
+            box-shadow: 0 4px 16px rgba(78, 21, 21, 0.24);
+        }
+
+        .product-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .product-card {
+            color: #1e1a17;
+        }
+
+        .product-image-wrap {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1.15rem;
+            background: linear-gradient(180deg, #e8e1d4 0%, #d8d0c2 100%);
+            aspect-ratio: 0.78;
+        }
+
+        .product-image {
+            height: 100%;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .save-button {
+            position: absolute;
+            right: 0.7rem;
+            top: 0.7rem;
+            display: inline-flex;
+            height: 2.25rem;
+            width: 2.25rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #6f655b;
+            box-shadow: 0 8px 20px rgba(30, 26, 23, 0.1);
+        }
+
+        .product-meta {
+            padding: 0.7rem 0.25rem 0;
+        }
+
+        .brand {
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .name {
+            margin-top: 0.15rem;
+            font-size: 1rem;
+            color: #6e645d;
+        }
+
+        .price {
+            margin-top: 0.55rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .details {
+            margin-top: 0.25rem;
+            font-size: 0.9rem;
+            color: #8a8178;
+            text-transform: uppercase;
+        }
+
+        #product-overview[data-zoom="1"] .product-grid {
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 0.45rem;
+        }
+
+        #product-overview[data-zoom="1"] .product-image-wrap {
+            border-radius: 0.15rem;
+            aspect-ratio: 0.74;
+        }
+
+        #product-overview[data-zoom="1"] .save-button {
+            display: none;
+        }
+
+        #product-overview[data-zoom="1"] .product-meta {
+            padding: 0.3rem 0 0;
+        }
+
+        #product-overview[data-zoom="1"] .brand,
+        #product-overview[data-zoom="1"] .price,
+        #product-overview[data-zoom="1"] .details {
+            display: none;
+        }
+
+        #product-overview[data-zoom="1"] .name {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-top: 0;
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #2a221d;
+        }
+
+        #product-overview[data-zoom="2"] .product-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1.6rem 1rem;
+        }
+
+        #product-overview[data-zoom="3"] .product-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.5rem 1rem;
+        }
+
+        #product-overview[data-zoom="4"] .product-grid {
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+        }
+
+        #product-overview[data-zoom="4"] .product-card {
+            display: block;
+        }
+
+        #product-overview[data-zoom="4"] .product-meta {
+            padding-top: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            #product-overview[data-zoom="1"] .product-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+
+            #product-overview[data-zoom="2"] .product-grid,
+            #product-overview[data-zoom="3"] .product-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 520px) {
+            #product-overview[data-zoom="1"] .product-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+
+            #product-overview[data-zoom="1"] .name {
+                font-size: 0.58rem;
+            }
+
+            #product-overview[data-zoom="2"] .product-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 1rem 0.7rem;
+            }
+
+            #product-overview[data-zoom="2"] .product-image-wrap {
+                border-radius: 0;
+                aspect-ratio: 0.73;
+            }
+
+            #product-overview[data-zoom="2"] .save-button {
+                height: 2rem;
+                width: 2rem;
+                right: 0.45rem;
+                top: 0.45rem;
+            }
+
+            #product-overview[data-zoom="2"] .product-meta {
+                padding: 0.55rem 0.15rem 0;
+            }
+
+            #product-overview[data-zoom="2"] .brand {
+                font-size: 0.92rem;
+            }
+
+            #product-overview[data-zoom="2"] .name {
+                font-size: 0.98rem;
+            }
+
+            #product-overview[data-zoom="2"] .price {
+                font-size: 1rem;
+            }
+
+            #product-overview[data-zoom="2"] .details {
+                font-size: 0.78rem;
+            }
+
+            #product-overview[data-zoom="3"] .product-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            #product-overview[data-zoom="4"] .product-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </SiteLayout>
