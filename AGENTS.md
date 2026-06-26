@@ -1,39 +1,33 @@
 # AGENTS.md
 
-## Project
-- **Name:** HIGHLIDE website
-- **Type:** Astro + Tailwind marketing/prototype site
-- **Stage:** **v1.0 proof of concept**
+## Project snapshot
+- **Project:** HIGHLIDE website
+- **Stage:** v1.0 proof of concept
+- **Stack:** Astro 6 + Tailwind CSS 4
 - **Package manager:** `pnpm`
 - **Node:** `>=22.12.0`
 
-## Business context
-HIGHLIDE is building a platform that helps users discover clothes from **smaller local fashion stores** instead of only buying from large chains. The bigger mission is to support local brands and stores so they can stay visible and competitive.
+## What HIGHLIDE is
+HIGHLIDE is building a platform that helps users discover clothes from **smaller local fashion stores** rather than defaulting to large chains. The broader goal is to help local stores and brands stay visible and competitive.
 
-### Initial market
-- Starting city: **Aarhus, Denmark**
-- Long-term goal: expand into **other cities** later
-- Current focus: validate the concept with a simpler first version before building a larger platform
+## Business direction
+- Start in **Aarhus, Denmark**
+- Expand to **other cities** later
+- Build a lean first version to validate the concept
+- Stay simple in v1, but make choices that support future scale and integrations
 
-## Product vision
-The product should become a scalable clothing discovery platform that can:
-- aggregate products from multiple local stores
-- help users find nearby fashion items quickly
-- support future city expansion
-- stay flexible enough to integrate with other systems and external data sources later
+## Product strategy
+- **Mobile-first** is the top priority
+- Primary audience is roughly **15–35 years old**
+- Prioritize **speed, clarity, and modern UX**
+- Avoid over-engineering
+- Design for future store/product aggregation and external data flows
 
-## Current product strategy
-- **Mobile-first** is the main design priority
-- Target audience is roughly **15–35 years old**
-- Prefer **fast, modern, simple UX** over heavy feature complexity
-- Avoid over-engineering in v1
-- Build with future scalability in mind, but keep the current implementation lean
-
-## Tech stack
-- **Astro 6**
-- **Tailwind CSS 4** via `@tailwindcss/vite`
+## Tech and architecture
 - Mostly static `.astro` pages
-- Minimal inline client-side JavaScript where needed
+- Tailwind utility classes are the main styling approach
+- Minimal inline JavaScript for lightweight interactions
+- No backend, CMS, auth, or real data integrations yet
 
 ## Commands
 - `pnpm install`
@@ -41,31 +35,46 @@ The product should become a scalable clothing discovery platform that can:
 - `pnpm build`
 - `pnpm preview`
 
-## Project structure
+## Important source structure
 ```text
 src/
   components/
+    Footer.astro
+    SearchSection.astro
   layouts/
+    SiteLayout.astro
   pages/
+    index.astro
+    Produkt-overblik.astro
+    Produkt-detaljer.astro
+    Butiks-info.astro
+    Om-Highlide.astro
+    Hjaelp-kontakt.astro
+    Profil.astro
+    Gemte-produkter.astro
+    Rediger-personlige-informationer.astro
+    Auth.astro
   styles/
-  public/
+    global.css
+public/
+  icons/
+  images/
+  HIGHLIDE_logo_dark.png
 ```
 
 ## Current implementation status
-This repo is currently a **frontend prototype**, not a full platform.
+This repo is currently a **frontend prototype**.
 
-### What exists now
-- Shared site layout with header/footer: `src/layouts/SiteLayout.astro`
-- Homepage with hero search + about section: `src/pages/index.astro`
-- Product overview page with:
-  - mock product dataset
-  - query filtering via `?q=`
-  - zoom-level grid modes
-  - load-more behavior
-- Static assets for logo, icons, and clothing imagery
+### Most developed parts
+- `src/layouts/SiteLayout.astro` — shared page shell with header/footer
+- `src/pages/index.astro` — homepage with search hero and about section
+- `src/pages/Produkt-overblik.astro` — main prototype page with:
+  - mock product data
+  - filtering via `?q=`
+  - zoom-level grid behavior
+  - load-more interaction
 
-### What is still placeholder / incomplete
-Most non-home pages are currently stubs or nearly empty:
+### Mostly placeholder pages
 - `Auth.astro`
 - `Butiks-info.astro`
 - `Gemte-produkter.astro`
@@ -75,14 +84,10 @@ Most non-home pages are currently stubs or nearly empty:
 - `Profil.astro`
 - `Rediger-personlige-informationer.astro`
 
-Also, current copy contains some **Lorem ipsum** placeholder text that should later be replaced with real brand/product messaging.
-
-## Key UX and design notes
-- The visual direction is clean, fashion-oriented, and modern
-- Mobile usage is the primary assumption
-- Performance and simplicity matter
-- The product overview page is currently the most developed page and is the clearest reference for interaction style
-- Header drawer code exists in `SiteLayout.astro`, but `isMenuEnabled` is currently set to `false`, so the menu button is intentionally disabled/hidden
+### Current content state
+- Some text is still placeholder / **Lorem ipsum**
+- Product data is hardcoded in `src/pages/Produkt-overblik.astro`
+- No persistence for favorites, profile, or auth flows
 
 ## Important routes
 - `/` — homepage
@@ -96,48 +101,42 @@ Also, current copy contains some **Lorem ipsum** placeholder text that should la
 - `/Rediger-personlige-informationer` — edit profile placeholder
 - `/Auth` — login/signup placeholder
 
-## Reusable components
-### `src/layouts/SiteLayout.astro`
-Use this as the shared page shell.
-- imports global styles
-- renders sticky header and footer
-- contains nav structure
-- contains drawer/open-close script
+## Key UI notes
+- Visual style is clean, fashion-oriented, and modern
+- Mobile usage is the main assumption
+- Performance and simplicity matter
+- `Produkt-overblik` is the best reference for current interaction style
+- In `SiteLayout.astro`, the drawer/menu logic exists, but `isMenuEnabled` is currently `false`, so the menu button is intentionally hidden/disabled
 
-## Data state
-There is **no backend** connected yet.
-
-Current product data is hardcoded in:
-- `src/pages/Produkt-overblik.astro`
-
-This means:
-- no CMS
-- no product API
-- no auth system
-- no persistence for favorites/profile
-- no real store integrations yet
-
-## Recommended development mindset for future agents
-When making changes, optimize for:
-1. **mobile-first UX**
-2. **clarity and speed**
-3. **simple architecture**
-4. **future scalability** without premature complexity
-5. ability to later support:
-   - more cities
-   - more stores
-   - external integrations / data feeds
+## Engineering conventions and style rules
+- **Design mobile-first** and scale upward
+- **Prefer simple Astro solutions** over unnecessary complexity
+- **Keep client-side JS minimal** and only add it when HTML/CSS is not enough
+- **Reuse components** instead of duplicating repeated UI patterns
+- **Centralize shared mock data** if it starts being reused across pages
+- **Keep naming consistent** with the current Danish route structure unless deliberately refactoring
+- **Use Tailwind pragmatically:** inline utilities first, extraction only when repetition/readability justifies it
+- **Maintain accessibility basics:** semantic HTML, labels, keyboard support, alt text
+- **Do not over-engineer v1**
+- **Never edit `dist/`**; only edit source files
 
 ## Content and language notes
-- Route names and UI labels are primarily in **Danish**
-- Some code/comments/descriptions are in English
-- Keep naming consistent with the existing route structure unless there is a deliberate refactor
+- Routes and much of the UI are in **Danish**
+- Some code and descriptions are in English
+- Keep route naming and UI terminology consistent unless doing a deliberate cleanup/refactor
 
-## Known realities of the repo
-- `README.md` is still the default Astro starter README and does **not** describe the actual project
-- `dist/` exists but is generated output, not source of truth
+## Repo realities
+- `README.md` contains the public project overview
+- `AGENTS.md` is the internal quick-start handoff for future agents
 - `global.css` currently only imports Tailwind
-- Styling is mostly done inline with Tailwind utility classes directly in `.astro` files
+- `dist/` is generated output, not source of truth
 
-## Summary for new agents
-This is a **mobile-first Astro/Tailwind frontend prototype** for HIGHLIDE, a fashion discovery platform focused on surfacing products from **small local clothing stores**, starting in **Aarhus**. The current repo is intentionally lean and mostly static, with the **product overview page** being the most developed feature. The codebase should evolve carefully: keep it simple for v1, but shape decisions so the platform can later scale across cities and integrate real store/product data.
+## What future agents should optimize for
+1. mobile-first UX
+2. simple architecture
+3. fast browsing experience
+4. scalable city/store expansion later
+5. easy future integration with real store/product data
+
+## Short summary
+This is a **mobile-first Astro/Tailwind frontend prototype** for HIGHLIDE, a platform for surfacing products from **small local clothing stores**, starting in **Aarhus**. Keep the codebase lean and practical for v1, while making decisions that can later support more cities, more stores, and real integrations.
