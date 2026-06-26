@@ -1,10 +1,248 @@
 ---
-import SearchSection from "../components/SearchSection.astro";
+import { allProducts } from "../data/products";
 import SiteLayout from "../layouts/SiteLayout.astro";
 
-const searchQuery = Astro.url.searchParams.get("q") ?? "";
+const initialProduct = allProducts[0];
+const sizes = ["46", "48", "50", "52"];
+const selectedSize = "48";
+const primaryKeys = new Set(["id", "brand", "name", "price", "store", "image"]);
+
+const formatLabel = (key: string) =>
+    key
+        .replace(/([A-Z])/g, " $1")
+        .replace(/[_-]+/g, " ")
+        .trim()
+        .replace(/^./, (char) => char.toUpperCase());
+
+const formatValue = (value: unknown) => {
+    if (value == null) return "";
+    if (Array.isArray(value)) return value.join(", ");
+    if (typeof value === "object") return JSON.stringify(value, null, 2);
+    return String(value);
+};
+
+const initialExtraEntries = Object.entries(initialProduct).filter(
+    ([key, value]) => !primaryKeys.has(key) && value != null && value !== "",
+);
 ---
 
-<SiteLayout title="Produkt detaljer" description="HIGHLIDE product details page">
-    <SearchSection action="/Produkt-detaljer" value={searchQuery} />
+<SiteLayout
+    title="Produkt detaljer"
+    description="HIGHLIDE product details page"
+>
+    <section class="-mt-8 mx-auto max-w-3xl pb-10 md:-mt-8">
+        <div
+            class="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[linear-gradient(180deg,_#2f2b28_0%,_#1c1917_100%)] sm:left-auto sm:w-full sm:translate-x-0 sm:rounded-[1.5rem]"
+        >
+            <button
+                type="button"
+                class="absolute left-4 top-4 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/70 text-[#1e1a17] shadow-[0_12px_30px_rgba(0,0,0,0.16)] backdrop-blur-md transition hover:scale-[1.02] hover:bg-white/82"
+                aria-label="Tilbage til produktoversigt"
+                data-back-button
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                    class="h-5 w-5"
+                >
+                    <path
+                        d="M15 6 9 12l6 6"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                </svg>
+            </button>
+
+            <div class="aspect-[0.82] w-full">
+                <img
+                    src={initialProduct.image}
+                    alt={`${initialProduct.brand} ${initialProduct.name}`}
+                    class="h-full w-full object-cover"
+                    data-product-image
+                />
+            </div>
+        </div>
+
+        <div class="space-y-8 px-1 pt-6 sm:px-0">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p
+                        class="text-[1.5rem] font-bold uppercase tracking-[-0.04em] text-[#171411]"
+                        data-product-brand
+                    >
+                        {initialProduct.brand}
+                    </p>
+                    <p class="mt-1 text-lg text-[#5f5650]" data-product-name>
+                        {initialProduct.name}
+                    </p>
+                </div>
+                <p
+                    class="text-[1.5rem] font-bold text-[#171411]"
+                    data-product-price
+                >
+                    {initialProduct.price}
+                </p>
+            </div>
+
+            <div class="rounded-2xl bg-[#efe9e2] px-4 py-4 text-[#2f2a26]">
+                <div class="flex items-center gap-3">
+                    <span class="h-3 w-3 rounded-full bg-[#2db25d]"></span>
+                    <p
+                        class="text-sm font-medium sm:text-base"
+                        data-product-stock
+                    >
+                        På lager netop nu i {initialProduct.store} Aarhus
+                    </p>
+                </div>
+            </div>
+
+            <div class="border-t border-black/10 pt-8">
+                <h2
+                    class="text-sm font-extrabold uppercase tracking-[0.08em] text-[#171411]"
+                >
+                    Tilgængelige størrelser
+                </h2>
+
+                <div class="mt-5 grid grid-cols-4 gap-3">
+                    {
+                        sizes.map((size) => (
+                            <button
+                                type="button"
+                                class:list={[
+                                    "rounded-xl border px-4 py-3 text-base font-medium transition",
+                                    size === selectedSize
+                                        ? "border-[#4e1515] bg-[#4e1515] text-white"
+                                        : "border-black/10 bg-[#f8f4ec] text-[#5f5650]",
+                                ]}
+                            >
+                                {size}
+                            </button>
+                        ))
+                    }
+                </div>
+            </div>
+
+            <div class="border-t border-black/10 pt-8">
+                <h2
+                    class="text-sm font-extrabold uppercase tracking-[0.08em] text-[#171411]"
+                >
+                    Yderligere produktinformation
+                </h2>
+
+                <div class="mt-5 space-y-4" data-product-extra>
+                    {
+                        initialExtraEntries.length > 0 ? (
+                            initialExtraEntries.map(([key, value]) => (
+                                <div class="rounded-2xl border border-black/10 bg-[#f8f4ec] px-4 py-4">
+                                    <p class="text-sm font-bold uppercase tracking-[0.08em] text-[#6f655b]">
+                                        {formatLabel(key)}
+                                    </p>
+                                    <p class="mt-2 whitespace-pre-wrap text-base leading-7 text-[#4f4741]">
+                                        {formatValue(value)}
+                                    </p>
+                                </div>
+                            ))
+                        ) : (
+                            <div class="rounded-2xl border border-dashed border-black/10 bg-[#f8f4ec] px-4 py-5 text-sm text-[#6f655b]">
+                                Ingen ekstra produktdata endnu.
+                            </div>
+                        )
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script is:inline define:vars={{ allProducts }}>
+        const products = allProducts;
+        const primaryKeys = new Set([
+            "id",
+            "brand",
+            "name",
+            "price",
+            "store",
+            "image",
+        ]);
+        const backButton = document.querySelector("[data-back-button]");
+        const image = document.querySelector("[data-product-image]");
+        const brand = document.querySelector("[data-product-brand]");
+        const name = document.querySelector("[data-product-name]");
+        const price = document.querySelector("[data-product-price]");
+        const stock = document.querySelector("[data-product-stock]");
+        const extra = document.querySelector("[data-product-extra]");
+
+        const formatLabel = (key) =>
+            key
+                .replace(/([A-Z])/g, " $1")
+                .replace(/[_-]+/g, " ")
+                .trim()
+                .replace(/^./, (char) => char.toUpperCase());
+
+        const formatValue = (value) => {
+            if (value == null) return "";
+            if (Array.isArray(value)) return value.join(", ");
+            if (typeof value === "object")
+                return JSON.stringify(value, null, 2);
+            return String(value);
+        };
+
+        const renderExtraEntries = (product) => {
+            const entries = Object.entries(product).filter(
+                ([key, value]) =>
+                    !primaryKeys.has(key) && value != null && value !== "",
+            );
+
+            if (!extra) return;
+
+            if (entries.length === 0) {
+                extra.innerHTML = `
+                    <div class="rounded-2xl border border-dashed border-black/10 bg-[#f8f4ec] px-4 py-5 text-sm text-[#6f655b]">
+                        Ingen ekstra produktdata endnu.
+                    </div>
+                `;
+                return;
+            }
+
+            extra.innerHTML = entries
+                .map(
+                    ([key, value]) => `
+                        <div class="rounded-2xl border border-black/10 bg-[#f8f4ec] px-4 py-4">
+                            <p class="text-sm font-bold uppercase tracking-[0.08em] text-[#6f655b]">${formatLabel(key)}</p>
+                            <p class="mt-2 whitespace-pre-wrap text-base leading-7 text-[#4f4741]">${formatValue(value)}</p>
+                        </div>
+                    `,
+                )
+                .join("");
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        const productId = Number(params.get("id"));
+        const product =
+            products.find((item) => item.id === productId) ?? products[0];
+
+        backButton?.addEventListener("click", () => {
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+
+            window.location.href = "/Produkt-overblik";
+        });
+
+        if (image) {
+            image.src = product.image;
+            image.alt = `${product.brand} ${product.name}`;
+        }
+
+        if (brand) brand.textContent = product.brand;
+        if (name) name.textContent = product.name;
+        if (price) price.textContent = product.price;
+        if (stock)
+            stock.textContent = `På lager netop nu i ${product.store} Aarhus`;
+        document.title = `${product.brand} ${product.name}`;
+
+        renderExtraEntries(product);
+    </script>
 </SiteLayout>
