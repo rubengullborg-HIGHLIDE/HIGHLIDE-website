@@ -44,11 +44,19 @@ if (!supabaseUrl || !supabaseKey) {
                 </svg>
             </button>
 
-            <div class="aspect-[0.82] w-full px-6 py-10 sm:px-10">
+            <div class="relative aspect-[0.82] w-full px-6 py-10 sm:px-10">
+                <div
+                    class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[#6f655b]"
+                    data-image-loading
+                >
+                    <span
+                        class="h-8 w-8 animate-spin rounded-full border-2 border-[#c9beb3] border-t-[#420e0e]"
+                    ></span>
+                    <p class="text-sm font-medium">Henter billede...</p>
+                </div>
                 <img
-                    src="/images/clothes/Brown_coat.png"
                     alt=""
-                    class="h-full w-full object-contain"
+                    class="h-full w-full object-contain opacity-0 transition-opacity duration-200"
                     data-product-image
                 />
             </div>
@@ -190,6 +198,7 @@ if (!supabaseUrl || !supabaseKey) {
         const backButton = detail?.querySelector("[data-back-button]");
         const imageStage = detail?.querySelector("[data-image-stage]");
         const image = detail?.querySelector("[data-product-image]");
+        const imageLoading = detail?.querySelector("[data-image-loading]");
         const imageDots = detail?.querySelector("[data-image-dots]");
         const brand = detail?.querySelector("[data-product-brand]");
         const name = detail?.querySelector("[data-product-name]");
@@ -271,6 +280,8 @@ if (!supabaseUrl || !supabaseKey) {
         const renderCurrentImage = () => {
             if (!image) return;
 
+            image.classList.add("opacity-0");
+            imageLoading?.toggleAttribute("hidden", false);
             image.src = currentImages[currentImageIndex] ?? fallbackImage;
         };
 
@@ -497,6 +508,21 @@ if (!supabaseUrl || !supabaseKey) {
             }
 
             window.location.href = "/Produkt-overblik";
+        });
+
+        image?.addEventListener("load", () => {
+            imageLoading?.toggleAttribute("hidden", true);
+            image.classList.remove("opacity-0");
+        });
+
+        image?.addEventListener("error", () => {
+            if (image.src.endsWith(fallbackImage)) {
+                imageLoading?.toggleAttribute("hidden", true);
+                image.classList.remove("opacity-0");
+                return;
+            }
+
+            image.src = fallbackImage;
         });
 
         imageStage?.addEventListener("touchstart", (event) => {
