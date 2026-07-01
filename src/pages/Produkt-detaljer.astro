@@ -1,38 +1,27 @@
 ---
-import { allProducts } from "../data/products";
 import SiteLayout from "../layouts/SiteLayout.astro";
 
-const initialProduct = allProducts[0];
-const sizes = ["46", "48", "50", "52"];
-const selectedSize = "48";
-const primaryKeys = new Set(["id", "brand", "name", "price", "store", "image"]);
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseKey = import.meta.env.SUPABASE_KEY;
 
-const formatLabel = (key: string) =>
-    key
-        .replace(/([A-Z])/g, " $1")
-        .replace(/[_-]+/g, " ")
-        .trim()
-        .replace(/^./, (char) => char.toUpperCase());
-
-const formatValue = (value: unknown) => {
-    if (value == null) return "";
-    if (Array.isArray(value)) return value.join(", ");
-    if (typeof value === "object") return JSON.stringify(value, null, 2);
-    return String(value);
-};
-
-const initialExtraEntries = Object.entries(initialProduct).filter(
-    ([key, value]) => !primaryKeys.has(key) && value != null && value !== "",
-);
+if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Missing Supabase environment variables.");
+}
 ---
 
 <SiteLayout
     title="Produkt detaljer"
     description="HIGHLIDE product details page"
 >
-    <section class="-mt-8 mx-auto max-w-3xl pb-10 md:-mt-8">
+    <section
+        class="-mt-8 mx-auto max-w-3xl pb-10 md:-mt-8"
+        id="product-detail"
+        data-supabase-url={supabaseUrl}
+        data-supabase-key={supabaseKey}
+    >
         <div
-            class="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[linear-gradient(180deg,_#2f2b28_0%,_#1c1917_100%)] sm:left-auto sm:w-full sm:translate-x-0 sm:rounded-[1.5rem]"
+            class="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#f3eee6] sm:left-auto sm:w-full sm:translate-x-0 sm:rounded-[1.5rem]"
+            data-image-stage
         >
             <button
                 type="button"
@@ -55,34 +44,56 @@ const initialExtraEntries = Object.entries(initialProduct).filter(
                 </svg>
             </button>
 
-            <div class="aspect-[0.82] w-full">
+            <div class="aspect-[0.82] w-full px-6 py-10 sm:px-10">
                 <img
-                    src={initialProduct.image}
-                    alt={`${initialProduct.brand} ${initialProduct.name}`}
-                    class="h-full w-full object-cover"
+                    src="/images/clothes/Brown_coat.png"
+                    alt=""
+                    class="h-full w-full object-contain"
                     data-product-image
                 />
             </div>
+
+            <div
+                class="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/80 px-3 py-2 shadow-[0_10px_26px_rgba(58,44,31,0.14)] backdrop-blur-md"
+                data-image-dots
+                hidden
+            >
+            </div>
         </div>
 
-        <div class="space-y-8 px-1 pt-6 sm:px-0">
+        <div
+            class="mt-6 rounded-[1.25rem] border border-black/10 bg-[#f8f4ec] px-5 py-5 text-[#3e3530]"
+            data-loading-state
+        >
+            <p class="text-base font-semibold">Henter produkt...</p>
+        </div>
+
+        <div
+            class="mt-6 rounded-[1.25rem] border border-black/10 bg-[#f8f4ec] px-5 py-5 text-[#3e3530]"
+            data-error-state
+            hidden
+        >
+            <p class="text-base font-semibold">Produktet kunne ikke findes.</p>
+            <p class="mt-2 text-sm text-[#6e645d]">
+                Gå tilbage til produktoversigten og vælg et andet produkt.
+            </p>
+        </div>
+
+        <div class="space-y-8 px-1 pt-6 sm:px-0" data-product-content hidden>
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <p
                         class="text-[1.5rem] font-bold uppercase tracking-[-0.04em] text-[#171411]"
                         data-product-brand
                     >
-                        {initialProduct.brand}
                     </p>
                     <p class="mt-1 text-lg text-[#5f5650]" data-product-name>
-                        {initialProduct.name}
                     </p>
                 </div>
                 <p
-                    class="text-[1.5rem] font-bold text-[#171411]"
+                    class="shrink-0 text-[1.5rem] font-bold text-[#171411]"
                     data-product-price
                 >
-                    {initialProduct.price}
                 </p>
             </div>
 
@@ -93,7 +104,6 @@ const initialExtraEntries = Object.entries(initialProduct).filter(
                         class="text-sm font-medium sm:text-base"
                         data-product-stock
                     >
-                        På lager netop nu i {initialProduct.store} Aarhus
                     </p>
                 </div>
             </div>
@@ -105,122 +115,380 @@ const initialExtraEntries = Object.entries(initialProduct).filter(
                     Tilgængelige størrelser
                 </h2>
 
-                <div class="mt-5 grid grid-cols-4 gap-3">
-                    {
-                        sizes.map((size) => (
-                            <button
-                                type="button"
-                                class:list={[
-                                    "rounded-xl border px-4 py-3 text-base font-medium transition",
-                                    size === selectedSize
-                                        ? "border-[#4e1515] bg-[#4e1515] text-white"
-                                        : "border-black/10 bg-[#f8f4ec] text-[#5f5650]",
-                                ]}
-                            >
-                                {size}
-                            </button>
-                        ))
-                    }
-                </div>
+                <div class="mt-5 flex flex-wrap gap-3" data-product-sizes></div>
             </div>
 
             <div class="border-t border-black/10 pt-8">
                 <h2
                     class="text-sm font-extrabold uppercase tracking-[0.08em] text-[#171411]"
                 >
-                    Yderligere produktinformation
+                    Produktinformation
                 </h2>
 
-                <div class="mt-5 space-y-4" data-product-extra>
-                    {
-                        initialExtraEntries.length > 0 ? (
-                            initialExtraEntries.map(([key, value]) => (
-                                <div class="rounded-2xl border border-black/10 bg-[#f8f4ec] px-4 py-4">
-                                    <p class="text-sm font-bold uppercase tracking-[0.08em] text-[#6f655b]">
-                                        {formatLabel(key)}
-                                    </p>
-                                    <p class="mt-2 whitespace-pre-wrap text-base leading-7 text-[#4f4741]">
-                                        {formatValue(value)}
-                                    </p>
-                                </div>
-                            ))
-                        ) : (
-                            <div class="rounded-2xl border border-dashed border-black/10 bg-[#f8f4ec] px-4 py-5 text-sm text-[#6f655b]">
-                                Ingen ekstra produktdata endnu.
-                            </div>
-                        )
-                    }
-                </div>
+                <div class="mt-5" data-product-extra></div>
             </div>
         </div>
     </section>
 
-    <script is:inline define:vars={{ allProducts }}>
-        const products = allProducts;
-        const primaryKeys = new Set([
+    <script>
+        import { createClient } from "@supabase/supabase-js";
+
+        const detail = document.getElementById("product-detail");
+        const supabaseUrl = detail?.dataset.supabaseUrl;
+        const supabaseKey = detail?.dataset.supabaseKey;
+
+        if (!detail || !supabaseUrl || !supabaseKey) {
+            console.error("Missing Supabase config on product details page.");
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        const fallbackImage = "/images/clothes/Brown_coat.png";
+        const technicalKeys = new Set([
             "id",
-            "brand",
+            "navn",
             "name",
+            "brand",
+            "pris",
             "price",
             "store",
+            "images",
             "image",
         ]);
-        const backButton = document.querySelector("[data-back-button]");
-        const image = document.querySelector("[data-product-image]");
-        const brand = document.querySelector("[data-product-brand]");
-        const name = document.querySelector("[data-product-name]");
-        const price = document.querySelector("[data-product-price]");
-        const stock = document.querySelector("[data-product-stock]");
-        const extra = document.querySelector("[data-product-extra]");
+        const omittedExtraKeys = new Set([
+            "fts",
+            "search_target",
+            "embedding",
+            "embeddings",
+            "vector",
+            "vectors",
+        ]);
+        const sizeKeys = [
+            "sizes",
+            "size",
+            "available_sizes",
+            "availableSizes",
+            "storrelser",
+            "størrelser",
+            "tilgaengelige_storrelser",
+            "tilgængelige_størrelser",
+        ];
+        const labelMap = {
+            category: "Kategori",
+            color: "Farve",
+            colour: "Farve",
+            description: "Beskrivelse",
+            gender: "Køn",
+            material: "Materiale",
+            materials: "Materialer",
+            product_url: "Produktlink",
+            scraped_at: "Hentet",
+            url: "Produktlink",
+            created_at: "Oprettet",
+            updated_at: "Opdateret",
+        };
+
+        const backButton = detail?.querySelector("[data-back-button]");
+        const imageStage = detail?.querySelector("[data-image-stage]");
+        const image = detail?.querySelector("[data-product-image]");
+        const imageDots = detail?.querySelector("[data-image-dots]");
+        const brand = detail?.querySelector("[data-product-brand]");
+        const name = detail?.querySelector("[data-product-name]");
+        const price = detail?.querySelector("[data-product-price]");
+        const stock = detail?.querySelector("[data-product-stock]");
+        const sizes = detail?.querySelector("[data-product-sizes]");
+        const extra = detail?.querySelector("[data-product-extra]");
+        const loadingState = detail?.querySelector("[data-loading-state]");
+        const errorState = detail?.querySelector("[data-error-state]");
+        const content = detail?.querySelector("[data-product-content]");
+        let currentImages = [fallbackImage];
+        let currentImageIndex = 0;
+        let touchStartX = 0;
+
+        const isEmptyValue = (value) => {
+            if (value == null) return true;
+            if (typeof value === "string") return value.trim() === "";
+            if (Array.isArray(value)) return value.length === 0;
+            if (typeof value === "object")
+                return Object.keys(value).length === 0;
+            return false;
+        };
 
         const formatLabel = (key) =>
+            labelMap[key] ??
             key
                 .replace(/([A-Z])/g, " $1")
                 .replace(/[_-]+/g, " ")
                 .trim()
                 .replace(/^./, (char) => char.toUpperCase());
 
+        const formatPrice = (value) => {
+            if (typeof value === "number") {
+                return `${new Intl.NumberFormat("da-DK").format(value)} DKK`;
+            }
+
+            return value ? String(value) : "Pris ikke angivet";
+        };
+
         const formatValue = (value) => {
             if (value == null) return "";
-            if (Array.isArray(value)) return value.join(", ");
-            if (typeof value === "object")
-                return JSON.stringify(value, null, 2);
+            if (Array.isArray(value)) return value.map(formatValue).join(", ");
+            if (typeof value === "object") {
+                return Object.entries(value)
+                    .filter(([, entryValue]) => !isEmptyValue(entryValue))
+                    .map(
+                        ([entryKey, entryValue]) =>
+                            `${formatLabel(entryKey)}: ${formatValue(entryValue)}`,
+                    )
+                    .join("\n");
+            }
+
             return String(value);
         };
 
-        const renderExtraEntries = (product) => {
-            const entries = Object.entries(product).filter(
-                ([key, value]) =>
-                    !primaryKeys.has(key) && value != null && value !== "",
-            );
+        const getProductName = (product) =>
+            product.navn || product.name || "Produkt";
 
-            if (!extra) return;
+        const getProductImages = (product) => {
+            const images = [];
 
-            if (entries.length === 0) {
-                extra.innerHTML = `
-                    <div class="rounded-2xl border border-dashed border-black/10 bg-[#f8f4ec] px-4 py-5 text-sm text-[#6f655b]">
-                        Ingen ekstra produktdata endnu.
-                    </div>
-                `;
+            if (Array.isArray(product.images)) {
+                images.push(
+                    ...product.images.filter(
+                        (item) => typeof item === "string" && item.trim(),
+                    ),
+                );
+            }
+
+            if (typeof product.image === "string" && product.image.trim()) {
+                images.push(product.image);
+            }
+
+            return [...new Set(images)].length > 0
+                ? [...new Set(images)]
+                : [fallbackImage];
+        };
+
+        const renderCurrentImage = () => {
+            if (!image) return;
+
+            image.src = currentImages[currentImageIndex] ?? fallbackImage;
+        };
+
+        const renderImageDots = () => {
+            if (!imageDots) return;
+
+            imageDots.innerHTML = "";
+            imageDots.hidden = currentImages.length <= 1;
+
+            currentImages.forEach((_, index) => {
+                const dot = document.createElement("button");
+                dot.type = "button";
+                dot.className =
+                    index === currentImageIndex
+                        ? "h-2.5 w-5 rounded-full bg-[#420e0e] transition-all"
+                        : "h-2.5 w-2.5 rounded-full bg-[#b9afa5] transition-all";
+                dot.setAttribute("aria-label", `Vis billede ${index + 1}`);
+                dot.addEventListener("click", () => {
+                    currentImageIndex = index;
+                    renderCurrentImage();
+                    renderImageDots();
+                });
+                imageDots.append(dot);
+            });
+        };
+
+        const showImage = (direction) => {
+            if (currentImages.length <= 1) return;
+
+            currentImageIndex =
+                (currentImageIndex + direction + currentImages.length) %
+                currentImages.length;
+            renderCurrentImage();
+            renderImageDots();
+        };
+
+        const formatSizeValue = (value) => {
+            if (isEmptyValue(value)) return "";
+            if (typeof value !== "object") return String(value);
+
+            const sizeField = [
+                "size",
+                "label",
+                "name",
+                "value",
+                "title",
+                "storrelse",
+                "størrelse",
+            ].find((key) => !isEmptyValue(value[key]));
+
+            if (sizeField) return String(value[sizeField]);
+
+            return formatValue(value);
+        };
+
+        const getSizes = (product) => {
+            const sizeKey = sizeKeys.find((key) => !isEmptyValue(product[key]));
+            if (!sizeKey) return [];
+
+            const value = product[sizeKey];
+            if (Array.isArray(value)) {
+                return value.map(formatSizeValue).filter(Boolean);
+            }
+            if (typeof value === "string") {
+                return value
+                    .split(/[,;/|]+/)
+                    .map((item) => item.trim())
+                    .filter(Boolean);
+            }
+            if (typeof value === "object") {
+                return Object.values(value)
+                    .flat()
+                    .map(formatSizeValue)
+                    .filter(Boolean);
+            }
+
+            return [String(value)];
+        };
+
+        const renderSizes = (product) => {
+            if (!sizes) return;
+
+            const productSizes = getSizes(product);
+            sizes.innerHTML = "";
+
+            if (productSizes.length === 0) {
+                const fallback = document.createElement("p");
+                fallback.className =
+                    "rounded-xl border border-dashed border-black/10 bg-[#f8f4ec] px-4 py-3 text-sm font-medium text-[#6f655b]";
+                fallback.textContent = "Størrelser ikke angivet";
+                sizes.append(fallback);
                 return;
             }
 
-            extra.innerHTML = entries
-                .map(
-                    ([key, value]) => `
-                        <div class="rounded-2xl border border-black/10 bg-[#f8f4ec] px-4 py-4">
-                            <p class="text-sm font-bold uppercase tracking-[0.08em] text-[#6f655b]">${formatLabel(key)}</p>
-                            <p class="mt-2 whitespace-pre-wrap text-base leading-7 text-[#4f4741]">${formatValue(value)}</p>
-                        </div>
-                    `,
-                )
-                .join("");
+            productSizes.forEach((size) => {
+                const item = document.createElement("span");
+                item.className =
+                    "inline-flex min-w-14 items-center justify-center rounded-xl border border-black/10 bg-[#f8f4ec] px-4 py-3 text-base font-medium text-[#3e3530]";
+                item.textContent = size;
+                sizes.append(item);
+            });
         };
 
-        const params = new URLSearchParams(window.location.search);
-        const productId = Number(params.get("id"));
-        const product =
-            products.find((item) => item.id === productId) ?? products[0];
+        const renderExtraEntries = (product) => {
+            if (!extra) return;
+
+            const usedSizeKeys = new Set(
+                sizeKeys.filter((key) => !isEmptyValue(product[key])),
+            );
+            const entries = Object.entries(product).filter(
+                ([key, value]) =>
+                    !technicalKeys.has(key) &&
+                    !omittedExtraKeys.has(key) &&
+                    !key.toLowerCase().includes("vector") &&
+                    !usedSizeKeys.has(key) &&
+                    !isEmptyValue(value),
+            );
+
+            extra.innerHTML = "";
+
+            if (entries.length === 0) {
+                const empty = document.createElement("div");
+                empty.className =
+                    "rounded-2xl border border-dashed border-black/10 bg-[#f8f4ec] px-4 py-5 text-sm text-[#6f655b]";
+                empty.textContent = "Ingen ekstra produktdata endnu.";
+                extra.append(empty);
+                return;
+            }
+
+            const panel = document.createElement("div");
+            panel.className =
+                "divide-y divide-black/10 rounded-2xl border border-black/10 bg-[#f8f4ec] px-4 py-1";
+
+            entries.forEach(([key, value]) => {
+                const row = document.createElement("div");
+                row.className =
+                    "grid gap-2 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4";
+
+                const label = document.createElement("p");
+                label.className =
+                    "text-xs font-bold uppercase tracking-[0.08em] text-[#6f655b]";
+                label.textContent = formatLabel(key);
+
+                const body = document.createElement("p");
+                body.className =
+                    "whitespace-pre-wrap text-base leading-7 text-[#4f4741]";
+                body.textContent = formatValue(value);
+
+                row.append(label, body);
+                panel.append(row);
+            });
+
+            extra.append(panel);
+        };
+
+        const setState = ({
+            loading = false,
+            error = false,
+            visible = false,
+        }) => {
+            loadingState?.toggleAttribute("hidden", !loading);
+            errorState?.toggleAttribute("hidden", !error);
+            content?.toggleAttribute("hidden", !visible);
+        };
+
+        const renderProduct = (product) => {
+            const productName = getProductName(product);
+            const productBrand = product.brand || "Ukendt brand";
+            const productPrice = formatPrice(product.pris ?? product.price);
+            const productStore = product.store || "Ukendt butik";
+            currentImages = getProductImages(product);
+            currentImageIndex = 0;
+
+            if (image) {
+                image.alt = `${productBrand} ${productName}`;
+            }
+
+            renderCurrentImage();
+            renderImageDots();
+
+            if (brand) brand.textContent = productBrand;
+            if (name) name.textContent = productName;
+            if (price) price.textContent = productPrice;
+            if (stock) {
+                stock.textContent = `På lager netop nu i ${productStore}`;
+            }
+
+            document.title = `${productBrand} ${productName}`;
+            renderSizes(product);
+            renderExtraEntries(product);
+            setState({ visible: true });
+        };
+
+        const fetchProduct = async () => {
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get("id");
+
+            if (!productId) {
+                setState({ error: true });
+                return;
+            }
+
+            setState({ loading: true });
+
+            const { data, error } = await supabase
+                .from("products")
+                .select("*")
+                .eq("id", productId)
+                .single();
+
+            if (error || !data) {
+                console.error(error);
+                setState({ error: true });
+                return;
+            }
+
+            renderProduct(data);
+        };
 
         backButton?.addEventListener("click", () => {
             if (window.history.length > 1) {
@@ -231,18 +499,23 @@ const initialExtraEntries = Object.entries(initialProduct).filter(
             window.location.href = "/Produkt-overblik";
         });
 
-        if (image) {
-            image.src = product.image;
-            image.alt = `${product.brand} ${product.name}`;
-        }
+        imageStage?.addEventListener("touchstart", (event) => {
+            touchStartX = event.touches[0]?.clientX ?? 0;
+        });
 
-        if (brand) brand.textContent = product.brand;
-        if (name) name.textContent = product.name;
-        if (price) price.textContent = product.price;
-        if (stock)
-            stock.textContent = `På lager netop nu i ${product.store} Aarhus`;
-        document.title = `${product.brand} ${product.name}`;
+        imageStage?.addEventListener("touchend", (event) => {
+            const touchEndX = event.changedTouches[0]?.clientX ?? touchStartX;
+            const deltaX = touchEndX - touchStartX;
+            if (Math.abs(deltaX) < 40) return;
 
-        renderExtraEntries(product);
+            showImage(deltaX < 0 ? 1 : -1);
+        });
+
+        imageStage?.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowRight") showImage(1);
+            if (event.key === "ArrowLeft") showImage(-1);
+        });
+
+        fetchProduct();
     </script>
 </SiteLayout>
