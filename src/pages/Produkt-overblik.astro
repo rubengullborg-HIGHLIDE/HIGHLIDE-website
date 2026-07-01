@@ -1,28 +1,31 @@
 ---
+import ProductPagination from "../components/ProductPagination.astro";
 import SearchSection from "../components/SearchSection.astro";
-import { allProducts } from "../data/products";
 import SiteLayout from "../layouts/SiteLayout.astro";
 
-const searchQuery = Astro.url.searchParams.get("q") ?? "";
+const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseKey = import.meta.env.SUPABASE_KEY;
+const defaultZoom = 3;
 
-const normalizedQuery = searchQuery.trim().toLowerCase();
-const filteredProducts = normalizedQuery
-    ? allProducts.filter((product) =>
-          [product.brand, product.name, product.store].some((value) =>
-              value.toLowerCase().includes(normalizedQuery),
-          ),
-      )
-    : allProducts;
+if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Missing Supabase environment variables.");
+}
 ---
 
 <SiteLayout
     title="Produkt overblik"
     description="HIGHLIDE product overview page"
 >
-    <div class="mx-auto max-w-5xl" id="product-overview" data-zoom="2">
+    <div
+        class="mx-auto max-w-5xl"
+        id="product-overview"
+        data-zoom={String(defaultZoom)}
+        data-supabase-url={supabaseUrl}
+        data-supabase-key={supabaseKey}
+        data-default-zoom={String(defaultZoom)}
+    >
         <SearchSection
             action="/Produkt-overblik"
-            value={searchQuery}
             compact={true}
             placeholder="Søg efter brands, produkter eller butikker"
         />
@@ -35,12 +38,8 @@ const filteredProducts = normalizedQuery
                     >
                         Produkt overblik
                     </h1>
-                    <p class="mt-1 text-sm text-[#6e645d] md:text-base">
-                        {
-                            filteredProducts.length > 0
-                                ? `${filteredProducts.length} resultater${searchQuery ? ` for “${searchQuery}”` : ""}`
-                                : `Ingen resultater${searchQuery ? ` for “${searchQuery}”` : ""}`
-                        }
+                    <p class="mt-1 text-sm text-[#6e645d] md:text-base" data-results-copy>
+                        Henter produkter...
                     </p>
                 </div>
             </div>
@@ -57,7 +56,7 @@ const filteredProducts = normalizedQuery
                             class="text-sm font-semibold uppercase tracking-[0.25em] text-[#84786d]"
                             data-zoom-label
                         >
-                            Side 2 ud af 4
+                            Zoom {defaultZoom} ud af 4
                         </p>
                     </div>
 
@@ -67,158 +66,390 @@ const filteredProducts = normalizedQuery
                         min="1"
                         max="4"
                         step="1"
-                        value="2"
+                        value={String(defaultZoom)}
                         aria-label="Vælg zoom niveau"
                         data-zoom-slider
                     />
                 </div>
 
-                {
-                    filteredProducts.length > 0 ? (
-                        <>
-                            <div
-                                class="product-grid grid gap-4"
-                                data-product-grid
-                            >
-                                {filteredProducts.map((product) => (
-                                    <a
-                                        href={`/Produkt-detaljer?id=${product.id}`}
-                                        class="product-card block text-[#1e1a17] transition hover:opacity-90"
-                                        data-product-card
-                                        aria-label={`Se detaljer for ${product.brand} ${product.name}`}
-                                    >
-                                        <div class="product-image-wrap relative aspect-[0.78] overflow-hidden rounded-[1.15rem] bg-gradient-to-b from-[#e8e1d4] to-[#d8d0c2]">
-                                            <img
-                                                src={product.image}
-                                                alt={`${product.brand} ${product.name}`}
-                                                class="product-image h-full w-full object-cover"
-                                                loading="lazy"
-                                            />
-                                            <svg
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                aria-hidden="true"
-                                                class="h-5 w-5"
-                                            >
-                                                <path
-                                                    d="M7 4.75A1.75 1.75 0 0 1 8.75 3h6.5A1.75 1.75 0 0 1 17 4.75V21l-5-3.25L7 21V4.75Z"
-                                                    stroke="currentColor"
-                                                    stroke-width="1.7"
-                                                    stroke-linejoin="round"
-                                                />
-                                            </svg>
-                                        </div>
+                <div class="rounded-[1.5rem] border border-dashed border-black/10 bg-[#f7f2ea] px-6 py-14 text-center" data-loading-state>
+                    <p class="text-lg font-medium text-[#3e3530]">Henter produkter...</p>
+                </div>
 
-                                        <div class="product-meta grid content-start px-1 pt-3">
-                                            <p class="brand text-[0.95rem] font-extrabold uppercase tracking-[0.1em]">
-                                                {product.brand}
-                                            </p>
-                                            <p class="name mt-[0.15rem] text-base text-[#6e645d]">
-                                                {product.name}
-                                            </p>
-                                            <p class="price mt-[0.55rem] text-[1.1rem] font-medium">
-                                                {product.price}
-                                            </p>
-                                            <p class="details mt-1 text-[0.9rem] uppercase text-[#8a8178]">
-                                                ⌖ {product.distance} •{" "}
-                                                {product.store}
-                                            </p>
-                                        </div>
-                                    </a>
-                                ))}
-                            </div>
+                <div
+                    class="rounded-[1.5rem] border border-dashed border-black/10 bg-[#f7f2ea] px-6 py-14 text-center"
+                    data-empty-state
+                    hidden
+                >
+                    <p class="text-lg font-medium text-[#3e3530]">
+                        Vi kunne ikke finde nogle produkter.
+                    </p>
+                    <p class="mt-2 text-sm text-[#6e645d]">
+                        Prøv med et andet søgeord eller fjern din filtrering.
+                    </p>
+                </div>
 
-                            <div
-                                class="mt-8 flex justify-center"
-                                data-load-more-wrap
-                            >
-                                <button
-                                    type="button"
-                                    class="rounded-full border border-black/10 bg-white px-8 py-4 text-sm font-semibold uppercase tracking-[0.12em] text-[#1e1a17] shadow-[0_10px_30px_rgba(58,44,31,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_35px_rgba(58,44,31,0.12)]"
-                                    data-load-more
-                                >
-                                    Indlæs flere resultater
-                                </button>
-                            </div>
-                        </>
-                    ) : (
-                        <div class="rounded-[1.5rem] border border-dashed border-black/10 bg-[#f7f2ea] px-6 py-14 text-center">
-                            <p class="text-lg font-medium text-[#3e3530]">
-                                Vi kunne ikke finde nogle produkter.
-                            </p>
-                            <p class="mt-2 text-sm text-[#6e645d]">
-                                Prøv med et andet søgeord eller fjern din
-                                filtrering.
-                            </p>
-                        </div>
-                    )
-                }
+                <div
+                    class="rounded-[1.5rem] border border-dashed border-black/10 bg-[#f7f2ea] px-6 py-14 text-center"
+                    data-error-state
+                    hidden
+                >
+                    <p class="text-lg font-medium text-[#3e3530]">
+                        Der opstod en fejl ved hentning af produkter.
+                    </p>
+                    <p class="mt-2 text-sm text-[#6e645d]">
+                        Prøv igen om et øjeblik.
+                    </p>
+                </div>
+
+                <div class="product-grid grid gap-4" data-product-grid hidden></div>
+
+                <ProductPagination />
             </div>
         </section>
     </div>
 
-    <script is:inline>
+    <script>
+        import { createClient } from "@supabase/supabase-js";
+
         const overview = document.getElementById("product-overview");
+        const supabaseUrl = overview?.dataset.supabaseUrl;
+        const supabaseKey = overview?.dataset.supabaseKey;
+        const defaultZoom = Number(overview?.dataset.defaultZoom ?? "3");
+        const zoomStorageKey = "highlide-product-overview-zoom";
+
+        if (!overview || !supabaseUrl || !supabaseKey) {
+            console.error("Missing Supabase config on product overview page.");
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        const searchInput = document.getElementById("frontpage-search");
+        const searchForm = searchInput?.closest("form");
         const slider = overview?.querySelector("[data-zoom-slider]");
         const zoomLabel = overview?.querySelector("[data-zoom-label]");
-        const cards = [
-            ...(overview?.querySelectorAll("[data-product-card]") ?? []),
-        ];
-        const loadMoreButton = overview?.querySelector("[data-load-more]");
-        const loadMoreWrap = overview?.querySelector("[data-load-more-wrap]");
+        const resultsCopy = overview?.querySelector("[data-results-copy]");
+        const grid = overview?.querySelector("[data-product-grid]");
+        const loadingState = overview?.querySelector("[data-loading-state]");
+        const emptyState = overview?.querySelector("[data-empty-state]");
+        const errorState = overview?.querySelector("[data-error-state]");
+        const pagination = overview?.querySelector("[data-pagination]");
 
+        const fallbackImage = "/images/clothes/Brown_coat.png";
+        const url = new URL(window.location.href);
+        const searchQuery = (url.searchParams.get("q") ?? "").trim();
+        const storedZoom =
+            window.localStorage.getItem(zoomStorageKey) ?? String(defaultZoom);
+        let currentPage = Math.max(
+            1,
+            Number.parseInt(url.searchParams.get("page") ?? "1", 10) || 1,
+        );
+        let currentZoom = Math.min(
+            4,
+            Math.max(
+                1,
+                Number.parseInt(url.searchParams.get("zoom") ?? storedZoom, 10) ||
+                    defaultZoom,
+            ),
+        );
+
+        if (searchInput) {
+            searchInput.value = searchQuery;
+        }
+
+        let zoomInput = searchForm?.querySelector('input[name="zoom"]');
+        if (searchForm && !zoomInput) {
+            zoomInput = document.createElement("input");
+            zoomInput.type = "hidden";
+            zoomInput.name = "zoom";
+            searchForm.append(zoomInput);
+        }
+
+        let cards = [];
         const zoomConfig = {
-            1: {
-                label: "Zoom 1 ud af 4",
-                initial: cards.length,
-                step: cards.length,
-            },
-            2: { label: "Zoom 2 ud af 4", initial: 6, step: 6 },
-            3: { label: "Zoom 3 ud af 4", initial: 4, step: 4 },
-            4: { label: "Zoom 4 ud af 4", initial: 3, step: 3 },
+            1: { label: "Zoom 1 ud af 4", pageSize: 48 },
+            2: { label: "Zoom 2 ud af 4", pageSize: 24 },
+            3: { label: "Zoom 3 ud af 4", pageSize: 12 },
+            4: { label: "Zoom 4 ud af 4", pageSize: 6 },
         };
 
-        let visibleCount = zoomConfig[2]?.initial ?? cards.length;
+        const formatPrice = (value) => {
+            if (typeof value !== "number") return value || "Pris ikke angivet";
 
-        const updateGrid = () => {
-            if (!overview || !slider) return;
+            return `${new Intl.NumberFormat("da-DK").format(value)} DKK`;
+        };
+
+        const mapProduct = (product) => {
+            const image = Array.isArray(product.images)
+                ? product.images.find((item) => typeof item === "string" && item)
+                : null;
+
+            return {
+                id: product.id,
+                brand: product.brand || "Ukendt brand",
+                name: product.navn || "Produkt",
+                price: formatPrice(product.pris),
+                store: product.store || "Ukendt butik",
+                detail: product.color || product.category || "Produkt",
+                image: image || fallbackImage,
+            };
+        };
+
+        const createProductCard = (product) => {
+            const link = document.createElement("a");
+            link.href = `/Produkt-detaljer?id=${product.id}`;
+            link.className =
+                "product-card block text-[#1e1a17] transition hover:opacity-90";
+            link.dataset.productCard = "";
+            link.setAttribute(
+                "aria-label",
+                `Se detaljer for ${product.brand} ${product.name}`,
+            );
+
+            const imageWrap = document.createElement("div");
+            imageWrap.className =
+                "product-image-wrap relative aspect-[0.78] overflow-hidden rounded-[1.15rem] bg-gradient-to-b from-[#e8e1d4] to-[#d8d0c2]";
+
+            const image = document.createElement("img");
+            image.src = product.image;
+            image.alt = `${product.brand} ${product.name}`;
+            image.loading = "lazy";
+            image.className = "product-image h-full w-full object-cover";
+
+            imageWrap.append(image);
+
+            const meta = document.createElement("div");
+            meta.className = "product-meta grid content-start px-1 pt-3";
+
+            const brand = document.createElement("p");
+            brand.className =
+                "brand text-[0.95rem] font-extrabold uppercase tracking-[0.1em]";
+            brand.textContent = product.brand;
+
+            const name = document.createElement("p");
+            name.className = "name mt-[0.15rem] text-base text-[#6e645d]";
+            name.textContent = product.name;
+
+            const price = document.createElement("p");
+            price.className = "price mt-[0.55rem] text-[1.1rem] font-medium";
+            price.textContent = product.price;
+
+            const details = document.createElement("p");
+            details.className =
+                "details mt-1 text-[0.9rem] uppercase text-[#8a8178]";
+            details.textContent = `${product.detail} • ${product.store}`;
+
+            meta.append(brand, name, price, details);
+            link.append(imageWrap, meta);
+
+            return link;
+        };
+
+        const updateGrid = (updateHistory = true) => {
+            if (!overview || !slider || !zoomLabel) return;
 
             const zoom = Number(slider.value);
             const config = zoomConfig[zoom] ?? zoomConfig[2];
+            currentZoom = zoom;
             overview.dataset.zoom = String(zoom);
             zoomLabel.textContent = config.label;
-
-            if (visibleCount < config.initial || zoom === 1) {
-                visibleCount = config.initial;
+            if (zoomInput) {
+                zoomInput.value = String(zoom);
             }
 
-            cards.forEach((card, index) => {
-                const shouldShow = zoom === 1 || index < visibleCount;
-                card.toggleAttribute("hidden", !shouldShow);
-            });
+            window.localStorage.setItem(zoomStorageKey, String(zoom));
 
-            const allVisible = zoom === 1 || visibleCount >= cards.length;
-            loadMoreWrap?.toggleAttribute("hidden", allVisible);
+            if (updateHistory) {
+                const nextUrl = new URL(window.location.href);
+                nextUrl.searchParams.set("zoom", String(zoom));
+                if (currentPage <= 1) {
+                    nextUrl.searchParams.delete("page");
+                } else {
+                    nextUrl.searchParams.set("page", String(currentPage));
+                }
+                window.history.replaceState({}, "", nextUrl);
+            }
+
+            cards.forEach((card) => {
+                card.hidden = false;
+            });
         };
 
+        const updateResultsCopy = (count, query) => {
+            if (!resultsCopy) return;
+
+            if (count > 0) {
+                resultsCopy.textContent = `${count} resultater${query ? ` for “${query}”` : ""}`;
+                return;
+            }
+
+            resultsCopy.textContent = `Ingen resultater${query ? ` for “${query}”` : ""}`;
+        };
+
+        const createPaginationLink = (
+            label,
+            page,
+            isCurrent = false,
+            variant = "page",
+        ) => {
+            const params = new URLSearchParams(window.location.search);
+            params.set("zoom", String(currentZoom));
+
+            if (page <= 1) {
+                params.delete("page");
+            } else {
+                params.set("page", String(page));
+            }
+
+            const link = document.createElement("a");
+            link.href = `/Produkt-overblik${params.toString() ? `?${params.toString()}` : ""}`;
+            link.textContent = label;
+            link.className = `pagination-link pagination-link-${variant} ${isCurrent ? "is-current" : ""}`;
+
+            if (isCurrent) {
+                link.setAttribute("aria-current", "page");
+            }
+
+            return link;
+        };
+
+        const createDisabledPaginationItem = (label, variant = "control") => {
+            const item = document.createElement("span");
+            item.textContent = label;
+            item.className = `pagination-link pagination-link-${variant} is-disabled`;
+            item.setAttribute("aria-disabled", "true");
+            return item;
+        };
+
+        const renderPagination = (page, totalPages) => {
+            if (!pagination) return;
+
+            pagination.innerHTML = "";
+
+            if (totalPages <= 1) {
+                pagination.hidden = true;
+                return;
+            }
+
+            pagination.append(
+                page > 1
+                    ? createPaginationLink("Forrige", page - 1, false, "control")
+                    : createDisabledPaginationItem("Forrige"),
+            );
+
+            const startPage = Math.max(1, page - 1);
+            const endPage = Math.min(totalPages, page + 1);
+
+            for (let value = startPage; value <= endPage; value += 1) {
+                pagination.append(
+                    createPaginationLink(String(value), value, value === page),
+                );
+            }
+
+            if (endPage < totalPages) {
+                const dots = document.createElement("span");
+                dots.className = "pagination-ellipsis";
+                dots.textContent = "…";
+                pagination.append(dots);
+            }
+
+            pagination.append(
+                page < totalPages
+                    ? createPaginationLink("Næste", page + 1, false, "control")
+                    : createDisabledPaginationItem("Næste"),
+            );
+
+            pagination.hidden = false;
+        };
+
+        const setState = ({ loading = false, empty = false, error = false, gridVisible = false }) => {
+            loadingState?.toggleAttribute("hidden", !loading);
+            emptyState?.toggleAttribute("hidden", !empty);
+            errorState?.toggleAttribute("hidden", !error);
+            grid?.toggleAttribute("hidden", !gridVisible);
+        };
+
+        const fetchProducts = async () => {
+            setState({ loading: true });
+
+            const config = zoomConfig[currentZoom] ?? zoomConfig[defaultZoom];
+            const pageSize = config.pageSize;
+            const from = (currentPage - 1) * pageSize;
+            const to = from + pageSize - 1;
+
+            let query = supabase
+                .from("products")
+                .select("id, brand, navn, pris, store, color, category, images", {
+                    count: "exact",
+                })
+                .order("id", { ascending: true })
+                .range(from, to);
+
+            if (searchQuery) {
+                query = query.or(
+                    `navn.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%,store.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`,
+                );
+            }
+
+            const { data, error, count } = await query;
+
+            if (error) {
+                console.error(error);
+                updateResultsCopy(0, searchQuery);
+                setState({ error: true });
+                pagination.hidden = true;
+                return;
+            }
+
+            const products = (data ?? []).map(mapProduct);
+            const totalCount = count ?? products.length;
+            const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
+                updateGrid(true);
+                await fetchProducts();
+                return;
+            }
+
+            updateResultsCopy(totalCount, searchQuery);
+            renderPagination(currentPage, totalPages);
+
+            if (!grid) return;
+
+            grid.innerHTML = "";
+            products.forEach((product) => grid.append(createProductCard(product)));
+
+            cards = [...grid.querySelectorAll("[data-product-card]")];
+
+            if (products.length === 0) {
+                setState({ empty: true });
+                return;
+            }
+
+            setState({ gridVisible: true });
+            updateGrid(false);
+        };
+
+        if (slider) {
+            slider.value = String(currentZoom);
+        }
+        updateGrid(false);
+
         slider?.addEventListener("input", () => {
-            const zoom = Number(slider.value);
-            const config = zoomConfig[zoom] ?? zoomConfig[2];
-            visibleCount = config.initial;
-            updateGrid();
+            const previousConfig =
+                zoomConfig[currentZoom] ?? zoomConfig[defaultZoom];
+            const previousStart = (currentPage - 1) * previousConfig.pageSize;
+            const nextZoom = Number(slider.value);
+            const nextConfig = zoomConfig[nextZoom] ?? zoomConfig[defaultZoom];
+            currentPage = Math.floor(previousStart / nextConfig.pageSize) + 1;
+            updateGrid(true);
+            fetchProducts();
         });
 
-        loadMoreButton?.addEventListener("click", () => {
-            const zoom = Number(slider?.value ?? 2);
-            const config = zoomConfig[zoom] ?? zoomConfig[2];
-            visibleCount = Math.min(visibleCount + config.step, cards.length);
-            updateGrid();
-        });
-
-        updateGrid();
+        fetchProducts();
     </script>
 
-    <style>
+    <style is:global>
         .zoom-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
@@ -239,6 +470,60 @@ const filteredProducts = normalizedQuery
             box-shadow: 0 4px 16px rgba(78, 21, 21, 0.24);
         }
 
+        .product-pagination {
+            max-width: calc(100vw - 2rem);
+        }
+
+        .pagination-link {
+            display: inline-flex;
+            min-width: 2.35rem;
+            height: 2.35rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 0 0.75rem;
+            color: #1e1a17;
+            font-size: 0.82rem;
+            font-weight: 700;
+            line-height: 1;
+            white-space: nowrap;
+            transition:
+                background-color 160ms ease,
+                color 160ms ease,
+                transform 160ms ease;
+        }
+
+        .pagination-link-control {
+            min-width: 4.8rem;
+            background: rgba(247, 242, 234, 0.78);
+            padding: 0 0.95rem;
+            color: #420e0e;
+        }
+
+        .pagination-link:hover {
+            background: #f7f2ea;
+        }
+
+        .pagination-link.is-current {
+            background: #420e0e;
+            color: #ffffff;
+        }
+
+        .pagination-link.is-disabled {
+            color: #b3aaa1;
+            background: rgba(247, 242, 234, 0.55);
+            cursor: default;
+        }
+
+        .pagination-ellipsis {
+            display: inline-flex;
+            width: 1rem;
+            justify-content: center;
+            color: #84786d;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
         #product-overview[data-zoom="1"] .product-grid {
             grid-template-columns: repeat(6, minmax(0, 1fr));
             gap: 0.45rem;
@@ -247,10 +532,6 @@ const filteredProducts = normalizedQuery
         #product-overview[data-zoom="1"] .product-image-wrap {
             border-radius: 0.15rem;
             aspect-ratio: 0.74;
-        }
-
-        #product-overview[data-zoom="1"] .save-button {
-            display: none;
         }
 
         #product-overview[data-zoom="1"] .product-meta {
@@ -282,9 +563,15 @@ const filteredProducts = normalizedQuery
         }
 
         #product-overview[data-zoom="2"] .brand,
-        #product-overview[data-zoom="2"] .name {
+        #product-overview[data-zoom="2"] .name,
+        #product-overview[data-zoom="3"] .brand,
+        #product-overview[data-zoom="3"] .name,
+        #product-overview[data-zoom="4"] .brand,
+        #product-overview[data-zoom="4"] .name {
             display: -webkit-box;
             overflow: hidden;
+            overflow-wrap: anywhere;
+            word-break: break-word;
             -webkit-box-orient: vertical;
             line-height: 1.25;
             min-height: 2.5em;
@@ -334,6 +621,7 @@ const filteredProducts = normalizedQuery
         @media (max-width: 520px) {
             #product-overview[data-zoom="1"] .product-grid {
                 grid-template-columns: repeat(5, minmax(0, 1fr));
+                gap: 0.45rem;
             }
 
             #product-overview[data-zoom="1"] .name {
@@ -350,31 +638,25 @@ const filteredProducts = normalizedQuery
                 aspect-ratio: 0.73;
             }
 
-            #product-overview[data-zoom="2"] .save-button {
-                height: 2rem;
-                width: 2rem;
-                right: 0.45rem;
-                top: 0.45rem;
-            }
-
             #product-overview[data-zoom="2"] .product-meta {
                 padding: 0.55rem 0.15rem 0;
             }
 
             #product-overview[data-zoom="2"] .brand {
-                font-size: 0.92rem;
+                font-size: 0.82rem;
             }
 
             #product-overview[data-zoom="2"] .name {
-                font-size: 0.98rem;
+                font-size: 0.9rem;
             }
 
             #product-overview[data-zoom="2"] .price {
-                font-size: 1rem;
+                margin-top: 0.3rem;
+                font-size: 0.95rem;
             }
 
             #product-overview[data-zoom="2"] .details {
-                font-size: 0.78rem;
+                display: none;
             }
 
             #product-overview[data-zoom="3"] .product-grid {
