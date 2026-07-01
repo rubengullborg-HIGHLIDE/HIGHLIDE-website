@@ -38,7 +38,10 @@ if (!supabaseUrl || !supabaseKey) {
                     >
                         Produkt overblik
                     </h1>
-                    <p class="mt-1 text-sm text-[#6e645d] md:text-base" data-results-copy>
+                    <p
+                        class="mt-1 text-sm text-[#6e645d] md:text-base"
+                        data-results-copy
+                    >
                         Henter produkter...
                     </p>
                 </div>
@@ -72,8 +75,13 @@ if (!supabaseUrl || !supabaseKey) {
                     />
                 </div>
 
-                <div class="rounded-[1.5rem] border border-dashed border-black/10 bg-[#f7f2ea] px-6 py-14 text-center" data-loading-state>
-                    <p class="text-lg font-medium text-[#3e3530]">Henter produkter...</p>
+                <div
+                    class="rounded-[1.5rem] border border-dashed border-black/10 bg-[#f7f2ea] px-6 py-14 text-center"
+                    data-loading-state
+                >
+                    <p class="text-lg font-medium text-[#3e3530]">
+                        Henter produkter...
+                    </p>
                 </div>
 
                 <div
@@ -102,7 +110,8 @@ if (!supabaseUrl || !supabaseKey) {
                     </p>
                 </div>
 
-                <div class="product-grid grid gap-4" data-product-grid hidden></div>
+                <div class="product-grid grid gap-4" data-product-grid hidden>
+                </div>
 
                 <ProductPagination />
             </div>
@@ -147,8 +156,10 @@ if (!supabaseUrl || !supabaseKey) {
             4,
             Math.max(
                 1,
-                Number.parseInt(url.searchParams.get("zoom") ?? storedZoom, 10) ||
-                    defaultZoom,
+                Number.parseInt(
+                    url.searchParams.get("zoom") ?? storedZoom,
+                    10,
+                ) || defaultZoom,
             ),
         );
 
@@ -180,7 +191,9 @@ if (!supabaseUrl || !supabaseKey) {
 
         const mapProduct = (product) => {
             const image = Array.isArray(product.images)
-                ? product.images.find((item) => typeof item === "string" && item)
+                ? product.images.find(
+                      (item) => typeof item === "string" && item,
+                  )
                 : null;
 
             return {
@@ -332,7 +345,12 @@ if (!supabaseUrl || !supabaseKey) {
 
             pagination.append(
                 page > 1
-                    ? createPaginationLink("Forrige", page - 1, false, "control")
+                    ? createPaginationLink(
+                          "Forrige",
+                          page - 1,
+                          false,
+                          "control",
+                      )
                     : createDisabledPaginationItem("Forrige"),
             );
 
@@ -361,7 +379,12 @@ if (!supabaseUrl || !supabaseKey) {
             pagination.hidden = false;
         };
 
-        const setState = ({ loading = false, empty = false, error = false, gridVisible = false }) => {
+        const setState = ({
+            loading = false,
+            empty = false,
+            error = false,
+            gridVisible = false,
+        }) => {
             loadingState?.toggleAttribute("hidden", !loading);
             emptyState?.toggleAttribute("hidden", !empty);
             errorState?.toggleAttribute("hidden", !error);
@@ -378,9 +401,12 @@ if (!supabaseUrl || !supabaseKey) {
 
             let query = supabase
                 .from("products")
-                .select("id, brand, navn, pris, store, color, category, images", {
-                    count: "exact",
-                })
+                .select(
+                    "id, brand, navn, pris, store, color, category, images",
+                    {
+                        count: "exact",
+                    },
+                )
                 .order("id", { ascending: true })
                 .range(from, to);
 
@@ -417,7 +443,9 @@ if (!supabaseUrl || !supabaseKey) {
             if (!grid) return;
 
             grid.innerHTML = "";
-            products.forEach((product) => grid.append(createProductCard(product)));
+            products.forEach((product) =>
+                grid.append(createProductCard(product)),
+            );
 
             cards = [...grid.querySelectorAll("[data-product-card]")];
 
@@ -484,7 +512,7 @@ if (!supabaseUrl || !supabaseKey) {
             padding: 0 0.75rem;
             color: #1e1a17;
             font-size: 0.82rem;
-            font-weight: 700;
+            font-weight: 500;
             line-height: 1;
             white-space: nowrap;
             transition:
