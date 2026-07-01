@@ -177,7 +177,7 @@ if (!supabaseUrl || !supabaseKey) {
 
         let cards = [];
         const zoomConfig = {
-            1: { label: "Zoom 1 ud af 4", pageSize: 48 },
+            1: { label: "Zoom 1 ud af 4", pageSize: 50 },
             2: { label: "Zoom 2 ud af 4", pageSize: 24 },
             3: { label: "Zoom 3 ud af 4", pageSize: 12 },
             4: { label: "Zoom 4 ud af 4", pageSize: 6 },
@@ -226,7 +226,7 @@ if (!supabaseUrl || !supabaseKey) {
             image.src = product.image;
             image.alt = `${product.brand} ${product.name}`;
             image.loading = "lazy";
-            image.className = "product-image h-full w-full object-cover";
+            image.className = "product-image h-full w-full object-contain";
 
             imageWrap.append(image);
 
