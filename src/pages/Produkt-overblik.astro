@@ -48,31 +48,35 @@ if (!supabaseUrl || !supabaseKey) {
             </div>
 
             <div class="p-1 md:p-2">
-                <div class="mb-6">
-                    <div class="mb-3 flex items-center justify-between gap-3">
-                        <h2
-                            class="text-[1.55rem] font-semibold tracking-[-0.03em] text-[#1e1a17]"
+                <div class="zoom-bar-sticky mb-6">
+                    <div class="zoom-bar-inner">
+                        <div
+                            class="mb-3 flex items-center justify-between gap-3"
                         >
-                            Zoom niveau
-                        </h2>
-                        <p
-                            class="text-sm font-semibold uppercase tracking-[0.25em] text-[#84786d]"
-                            data-zoom-label
-                        >
-                            Zoom {defaultZoom} ud af 4
-                        </p>
-                    </div>
+                            <h2
+                                class="text-[1.55rem] font-semibold tracking-[-0.03em] text-[#1e1a17]"
+                            >
+                                Zoom niveau
+                            </h2>
+                            <p
+                                class="text-sm font-semibold uppercase tracking-[0.25em] text-[#84786d]"
+                                data-zoom-label
+                            >
+                                Zoom {defaultZoom} ud af 4
+                            </p>
+                        </div>
 
-                    <input
-                        class="zoom-slider h-2 w-full cursor-pointer appearance-none rounded-full bg-[#e8e5e1]"
-                        type="range"
-                        min="1"
-                        max="4"
-                        step="1"
-                        value={String(defaultZoom)}
-                        aria-label="Vælg zoom niveau"
-                        data-zoom-slider
-                    />
+                        <input
+                            class="zoom-slider h-2 w-full cursor-pointer appearance-none rounded-full bg-[#e8e5e1]"
+                            type="range"
+                            min="1"
+                            max="4"
+                            step="1"
+                            value={String(defaultZoom)}
+                            aria-label="Vælg zoom niveau"
+                            data-zoom-slider
+                        />
+                    </div>
                 </div>
 
                 <div
@@ -470,6 +474,17 @@ if (!supabaseUrl || !supabaseKey) {
     </script>
 
     <style is:global>
+        .zoom-bar-sticky {
+            position: sticky;
+            top: 4.8rem;
+            z-index: 10;
+        }
+
+        .zoom-bar-inner {
+            background: #f8f4ec;
+            padding-bottom: 1rem;
+        }
+
         .zoom-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
@@ -574,6 +589,10 @@ if (!supabaseUrl || !supabaseKey) {
         }
 
         @media (max-width: 768px) {
+            .zoom-bar-sticky {
+                top: 4.75rem;
+            }
+
             #product-overview[data-zoom="1"] .product-grid {
                 grid-template-columns: repeat(5, minmax(0, 1fr));
             }
