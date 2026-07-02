@@ -1,5 +1,5 @@
 ---
-import ProductPagination from "../components/ProductPagination.astro";
+import ProductLoadMore from "../components/ProductLoadMore.astro";
 import SearchSection from "../components/SearchSection.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
 
@@ -113,7 +113,7 @@ if (!supabaseUrl || !supabaseKey) {
                 <div class="product-grid grid gap-4" data-product-grid hidden>
                 </div>
 
-                <ProductPagination />
+                <ProductLoadMore />
             </div>
         </section>
     </div>
@@ -141,17 +141,18 @@ if (!supabaseUrl || !supabaseKey) {
         const loadingState = overview?.querySelector("[data-loading-state]");
         const emptyState = overview?.querySelector("[data-empty-state]");
         const errorState = overview?.querySelector("[data-error-state]");
-        const pagination = overview?.querySelector("[data-pagination]");
+        const loadMoreWrap = overview?.querySelector("[data-load-more-wrap]");
+        const loadMoreCopy = overview?.querySelector("[data-load-more-copy]");
+        const loadMoreProgress = overview?.querySelector(
+            "[data-load-more-progress]",
+        );
+        const loadMoreButton = overview?.querySelector("[data-load-more]");
 
         const fallbackImage = "/images/clothes/Brown_coat.png";
         const url = new URL(window.location.href);
         const searchQuery = (url.searchParams.get("q") ?? "").trim();
         const storedZoom =
             window.localStorage.getItem(zoomStorageKey) ?? String(defaultZoom);
-        let currentPage = Math.max(
-            1,
-            Number.parseInt(url.searchParams.get("page") ?? "1", 10) || 1,
-        );
         let currentZoom = Math.min(
             4,
             Math.max(
@@ -176,6 +177,9 @@ if (!supabaseUrl || !supabaseKey) {
         }
 
         let cards = [];
+        let loadedCount = 0;
+        let totalCount = 0;
+        let isFetching = false;
         const zoomConfig = {
             1: { label: "Zoom 1 ud af 4", pageSize: 50 },
             2: { label: "Zoom 2 ud af 4", pageSize: 24 },
@@ -274,11 +278,7 @@ if (!supabaseUrl || !supabaseKey) {
             if (updateHistory) {
                 const nextUrl = new URL(window.location.href);
                 nextUrl.searchParams.set("zoom", String(zoom));
-                if (currentPage <= 1) {
-                    nextUrl.searchParams.delete("page");
-                } else {
-                    nextUrl.searchParams.set("page", String(currentPage));
-                }
+                nextUrl.searchParams.delete("page");
                 window.history.replaceState({}, "", nextUrl);
             }
 
@@ -298,93 +298,27 @@ if (!supabaseUrl || !supabaseKey) {
             resultsCopy.textContent = `Ingen resultater${query ? ` for “${query}”` : ""}`;
         };
 
-        const createPaginationLink = (
-            label,
-            page,
-            isCurrent = false,
-            variant = "page",
-        ) => {
-            const params = new URLSearchParams(window.location.search);
-            params.set("zoom", String(currentZoom));
+        const updateLoadMoreState = () => {
+            if (!loadMoreWrap || !loadMoreCopy || !loadMoreProgress) return;
 
-            if (page <= 1) {
-                params.delete("page");
-            } else {
-                params.set("page", String(page));
-            }
-
-            const link = document.createElement("a");
-            link.href = `/Produkt-overblik${params.toString() ? `?${params.toString()}` : ""}`;
-            link.textContent = label;
-            link.className = `pagination-link pagination-link-${variant} ${isCurrent ? "is-current" : ""}`;
-
-            if (isCurrent) {
-                link.setAttribute("aria-current", "page");
-            }
-
-            return link;
-        };
-
-        const createDisabledPaginationItem = (label, variant = "control") => {
-            const item = document.createElement("span");
-            item.textContent = label;
-            item.className = `pagination-link pagination-link-${variant} is-disabled`;
-            item.setAttribute("aria-disabled", "true");
-            return item;
-        };
-
-        const renderPagination = (page, totalPages) => {
-            if (!pagination) return;
-
-            pagination.innerHTML = "";
-
-            if (totalPages <= 1) {
-                pagination.hidden = true;
+            if (totalCount <= 0) {
+                loadMoreWrap.hidden = true;
                 return;
             }
 
-            pagination.append(
-                page > 1
-                    ? createPaginationLink(
-                          "Forrige",
-                          page - 1,
-                          false,
-                          "control",
-                      )
-                    : createDisabledPaginationItem("Forrige"),
-            );
+            const visibleCount = Math.min(loadedCount, totalCount);
+            const progress = Math.min(100, (visibleCount / totalCount) * 100);
+            loadMoreCopy.textContent = `Viser ${visibleCount} af ${totalCount} produkter`;
+            loadMoreProgress.style.width = `${progress}%`;
+            loadMoreWrap.hidden = false;
 
-            const visiblePageCount = Math.min(4, totalPages);
-            let startPage = Math.max(1, page - 1);
-            let endPage = Math.min(
-                totalPages,
-                startPage + visiblePageCount - 1,
-            );
-
-            if (endPage - startPage + 1 < visiblePageCount) {
-                startPage = Math.max(1, endPage - visiblePageCount + 1);
+            if (loadMoreButton) {
+                loadMoreButton.hidden = visibleCount >= totalCount;
+                loadMoreButton.disabled = isFetching;
+                loadMoreButton.textContent = isFetching
+                    ? "Henter..."
+                    : "Indlæs flere";
             }
-
-            for (let value = startPage; value <= endPage; value += 1) {
-                pagination.append(
-                    createPaginationLink(String(value), value, value === page),
-                );
-            }
-
-            if (endPage < totalPages) {
-                const dots = document.createElement("span");
-                dots.className = "pagination-ellipsis";
-                dots.textContent = "…";
-                pagination.append(dots);
-            }
-
-            pagination.append(
-                page < totalPages
-                    ? createPaginationLink("Næste", page + 1, false, "control")
-                    : createDisabledPaginationItem("Næste"),
-            );
-
-            pagination.hidden = false;
         };
 
         const setState = ({
@@ -397,14 +331,28 @@ if (!supabaseUrl || !supabaseKey) {
             emptyState?.toggleAttribute("hidden", !empty);
             errorState?.toggleAttribute("hidden", !error);
             grid?.toggleAttribute("hidden", !gridVisible);
+            if (error) {
+                loadMoreWrap?.toggleAttribute("hidden", true);
+            }
         };
 
-        const fetchProducts = async () => {
-            setState({ loading: true });
+        const fetchProducts = async ({ reset = false } = {}) => {
+            if (isFetching) return;
+            isFetching = true;
+
+            if (reset) {
+                loadedCount = 0;
+                totalCount = 0;
+                cards = [];
+                if (grid) grid.innerHTML = "";
+                setState({ loading: true });
+            } else {
+                updateLoadMoreState();
+            }
 
             const config = zoomConfig[currentZoom] ?? zoomConfig[defaultZoom];
             const pageSize = config.pageSize;
-            const from = (currentPage - 1) * pageSize;
+            const from = loadedCount;
             const to = from + pageSize - 1;
 
             let query = supabase
@@ -430,27 +378,23 @@ if (!supabaseUrl || !supabaseKey) {
                 console.error(error);
                 updateResultsCopy(0, searchQuery);
                 setState({ error: true });
-                pagination.hidden = true;
+                isFetching = false;
+                updateLoadMoreState();
                 return;
             }
 
             const products = (data ?? []).map(mapProduct);
-            const totalCount = count ?? products.length;
-            const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+            totalCount = count ?? loadedCount + products.length;
+            loadedCount += products.length;
 
-            if (currentPage > totalPages) {
-                currentPage = totalPages;
-                updateGrid(true);
-                await fetchProducts();
+            updateResultsCopy(totalCount, searchQuery);
+
+            if (!grid) {
+                isFetching = false;
+                updateLoadMoreState();
                 return;
             }
 
-            updateResultsCopy(totalCount, searchQuery);
-            renderPagination(currentPage, totalPages);
-
-            if (!grid) return;
-
-            grid.innerHTML = "";
             products.forEach((product) =>
                 grid.append(createProductCard(product)),
             );
@@ -459,11 +403,15 @@ if (!supabaseUrl || !supabaseKey) {
 
             if (products.length === 0) {
                 setState({ empty: true });
+                isFetching = false;
+                updateLoadMoreState();
                 return;
             }
 
             setState({ gridVisible: true });
             updateGrid(false);
+            isFetching = false;
+            updateLoadMoreState();
         };
 
         if (slider) {
@@ -472,17 +420,15 @@ if (!supabaseUrl || !supabaseKey) {
         updateGrid(false);
 
         slider?.addEventListener("input", () => {
-            const previousConfig =
-                zoomConfig[currentZoom] ?? zoomConfig[defaultZoom];
-            const previousStart = (currentPage - 1) * previousConfig.pageSize;
-            const nextZoom = Number(slider.value);
-            const nextConfig = zoomConfig[nextZoom] ?? zoomConfig[defaultZoom];
-            currentPage = Math.floor(previousStart / nextConfig.pageSize) + 1;
             updateGrid(true);
+            fetchProducts({ reset: true });
+        });
+
+        loadMoreButton?.addEventListener("click", () => {
             fetchProducts();
         });
 
-        fetchProducts();
+        fetchProducts({ reset: true });
     </script>
 
     <style is:global>
@@ -504,60 +450,6 @@ if (!supabaseUrl || !supabaseKey) {
             border-radius: 999px;
             background: #4e1515;
             box-shadow: 0 4px 16px rgba(78, 21, 21, 0.24);
-        }
-
-        .product-pagination {
-            max-width: calc(100vw - 2rem);
-        }
-
-        .pagination-link {
-            display: inline-flex;
-            min-width: 2.35rem;
-            height: 2.35rem;
-            align-items: center;
-            justify-content: center;
-            border-radius: 999px;
-            padding: 0 0.75rem;
-            color: #1e1a17;
-            font-size: 0.82rem;
-            font-weight: 300;
-            line-height: 1;
-            white-space: nowrap;
-            transition:
-                background-color 160ms ease,
-                color 160ms ease,
-                transform 160ms ease;
-        }
-
-        .pagination-link-control {
-            min-width: 4.8rem;
-            background: rgba(247, 242, 234, 0.78);
-            padding: 0 0.95rem;
-            color: #420e0e;
-        }
-
-        .pagination-link:hover {
-            background: #f7f2ea;
-        }
-
-        .pagination-link.is-current {
-            background: #420e0e;
-            color: #ffffff;
-        }
-
-        .pagination-link.is-disabled {
-            color: #b3aaa1;
-            background: rgba(247, 242, 234, 0.55);
-            cursor: default;
-        }
-
-        .pagination-ellipsis {
-            display: inline-flex;
-            width: 1rem;
-            justify-content: center;
-            color: #84786d;
-            font-size: 0.9rem;
-            font-weight: 700;
         }
 
         #product-overview[data-zoom="1"] .product-grid {
