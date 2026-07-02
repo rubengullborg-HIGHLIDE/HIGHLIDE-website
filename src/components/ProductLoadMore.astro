@@ -1,0 +1,28 @@
+<div
+    class="product-load-more mx-auto mt-10 flex w-full max-w-md flex-col items-center gap-4 text-center"
+    data-load-more-wrap
+    hidden
+>
+    <p class="text-sm font-medium text-[#6e645d]" data-load-more-copy>
+        Viser 0 af 0 produkter
+    </p>
+
+    <div
+        class="h-1.5 w-full overflow-hidden rounded-full bg-[#e8e1d8]"
+        aria-hidden="true"
+    >
+        <div
+            class="h-full rounded-full bg-[#420e0e] transition-[width] duration-300"
+            style="width: 0%"
+            data-load-more-progress
+        ></div>
+    </div>
+
+    <button
+        type="button"
+        class="rounded-full bg-[#420e0e] px-8 py-3 text-sm font-semibold text-white shadow-[0_12px_26px_rgba(66,14,14,0.18)] transition hover:-translate-y-0.5 hover:bg-[#551515] disabled:cursor-default disabled:opacity-50 disabled:hover:translate-y-0"
+        data-load-more
+    >
+        Indlæs flere
+    </button>
+</div>
