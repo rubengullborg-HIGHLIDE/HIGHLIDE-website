@@ -217,6 +217,7 @@ if (!supabaseUrl || !supabaseKey) {
             link.className =
                 "product-card block text-[#1e1a17] transition hover:opacity-90";
             link.dataset.productCard = "";
+            link.dataset.productId = String(product.id);
             link.setAttribute(
                 "aria-label",
                 `Se detaljer for ${product.brand} ${product.name}`,
@@ -259,6 +260,42 @@ if (!supabaseUrl || !supabaseKey) {
             link.append(imageWrap, meta);
 
             return link;
+        };
+
+        const findScrollAnchor = () => {
+            const viewportTarget = Math.min(window.innerHeight * 0.35, 260);
+
+            return cards.reduce((closest, card) => {
+                const rect = card.getBoundingClientRect();
+                if (rect.bottom <= 0 || rect.top >= window.innerHeight) {
+                    return closest;
+                }
+
+                const distance = Math.abs(rect.top - viewportTarget);
+                if (!closest || distance < closest.distance) {
+                    return { card, distance };
+                }
+
+                return closest;
+            }, null)?.card;
+        };
+
+        const preserveScrollDuring = (callback) => {
+            const anchor = findScrollAnchor();
+            const previousTop = anchor?.getBoundingClientRect().top;
+
+            callback();
+
+            if (!anchor || typeof previousTop !== "number") return;
+
+            window.requestAnimationFrame(() => {
+                const nextTop = anchor.getBoundingClientRect().top;
+                window.scrollBy({
+                    top: nextTop - previousTop,
+                    left: 0,
+                    behavior: "auto",
+                });
+            });
         };
 
         const updateGrid = (updateHistory = true) => {
@@ -420,8 +457,9 @@ if (!supabaseUrl || !supabaseKey) {
         updateGrid(false);
 
         slider?.addEventListener("input", () => {
-            updateGrid(true);
-            fetchProducts({ reset: true });
+            preserveScrollDuring(() => {
+                updateGrid(true);
+            });
         });
 
         loadMoreButton?.addEventListener("click", () => {
