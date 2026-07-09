@@ -3,25 +3,17 @@ import ProductLoadMore from "../components/ProductLoadMore.astro";
 import SearchSection from "../components/SearchSection.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
 
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseKey = import.meta.env.SUPABASE_KEY;
 const defaultZoom = 3;
-
-if (!supabaseUrl || !supabaseKey) {
-    throw new Error("Missing Supabase environment variables.");
-}
 ---
 
 <SiteLayout
-    title="Produkt overblik"
-    description="HIGHLIDE product overview page"
+    title="Produkter fra lokale butikker"
+    description="Søg efter tøj, brands og butikker fra lokale modebutikker i Aarhus."
 >
     <div
         class="mx-auto max-w-5xl"
         id="product-overview"
         data-zoom={String(defaultZoom)}
-        data-supabase-url={supabaseUrl}
-        data-supabase-key={supabaseKey}
         data-default-zoom={String(defaultZoom)}
     >
         <SearchSection
@@ -44,8 +36,22 @@ if (!supabaseUrl || !supabaseKey) {
                     >
                         Henter produkter...
                     </p>
+                    <p class="mt-2 max-w-2xl text-sm leading-6 text-[#6e645d]">
+                        Udforsk produkter fra mindre lokale modebutikker i
+                        Aarhus. Brug søgning og zoom til hurtigt at skifte
+                        mellem overblik og detaljer.
+                    </p>
                 </div>
             </div>
+
+            <noscript>
+                <div
+                    class="mb-6 rounded-[1.25rem] border border-black/10 bg-white px-5 py-4 text-sm leading-6 text-[#5c534b]"
+                >
+                    Produkterne hentes dynamisk. Slå JavaScript til for at se
+                    det aktuelle produktudvalg.
+                </div>
+            </noscript>
 
             <div class="p-1 md:p-2">
                 <div class="zoom-bar-sticky mb-6">
@@ -123,19 +129,16 @@ if (!supabaseUrl || !supabaseKey) {
     </div>
 
     <script>
-        import { createClient } from "@supabase/supabase-js";
+        import { supabase } from "../lib/supabaseClient.js";
 
         const overview = document.getElementById("product-overview");
-        const supabaseUrl = overview?.dataset.supabaseUrl;
-        const supabaseKey = overview?.dataset.supabaseKey;
         const defaultZoom = Number(overview?.dataset.defaultZoom ?? "3");
         const zoomStorageKey = "highlide-product-overview-zoom";
 
-        if (!overview || !supabaseUrl || !supabaseKey) {
-            console.error("Missing Supabase config on product overview page.");
+        if (!overview) {
+            console.error("Missing product overview root element.");
         }
 
-        const supabase = createClient(supabaseUrl, supabaseKey);
         const searchInput = document.getElementById("frontpage-search");
         const searchForm = searchInput?.closest("form");
         const slider = overview?.querySelector("[data-zoom-slider]");

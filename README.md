@@ -38,7 +38,10 @@ src/
   components/
     AboutUsSection.astro
     Footer.astro
+    PlaceholderPage.astro
     SearchSection.astro
+  lib/
+    supabaseClient.js
   layouts/
     SiteLayout.astro
   pages/
@@ -66,25 +69,32 @@ This repo is currently a **frontend prototype**.
 ### Implemented
 - shared layout with header/footer
 - homepage with search hero and about section
-- product overview page with mock data and search filtering
+- product overview page with Supabase-backed product loading and search filtering
+- product detail page with Supabase-backed product loading
 - responsive Tailwind-based UI
 
 ### Not implemented yet / placeholder
-- backend or API integration
 - real authentication
 - persistent favorites
 - user profile flows
 - real store data ingestion
-- real product detail/store detail pages
-- production content copy in all places
+- full store detail pages
+
+## Environment variables
+Product routes use the Supabase browser client. Use a publishable/anon key here, never a service-role key.
+
+```bash
+PUBLIC_SUPABASE_URL=...
+PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+```
 
 ## Key routes
 - `/` — homepage
 - `/Produkt-overblik` — product listing/search results
-- `/Produkt-detaljer` — placeholder
-- `/Butiks-info` — placeholder
-- `/Om-Highlide` — placeholder
-- `/Hjaelp-kontakt` — placeholder
+- `/Produkt-detaljer` — product detail
+- `/Butiks-info` — store overview placeholder
+- `/Om-Highlide` — about page
+- `/Hjaelp-kontakt` — help/contact placeholder
 - `/Profil` — placeholder
 - `/Gemte-produkter` — placeholder
 - `/Rediger-personlige-informationer` — placeholder

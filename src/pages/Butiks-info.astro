@@ -1,5 +1,17 @@
 ---
-import SiteLayout from '../layouts/SiteLayout.astro';
+import PlaceholderPage from "../components/PlaceholderPage.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
 ---
 
-<SiteLayout title="Butiks info" description="Find more info about local stores"/>
+<SiteLayout
+    title="Butikker"
+    description="Find lokale modebutikker i Aarhus på HIGHLIDE."
+>
+    <PlaceholderPage
+        eyebrow="Butikker"
+        title="Lokale butikker bliver næste skridt"
+        description="Her kommer en oversigt over de butikker, brands og adresser, der gør det lettere at finde mode tæt på dig."
+        primaryHref="/Produkt-overblik"
+        primaryLabel="Se produkter først"
+    />
+</SiteLayout>

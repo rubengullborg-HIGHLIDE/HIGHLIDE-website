@@ -1,23 +1,15 @@
 ---
 import SiteLayout from "../layouts/SiteLayout.astro";
-
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseKey = import.meta.env.SUPABASE_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-    throw new Error("Missing Supabase environment variables.");
-}
 ---
 
 <SiteLayout
-    title="Produkt detaljer"
-    description="HIGHLIDE product details page"
+    title="Produktdetaljer"
+    description="Se produktdetaljer, størrelser og butik for et lokalt modefund på HIGHLIDE."
+    noindex={true}
 >
     <section
         class="-mt-8 mx-auto max-w-3xl pb-10 md:-mt-8"
         id="product-detail"
-        data-supabase-url={supabaseUrl}
-        data-supabase-key={supabaseKey}
     >
         <div
             class="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#f3eee6] sm:left-auto sm:w-full sm:translate-x-0"
@@ -69,6 +61,15 @@ if (!supabaseUrl || !supabaseKey) {
             </div>
         </div>
 
+        <noscript>
+            <div
+                class="mt-6 rounded-[1.25rem] border border-black/10 bg-white px-5 py-4 text-sm leading-6 text-[#5c534b]"
+            >
+                Produktdetaljer hentes dynamisk. Slå JavaScript til for at se
+                billeder, størrelser og butik.
+            </div>
+        </noscript>
+
         <div
             class="mt-6 rounded-[1.25rem] border border-black/10 bg-[#f8f4ec] px-5 py-5 text-[#3e3530]"
             data-loading-state
@@ -116,6 +117,16 @@ if (!supabaseUrl || !supabaseKey) {
                 </div>
             </div>
 
+            <a
+                class="hidden w-full items-center justify-center rounded-full bg-[#420e0e] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#551515]"
+                href="#"
+                target="_blank"
+                rel="noreferrer"
+                data-product-url
+            >
+                Gå til produkt hos butik
+            </a>
+
             <div class="border-t border-black/10 pt-8">
                 <h2
                     class="text-sm font-extrabold uppercase tracking-[0.08em] text-[#171411]"
@@ -139,17 +150,14 @@ if (!supabaseUrl || !supabaseKey) {
     </section>
 
     <script>
-        import { createClient } from "@supabase/supabase-js";
+        import { supabase } from "../lib/supabaseClient.js";
 
         const detail = document.getElementById("product-detail");
-        const supabaseUrl = detail?.dataset.supabaseUrl;
-        const supabaseKey = detail?.dataset.supabaseKey;
 
-        if (!detail || !supabaseUrl || !supabaseKey) {
-            console.error("Missing Supabase config on product details page.");
+        if (!detail) {
+            console.error("Missing product detail root element.");
         }
 
-        const supabase = createClient(supabaseUrl, supabaseKey);
         const fallbackImage = "/images/clothes/Brown_coat.png";
         const technicalKeys = new Set([
             "id",
@@ -204,6 +212,7 @@ if (!supabaseUrl || !supabaseKey) {
         const name = detail?.querySelector("[data-product-name]");
         const price = detail?.querySelector("[data-product-price]");
         const stock = detail?.querySelector("[data-product-stock]");
+        const productUrl = detail?.querySelector("[data-product-url]");
         const sizes = detail?.querySelector("[data-product-sizes]");
         const extra = detail?.querySelector("[data-product-extra]");
         const loadingState = detail?.querySelector("[data-loading-state]");
@@ -467,6 +476,11 @@ if (!supabaseUrl || !supabaseKey) {
             if (price) price.textContent = productPrice;
             if (stock) {
                 stock.textContent = `På lager netop nu i ${productStore}`;
+            }
+            if (productUrl && (product.product_url || product.url)) {
+                productUrl.href = product.product_url || product.url;
+                productUrl.classList.remove("hidden");
+                productUrl.classList.add("inline-flex");
             }
 
             document.title = `${productBrand} ${productName}`;

@@ -1,7 +1,17 @@
 ---
+import PlaceholderPage from "../components/PlaceholderPage.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
 ---
 
-<SiteLayout title="Profile page" description="HIGHLIDE profile page">
-    <h1>123</h1>
+<SiteLayout
+    title="Profil"
+    description="Din HIGHLIDE profil til favoritter og personlige modefund."
+    noindex={true}
+>
+    <PlaceholderPage
+        title="Din profil kommer snart"
+        description="Profilen bliver stedet for gemte produkter, personlige oplysninger og en mere relevant browsingoplevelse."
+        primaryHref="/Produkt-overblik"
+        primaryLabel="Udforsk produkter"
+    />
 </SiteLayout>

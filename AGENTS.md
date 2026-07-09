@@ -27,7 +27,8 @@ HIGHLIDE is building a platform that helps users discover clothes from **smaller
 - Mostly static `.astro` pages
 - Tailwind utility classes are the main styling approach
 - Minimal inline JavaScript for lightweight interactions
-- No backend, CMS, auth, or real data integrations yet
+- Product routes currently use the Supabase browser client with public env vars
+- No backend/API layer, CMS, auth, or persistence flows yet
 
 ## Commands
 - `pnpm install`
@@ -39,8 +40,13 @@ HIGHLIDE is building a platform that helps users discover clothes from **smaller
 ```text
 src/
   components/
+    AboutUsSection.astro
     Footer.astro
+    PlaceholderPage.astro
+    ProductLoadMore.astro
     SearchSection.astro
+  lib/
+    supabaseClient.js
   layouts/
     SiteLayout.astro
   pages/
@@ -69,32 +75,31 @@ This repo is currently a **frontend prototype**.
 - `src/layouts/SiteLayout.astro` — shared page shell with header/footer
 - `src/pages/index.astro` — homepage with search hero and about section
 - `src/pages/Produkt-overblik.astro` — main prototype page with:
-  - mock product data
+  - Supabase-backed product loading
   - filtering via `?q=`
   - zoom-level grid behavior
   - load-more interaction
+- `src/pages/Produkt-detaljer.astro` — Supabase-backed product detail view
 
 ### Mostly placeholder pages
 - `Auth.astro`
 - `Butiks-info.astro`
 - `Gemte-produkter.astro`
 - `Hjaelp-kontakt.astro`
-- `Om-Highlide.astro`
-- `Produkt-detaljer.astro`
 - `Profil.astro`
 - `Rediger-personlige-informationer.astro`
 
 ### Current content state
-- Some text is still placeholder / **Lorem ipsum**
-- Product data is hardcoded in `src/pages/Produkt-overblik.astro`
+- Placeholder routes use intentional temporary copy instead of empty shells
+- Product data is loaded from Supabase in product overview/detail pages
 - No persistence for favorites, profile, or auth flows
 
 ## Important routes
 - `/` — homepage
 - `/Produkt-overblik` — product overview/search results
-- `/Produkt-detaljer` — product details placeholder
+- `/Produkt-detaljer` — product details
 - `/Butiks-info` — store info placeholder
-- `/Om-Highlide` — about placeholder
+- `/Om-Highlide` — about page
 - `/Hjaelp-kontakt` — help/contact placeholder
 - `/Profil` — profile placeholder
 - `/Gemte-produkter` — saved products placeholder
@@ -106,14 +111,14 @@ This repo is currently a **frontend prototype**.
 - Mobile usage is the main assumption
 - Performance and simplicity matter
 - `Produkt-overblik` is the best reference for current interaction style
-- In `SiteLayout.astro`, the drawer/menu logic exists, but `isMenuEnabled` is currently `false`, so the menu button is intentionally hidden/disabled
+- In `SiteLayout.astro`, the drawer/menu is enabled and shared across pages
 
 ## Engineering conventions and style rules
 - **Design mobile-first** and scale upward
 - **Prefer simple Astro solutions** over unnecessary complexity
 - **Keep client-side JS minimal** and only add it when HTML/CSS is not enough
 - **Reuse components** instead of duplicating repeated UI patterns
-- **Centralize shared mock data** if it starts being reused across pages
+- **Centralize shared product/data helpers** if they start being reused across pages
 - **Keep naming consistent** with the current Danish route structure unless deliberately refactoring
 - **Use Tailwind pragmatically:** inline utilities first, extraction only when repetition/readability justifies it
 - **Maintain accessibility basics:** semantic HTML, labels, keyboard support, alt text

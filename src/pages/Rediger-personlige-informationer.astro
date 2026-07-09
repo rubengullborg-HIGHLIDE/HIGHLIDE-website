@@ -1,5 +1,17 @@
 ---
-import SiteLayout from '../layouts/SiteLayout.astro';
+import PlaceholderPage from "../components/PlaceholderPage.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
 ---
 
-<SiteLayout title="Edit personal informations" description="HIGHLIDE edit personal informations page" />
+<SiteLayout
+    title="Rediger personlige informationer"
+    description="Rediger dine personlige informationer på HIGHLIDE."
+    noindex={true}
+>
+    <PlaceholderPage
+        title="Redigering af profil kommer snart"
+        description="Når profiler er klar, kan du opdatere dine oplysninger og styre dine indstillinger her."
+        primaryHref="/Profil"
+        primaryLabel="Til profil"
+    />
+</SiteLayout>

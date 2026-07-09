@@ -1,5 +1,17 @@
 ---
-import SiteLayout from '../layouts/SiteLayout.astro';
+import PlaceholderPage from "../components/PlaceholderPage.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
 ---
 
-<SiteLayout title="Log in/Sign up" description="HIGHLIDE log in and sign up page" />
+<SiteLayout
+    title="Log ind"
+    description="Log ind på HIGHLIDE for at gemme produkter og følge lokale butikker."
+    noindex={true}
+>
+    <PlaceholderPage
+        title="Log ind kommer snart"
+        description="Vi arbejder på en enkel profiloplevelse, hvor du kan gemme favoritter og gøre HIGHLIDE mere personlig."
+        primaryHref="/Produkt-overblik"
+        primaryLabel="Udforsk produkter"
+    />
+</SiteLayout>

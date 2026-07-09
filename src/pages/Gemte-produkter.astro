@@ -1,5 +1,17 @@
 ---
-import SiteLayout from '../layouts/SiteLayout.astro';
+import PlaceholderPage from "../components/PlaceholderPage.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
 ---
 
-<SiteLayout title="Gemte produkter" description="Find saved products for a logged in user"/>
+<SiteLayout
+    title="Gemte produkter"
+    description="Gem dine favoritprodukter fra lokale modebutikker på HIGHLIDE."
+    noindex={true}
+>
+    <PlaceholderPage
+        title="Gemte produkter kommer snart"
+        description="Snart kan du gemme styles, vende tilbage til dem senere og holde styr på dine lokale fund."
+        primaryHref="/Produkt-overblik"
+        primaryLabel="Find favoritter"
+    />
+</SiteLayout>

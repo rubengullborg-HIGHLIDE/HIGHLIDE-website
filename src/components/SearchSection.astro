@@ -12,7 +12,7 @@ interface Props {
 const {
     heading = "Find din stil",
     description =
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Søg blandt tøj, brands og butikker fra lokale modebutikker i Aarhus.",
     placeholder = "Søg efter tøj...",
     buttonLabel = "Søg",
     action = "",
@@ -42,7 +42,12 @@ const {
         )
     }
 
-    <form class:list={["w-full", compact ? "max-w-none" : "max-w-2xl"]} role="search" method="get" action={action}>
+    <form
+        class:list={["w-full", compact ? "max-w-none" : "max-w-2xl"]}
+        role="search"
+        method="get"
+        action={action}
+    >
         <label class="sr-only" for="frontpage-search">{placeholder}</label>
         <div
             class:list={[
@@ -55,10 +60,7 @@ const {
                 name="q"
                 type="search"
                 placeholder={placeholder}
-                data-placeholder={placeholder}
                 value={value}
-                onfocus="this.placeholder = '';"
-                onblur="if (!this.value) this.placeholder = this.dataset.placeholder || '';"
                 class:list={[
                     "min-w-0 flex-1 border-0 bg-transparent text-[#1e1a17] placeholder:text-[#8a8178] focus:outline-none",
                     compact ? "px-4 py-4 text-[1.05rem]" : "px-4 py-3 text-base",

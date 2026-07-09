@@ -1,5 +1,37 @@
 ---
-import SiteLayout from '../layouts/SiteLayout.astro';
+import SiteLayout from "../layouts/SiteLayout.astro";
 ---
 
-<SiteLayout title="Om HIGHLIDE" description="Read more about HIGHLIDE here" />
+<SiteLayout
+    title="Om HIGHLIDE"
+    description="HIGHLIDE hjælper dig med at opdage tøj fra mindre lokale modebutikker i Aarhus."
+>
+    <section class="mx-auto max-w-3xl py-10 md:py-16">
+        <p class="text-sm font-bold uppercase tracking-[0.18em] text-[#7b6f64]">
+            Om HIGHLIDE
+        </p>
+        <h1
+            class="mt-4 text-[2.4rem] font-semibold leading-[1.05] tracking-[-0.04em] text-[#1e1a17] md:text-[3.6rem]"
+        >
+            Mere lokal mode. Mindre standard browsing.
+        </h1>
+        <div class="mt-6 space-y-5 text-base leading-8 text-[#5c534b] md:text-lg">
+            <p>
+                HIGHLIDE er en mobil-først platform for tøj fra mindre lokale
+                modebutikker. Første version fokuserer på Aarhus og på at gøre
+                det nemmere at opdage produkter, butikker og brands uden altid
+                at starte hos de store kæder.
+            </p>
+            <p>
+                Målet er en hurtig og enkel oplevelse: søg, find noget
+                interessant, og gå videre til den butik, der har varen.
+            </p>
+        </div>
+        <a
+            href="/Produkt-overblik"
+            class="mt-8 inline-flex w-fit items-center rounded-full bg-[#420e0e] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#551515]"
+        >
+            Se produkter
+        </a>
+    </section>
+</SiteLayout>
