@@ -129,6 +129,12 @@ const defaultZoom = 3;
     </div>
 
     <script>
+        import {
+            applyProductSearch,
+            getProductHref,
+            mapOverviewProduct,
+            productSources,
+        } from "../lib/productSources.js";
         import { supabase } from "../lib/supabaseClient.js";
 
         const overview = document.getElementById("product-overview");
@@ -158,6 +164,13 @@ const defaultZoom = 3;
         const fallbackImage = "/images/clothes/Brown_coat.png";
         const url = new URL(window.location.href);
         const searchQuery = (url.searchParams.get("q") ?? "").trim();
+        const requestedStore = url.searchParams.get("butik");
+        const hasRequestedStore = productSources.some(
+            (source) => source.key === requestedStore,
+        );
+        const activeSources = productSources.filter(
+            (source) => !hasRequestedStore || source.key === requestedStore,
+        );
         const storedZoom =
             window.localStorage.getItem(zoomStorageKey) ?? String(defaultZoom);
         let currentZoom = Math.min(
@@ -187,6 +200,7 @@ const defaultZoom = 3;
         let loadedCount = 0;
         let totalCount = 0;
         let isFetching = false;
+        let sourceState = new Map();
         const zoomConfig = {
             1: { label: "Zoom 1 ud af 4", pageSize: 50 },
             2: { label: "Zoom 2 ud af 4", pageSize: 24 },
@@ -194,33 +208,36 @@ const defaultZoom = 3;
             4: { label: "Zoom 4 ud af 4", pageSize: 6 },
         };
 
-        const formatPrice = (value) => {
-            if (typeof value !== "number") return value || "Pris ikke angivet";
+        const formatPrice = (value, currency = "DKK") => {
+            const numberValue =
+                typeof value === "number" ? value : Number.parseFloat(value);
 
-            return `${new Intl.NumberFormat("da-DK").format(value)} DKK`;
+            if (!Number.isFinite(numberValue)) {
+                return value ? String(value) : "Pris ikke angivet";
+            }
+
+            return `${new Intl.NumberFormat("da-DK").format(numberValue)} ${currency}`;
         };
 
-        const mapProduct = (product) => {
-            const image = Array.isArray(product.images)
-                ? product.images.find(
-                      (item) => typeof item === "string" && item,
-                  )
-                : null;
+        const mapProduct = (product, source) => {
+            const mappedProduct = mapOverviewProduct(
+                product,
+                source,
+                fallbackImage,
+            );
 
             return {
-                id: product.id,
-                brand: product.brand || "Ukendt brand",
-                name: product.navn || "Produkt",
-                price: formatPrice(product.pris),
-                store: product.store || "Ukendt butik",
-                detail: product.color || product.category || "Produkt",
-                image: image || fallbackImage,
+                ...mappedProduct,
+                price: formatPrice(
+                    mappedProduct.price,
+                    mappedProduct.currency,
+                ),
             };
         };
 
         const createProductCard = (product) => {
             const link = document.createElement("a");
-            link.href = `/Produkt-detaljer?id=${product.id}`;
+            link.href = getProductHref(product);
             link.className =
                 "product-card block text-[#1e1a17] transition hover:opacity-90";
             link.dataset.productCard = "";
@@ -261,7 +278,7 @@ const defaultZoom = 3;
             const details = document.createElement("p");
             details.className =
                 "details mt-1 text-[0.9rem] uppercase text-[#8a8178]";
-            details.textContent = `${product.detail} • ${product.store}`;
+            details.textContent = `${product.detail} • ${product.store} • ${product.stock} på lager i Aarhus`;
 
             meta.append(brand, name, price, details);
             link.append(imageWrap, meta);
@@ -380,6 +397,41 @@ const defaultZoom = 3;
             }
         };
 
+        const fetchSourceBatch = async (source, amount) => {
+            const state = sourceState.get(source.key) ?? {
+                loaded: 0,
+                total: null,
+            };
+            const from = state.loaded;
+            const to = from + amount - 1;
+
+            let query = supabase
+                .from(source.table)
+                .select(source.overviewSelect, { count: "exact" })
+                .order(source.orderColumn, { ascending: true })
+                .range(from, to);
+
+            query = source.applyAvailableFilter(query);
+
+            if (searchQuery) {
+                query = applyProductSearch(query, source, searchQuery);
+            }
+
+            const { data, error, count } = await query;
+
+            if (error) throw error;
+
+            const products = (data ?? []).map((product) =>
+                mapProduct(product, source),
+            );
+            sourceState.set(source.key, {
+                loaded: state.loaded + products.length,
+                total: count ?? state.loaded + products.length,
+            });
+
+            return products;
+        };
+
         const fetchProducts = async ({ reset = false } = {}) => {
             if (isFetching) return;
             isFetching = true;
@@ -388,6 +440,7 @@ const defaultZoom = 3;
                 loadedCount = 0;
                 totalCount = 0;
                 cards = [];
+                sourceState = new Map();
                 if (grid) grid.innerHTML = "";
                 setState({ loading: true });
             } else {
@@ -396,29 +449,31 @@ const defaultZoom = 3;
 
             const config = zoomConfig[currentZoom] ?? zoomConfig[defaultZoom];
             const pageSize = config.pageSize;
-            const from = loadedCount;
-            const to = from + pageSize - 1;
+            const products = [];
 
-            let query = supabase
-                .from("products")
-                .select(
-                    "id, brand, navn, pris, store, color, category, images",
-                    {
-                        count: "exact",
-                    },
-                )
-                .order("id", { ascending: true })
-                .range(from, to);
+            try {
+                while (products.length < pageSize) {
+                    const sourcesWithProducts = activeSources.filter((source) => {
+                        const state = sourceState.get(source.key);
+                        return state?.total == null || state.loaded < state.total;
+                    });
 
-            if (searchQuery) {
-                query = query.or(
-                    `navn.ilike.%${searchQuery}%,brand.ilike.%${searchQuery}%,store.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`,
-                );
-            }
+                    if (sourcesWithProducts.length === 0) break;
 
-            const { data, error, count } = await query;
+                    const amount = Math.ceil(
+                        (pageSize - products.length) / sourcesWithProducts.length,
+                    );
+                    const batches = await Promise.all(
+                        sourcesWithProducts.map((source) =>
+                            fetchSourceBatch(source, amount),
+                        ),
+                    );
+                    const fetched = batches.flat();
+                    products.push(...fetched);
 
-            if (error) {
+                    if (fetched.length === 0) break;
+                }
+            } catch (error) {
                 console.error(error);
                 updateResultsCopy(0, searchQuery);
                 setState({ error: true });
@@ -427,8 +482,10 @@ const defaultZoom = 3;
                 return;
             }
 
-            const products = (data ?? []).map(mapProduct);
-            totalCount = count ?? loadedCount + products.length;
+            totalCount = [...sourceState.values()].reduce(
+                (total, state) => total + (state.total ?? 0),
+                0,
+            );
             loadedCount += products.length;
 
             updateResultsCopy(totalCount, searchQuery);
