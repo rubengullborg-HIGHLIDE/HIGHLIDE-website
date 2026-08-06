@@ -1,4 +1,5 @@
 ---
+import ProductRecommendations from "../components/ProductRecommendations.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
 ---
 
@@ -8,12 +9,14 @@ import SiteLayout from "../layouts/SiteLayout.astro";
     noindex={true}
 >
     <section
-        class="-mt-8 mx-auto max-w-3xl pb-10 md:-mt-8"
+        class="-mt-8 mx-auto max-w-4xl pb-10 md:-mt-8"
         id="product-detail"
     >
         <div
-            class="relative -mx-4 w-auto overflow-hidden bg-[#f3eee6] sm:mx-0 sm:w-full"
+            class="relative -mx-4 w-auto overflow-hidden bg-[#eee5d9] sm:mx-0 sm:w-full sm:rounded-b-[1.75rem]"
             data-image-stage
+            tabindex="0"
+            aria-label="Produktbilleder"
         >
             <button
                 type="button"
@@ -53,6 +56,50 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 />
             </div>
 
+            <button
+                type="button"
+                class="absolute left-3 top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/82 text-[#1e1a17] shadow-[0_8px_18px_rgba(0,0,0,0.14)] backdrop-blur-md transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-transparent active:scale-[0.98] sm:left-5"
+                aria-label="Vis forrige billede"
+                data-image-prev
+                hidden
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                    class="h-5 w-5"
+                >
+                    <path
+                        d="M15 6 9 12l6 6"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                </svg>
+            </button>
+
+            <button
+                type="button"
+                class="absolute right-3 top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/82 text-[#1e1a17] shadow-[0_8px_18px_rgba(0,0,0,0.14)] backdrop-blur-md transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-transparent active:scale-[0.98] sm:right-5"
+                aria-label="Vis næste billede"
+                data-image-next
+                hidden
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                    class="h-5 w-5"
+                >
+                    <path
+                        d="m9 18 6-6-6-6"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                </svg>
+            </button>
+
             <div
                 class="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/80 px-3 py-2 shadow-[0_10px_26px_rgba(58,44,31,0.14)] backdrop-blur-md"
                 data-image-dots
@@ -88,119 +135,112 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             </p>
         </div>
 
-        <div class="space-y-7 px-1 pt-6 sm:px-0" data-product-content hidden>
-            <div class="space-y-5">
-                <div class="flex items-start justify-between gap-4">
-                    <div class="min-w-0">
+        <div class="space-y-8 px-1 pt-6 sm:px-0" data-product-content hidden>
+            <div
+                class="overflow-hidden rounded-[1.25rem] border border-[#ded5ca] bg-[#fffbf5] text-[#2f2a26]"
+            >
+                <section class="px-5 py-5 sm:px-6 sm:py-6">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0">
+                            <p
+                                class="text-sm font-bold uppercase tracking-[0.08em] text-[#4d1515]"
+                                data-product-brand
+                            >
+                            </p>
+                            <h1
+                                class="mt-1 text-[1.8rem] font-semibold leading-tight tracking-[-0.03em] text-[#171411] sm:text-[2.15rem]"
+                                data-product-name
+                            >
+                            </h1>
+                        </div>
                         <p
-                            class="text-sm font-bold uppercase tracking-[0.08em] text-[#4d1515]"
-                            data-product-brand
+                            class="shrink-0 pt-1 text-[1.35rem] font-semibold text-[#171411] sm:text-[1.5rem]"
+                            data-product-price
                         >
                         </p>
-                        <h1
-                            class="mt-1 text-[1.8rem] font-semibold leading-tight tracking-[-0.03em] text-[#171411] sm:text-[2.15rem]"
-                            data-product-name
-                        >
-                        </h1>
                     </div>
+
                     <p
-                        class="shrink-0 pt-1 text-[1.35rem] font-semibold text-[#171411] sm:text-[1.5rem]"
-                        data-product-price
+                        class="mt-3 max-w-2xl text-sm italic leading-6 text-[#6a5f57] sm:text-base"
+                        data-product-description
+                        hidden
                     >
                     </p>
-                </div>
 
-                <div
-                    class="flex flex-wrap gap-2"
-                    data-product-highlights
-                    hidden
-                >
-                </div>
-
-                <section data-product-variants hidden>
-                    <div class="flex items-center justify-between gap-4">
-                        <h2 class="text-sm font-semibold text-[#171411]">
-                            Farve
-                        </h2>
-                        <p
-                            class="text-sm text-[#6e645d]"
-                            data-product-variant-label
+                    <div class="mt-4 flex flex-wrap items-center gap-2">
+                        <span
+                            class="inline-flex min-h-9 items-center rounded-full bg-[#f3ede5] px-3 text-sm font-medium text-[#4f4741]"
                         >
-                        </p>
+                            Sælges hos <span class="ml-1 font-semibold text-[#171411]" data-product-store></span>
+                        </span>
+                        <span
+                            class="inline-flex min-h-9 items-center gap-2 rounded-full bg-[#e9f5ed] px-3 text-sm font-semibold text-[#236f3d]"
+                        >
+                            <span
+                                class="h-2 w-2 shrink-0 rounded-full bg-[#258f4a]"
+                                aria-hidden="true"
+                            ></span>
+                            <span data-product-stock></span>
+                        </span>
                     </div>
-                    <div
-                        class="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-2"
-                        data-product-variant-options
-                    >
-                    </div>
+
+                    <section class="mt-5" data-product-variants hidden>
+                        <div class="flex items-center justify-between gap-4">
+                            <h2 class="text-sm font-semibold text-[#171411]">
+                                Farve
+                            </h2>
+                            <p
+                                class="text-sm text-[#6e645d]"
+                                data-product-variant-label
+                            >
+                            </p>
+                        </div>
+                        <div
+                            class="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-2"
+                            data-product-variant-options
+                        >
+                        </div>
+                    </section>
+
                 </section>
 
-                <div
-                    class="rounded-xl border border-[#ded5ca] bg-[#f1ebe3] px-4 py-3 text-[#2f2a26]"
-                >
-                    <div class="flex items-center gap-3">
-                        <span
-                            class="h-2.5 w-2.5 shrink-0 rounded-full bg-[#258f4a]"
-                            aria-hidden="true"
-                        ></span>
-                        <p
-                            class="text-sm font-medium sm:text-base"
-                            data-product-stock
-                        >
-                        </p>
+                <section class="border-t border-[#e4dbd0] px-5 py-5 sm:px-6">
+                    <div>
+                        <div>
+                            <h2
+                                class="text-base font-semibold tracking-[-0.01em] text-[#171411]"
+                            >
+                                Lager i Aarhus
+                            </h2>
+                            <p class="mt-1 text-sm leading-6 text-[#6e645d]">
+                                Grønne størrelser er på lager lokalt. Røde
+                                størrelser er kendte, men ikke på lager i den
+                                valgte butik.
+                            </p>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="mt-5 grid gap-3" data-product-store-stock></div>
+                </section>
+
+                <section class="border-t border-[#e4dbd0] px-5 py-5 sm:px-6">
+                    <h2
+                        class="text-base font-semibold tracking-[-0.01em] text-[#171411]"
+                    >
+                        Produktinformation
+                    </h2>
+
+                    <div class="mt-5" data-product-extra></div>
+                </section>
             </div>
 
-            <a
-                class="hidden w-full items-center justify-center rounded-full bg-[#420e0e] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-[#f8f4ec] active:scale-[0.99]"
-                href="#"
-                target="_blank"
-                rel="noreferrer"
-                data-product-url
-            >
-                Se produkt hos butik
-            </a>
-
-            <section class="border-t border-black/10 pt-7">
-                <div class="flex items-end justify-between gap-4">
-                    <div>
-                        <h2
-                            class="text-base font-semibold tracking-[-0.01em] text-[#171411]"
-                        >
-                            Lager i Aarhus
-                        </h2>
-                        <p class="mt-1 text-sm leading-6 text-[#6e645d]">
-                            Størrelserne herunder er dem, der er på lager i de
-                            enkelte butikker.
-                        </p>
-                    </div>
-                    <p
-                        class="shrink-0 text-sm font-medium text-[#6e645d]"
-                        data-product-stock-total
-                    >
-                    </p>
-                </div>
-
-                <div class="mt-5 grid gap-3" data-product-store-stock></div>
-            </section>
-
-            <section class="border-t border-black/10 pt-7">
-                <h2
-                    class="text-base font-semibold tracking-[-0.01em] text-[#171411]"
-                >
-                    Produktinformation
-                </h2>
-
-                <div class="mt-5" data-product-extra></div>
-            </section>
+            <ProductRecommendations />
         </div>
     </section>
 
     <script>
         import {
             getProductSource,
-            getProductUrl,
             normalizeDetailProduct,
         } from "../lib/productSources.js";
         import { supabase } from "../lib/supabaseClient.js";
@@ -305,12 +345,13 @@ import SiteLayout from "../layouts/SiteLayout.astro";
         const image = detail?.querySelector("[data-product-image]");
         const imageLoading = detail?.querySelector("[data-image-loading]");
         const imageDots = detail?.querySelector("[data-image-dots]");
+        const imagePrev = detail?.querySelector("[data-image-prev]");
+        const imageNext = detail?.querySelector("[data-image-next]");
         const brand = detail?.querySelector("[data-product-brand]");
         const name = detail?.querySelector("[data-product-name]");
         const price = detail?.querySelector("[data-product-price]");
         const stock = detail?.querySelector("[data-product-stock]");
-        const stockTotal = detail?.querySelector("[data-product-stock-total]");
-        const highlights = detail?.querySelector("[data-product-highlights]");
+        const storeName = detail?.querySelector("[data-product-store]");
         const variantsSection = detail?.querySelector(
             "[data-product-variants]",
         );
@@ -320,7 +361,9 @@ import SiteLayout from "../layouts/SiteLayout.astro";
         const variantsOptions = detail?.querySelector(
             "[data-product-variant-options]",
         );
-        const productUrl = detail?.querySelector("[data-product-url]");
+        const productDescription = detail?.querySelector(
+            "[data-product-description]",
+        );
         const storeStock = detail?.querySelector("[data-product-store-stock]");
         const extra = detail?.querySelector("[data-product-extra]");
         const loadingState = detail?.querySelector("[data-loading-state]");
@@ -410,6 +453,28 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 : [fallbackImage];
         };
 
+        const getProductDescription = (product) => {
+            const candidates = [
+                product.description,
+                product.beskrivelse,
+                product.product_description,
+                product.short_description,
+                product.body_html,
+                product.raw?.description,
+                product.raw?.body_html,
+            ];
+            const value = candidates.find(
+                (item) => typeof item === "string" && item.trim(),
+            );
+
+            if (!value) return "";
+
+            const parsed = new DOMParser().parseFromString(value, "text/html");
+            return (parsed.body.textContent ?? value)
+                .replace(/\s+/g, " ")
+                .trim();
+        };
+
         const renderCurrentImage = () => {
             if (!image) return;
 
@@ -418,11 +483,18 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             image.src = currentImages[currentImageIndex] ?? fallbackImage;
         };
 
+        const updateImageControls = () => {
+            const hasMultipleImages = currentImages.length > 1;
+            imagePrev?.toggleAttribute("hidden", !hasMultipleImages);
+            imageNext?.toggleAttribute("hidden", !hasMultipleImages);
+        };
+
         const renderImageDots = () => {
             if (!imageDots) return;
 
             imageDots.innerHTML = "";
             imageDots.hidden = currentImages.length <= 1;
+            updateImageControls();
 
             currentImages.forEach((_, index) => {
                 const dot = document.createElement("button");
@@ -461,23 +533,96 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             return `${stockCount} stk. på lager`;
         };
 
-        const getStoreSizes = (store) => {
+        const sizeRank = new Map(
+            [
+                "XXS",
+                "2XS",
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL",
+                "2XL",
+                "XXXL",
+                "3XL",
+            ].map((size, index) => [size, index]),
+        );
+
+        const normalizeSize = (size) => String(size ?? "").trim();
+
+        const sortSizes = (sizes) =>
+            [...sizes].sort((a, b) => {
+                const normalizedA = normalizeSize(a).toUpperCase();
+                const normalizedB = normalizeSize(b).toUpperCase();
+                const rankA = sizeRank.get(normalizedA);
+                const rankB = sizeRank.get(normalizedB);
+
+                if (rankA != null || rankB != null) {
+                    return (rankA ?? 1000) - (rankB ?? 1000);
+                }
+
+                return normalizedA.localeCompare(normalizedB, "da", {
+                    numeric: true,
+                    sensitivity: "base",
+                });
+            });
+
+        const collectProductSizes = (value) => {
+            if (Array.isArray(value)) {
+                return value
+                    .map((item) =>
+                        typeof item === "object"
+                            ? item?.size ?? item?.name ?? item?.title ?? item?.value
+                            : item,
+                    )
+                    .map(normalizeSize)
+                    .filter(Boolean);
+            }
+
+            if (value && typeof value === "object") {
+                return Object.keys(value).map(normalizeSize).filter(Boolean);
+            }
+
+            return [];
+        };
+
+        const getKnownProductSizes = (product) =>
+            sortSizes(
+                new Set([
+                    ...collectProductSizes(product.sizes),
+                    ...collectProductSizes(product.webshop_sizes),
+                ]),
+            );
+
+        const getStoreSizes = (store, productSizes) => {
             const sizesByStore = store?.sizes;
+            const storeSizes =
+                sizesByStore && typeof sizesByStore === "object"
+                    ? Object.keys(sizesByStore)
+                    : [];
+            const allSizes = sortSizes(new Set([...productSizes, ...storeSizes]));
+
             if (!sizesByStore || typeof sizesByStore !== "object") return [];
 
-            return Object.entries(sizesByStore)
-                .filter(([, value]) => value?.available)
-                .map(([size, value]) => ({
+            return allSizes.map((size) => {
+                const value = sizesByStore[size] ?? {};
+                const stock =
+                    value.stock == null ? null : Number(value.stock);
+
+                return {
                     size,
-                    stock:
-                        value.stock == null ? null : Number(value.stock),
-                }));
+                    available: Boolean(value.available) || stock > 0,
+                    stock,
+                };
+            });
         };
 
         const renderStoreStock = (product, source) => {
             if (!storeStock) return;
 
             const stores = product.aarhusInventory?.stores ?? {};
+            const productSizes = getKnownProductSizes(product);
             storeStock.innerHTML = "";
 
             Object.entries(source.storeLabels).forEach(([storeKey, label]) => {
@@ -488,7 +633,8 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                         : Number(store.total_stock);
                 const isAvailable =
                     Boolean(store.available) || totalStock > 0;
-                const availableSizes = getStoreSizes(store);
+                const sizes = getStoreSizes(store, productSizes);
+                const availableSizes = sizes.filter((size) => size.available);
 
                 const row = document.createElement("div");
                 row.className =
@@ -524,18 +670,25 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 header.append(titleWrap, dot);
                 row.append(header);
 
-                if (availableSizes.length > 0) {
+                if (sizes.length > 0) {
                     const sizeList = document.createElement("div");
                     sizeList.className = "mt-4 flex flex-wrap gap-2";
 
-                    availableSizes.forEach(({ size, stock: sizeStock }) => {
+                    sizes.forEach(({ size, stock: sizeStock, available }) => {
                         const item = document.createElement("span");
-                        item.className =
-                            "inline-flex min-h-9 items-center rounded-full border border-[#ded5ca] bg-[#f8f4ec] px-3 text-sm font-medium text-[#3e3530]";
+                        item.className = available
+                            ? "inline-flex min-h-9 items-center rounded-full border border-[#8bcfa1] bg-[#e9f7ee] px-3 text-sm font-semibold text-[#1f6f3d]"
+                            : "inline-flex min-h-9 items-center rounded-full border border-[#e4b7ae] bg-[#fff1ef] px-3 text-sm font-medium text-[#9a3c2f] opacity-85";
                         item.textContent =
-                            sizeStock != null && sizeStock > 1
+                            available && sizeStock != null && sizeStock > 1
                                 ? `${size} · ${sizeStock}`
                                 : size;
+                        item.setAttribute(
+                            "aria-label",
+                            available
+                                ? `${size} på lager${sizeStock != null && sizeStock > 1 ? `, ${sizeStock} stk.` : ""}`
+                                : `${size} ikke på lager`,
+                        );
                         sizeList.append(item);
                     });
 
@@ -546,25 +699,12 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             });
         };
 
-        const renderHighlights = (product) => {
-            if (!highlights) return;
+        const renderDescription = (product) => {
+            if (!productDescription) return;
 
-            const items = [product.color, product.category, product.fit]
-                .filter((value, index, values) =>
-                    !isEmptyValue(value) && values.indexOf(value) === index,
-                )
-                .slice(0, 3);
-
-            highlights.innerHTML = "";
-            highlights.hidden = items.length === 0;
-
-            items.forEach((item) => {
-                const chip = document.createElement("span");
-                chip.className =
-                    "inline-flex min-h-8 items-center rounded-full border border-[#ded5ca] bg-[#fbf8f2] px-3 text-sm font-medium text-[#5b5149]";
-                chip.textContent = item;
-                highlights.append(chip);
-            });
+            const description = getProductDescription(product);
+            productDescription.hidden = !description;
+            productDescription.textContent = description;
         };
 
         const renderVariants = (variants, selectedProduct) => {
@@ -629,6 +769,11 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 sizeKeys.filter((key) => !isEmptyValue(product[key])),
             );
             const structuralKeys = new Set([
+                "description",
+                "beskrivelse",
+                "product_description",
+                "short_description",
+                "body_html",
                 "specifications",
                 "size_guide",
                 "model_info",
@@ -706,15 +851,14 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             if (entries.length === 0) {
                 const empty = document.createElement("div");
                 empty.className =
-                    "rounded-xl border border-dashed border-[#ded5ca] bg-[#fbf8f2] px-4 py-5 text-sm text-[#6f655b]";
+                    "py-2 text-sm text-[#6f655b]";
                 empty.textContent = "Ingen ekstra produktdata endnu.";
                 extra.append(empty);
                 return;
             }
 
             const panel = document.createElement("div");
-            panel.className =
-                "divide-y divide-[#ded5ca] rounded-xl border border-[#ded5ca] bg-[#fbf8f2] px-4 py-1";
+            panel.className = "divide-y divide-[#ded5ca]";
 
             entries.forEach(([key, value]) => {
                 const row = document.createElement("div");
@@ -779,23 +923,22 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                     product.aarhus_available === true,
                 )} i Aarhus`;
             }
-            if (stockTotal) {
-                stockTotal.textContent = productStore;
-            }
-            if (productUrl && getProductUrl(product)) {
-                productUrl.href = getProductUrl(product);
-                productUrl.classList.remove("hidden");
-                productUrl.classList.add("inline-flex");
-            } else if (productUrl) {
-                productUrl.classList.add("hidden");
-                productUrl.classList.remove("inline-flex");
+            if (storeName) {
+                storeName.textContent = productStore;
             }
 
             document.title = `${productBrand} ${productName}`;
-            renderHighlights(product);
-            renderStoreStock(product, getProductSource(product.sourceKey));
+            renderDescription(product);
+            const source = getProductSource(product.sourceKey);
+            renderStoreStock(product, source);
             renderExtraEntries(product);
             setState({ visible: true });
+            window.highlideCurrentProduct = product;
+            document.dispatchEvent(
+                new CustomEvent("highlide:product-detail-ready", {
+                    detail: { product },
+                }),
+            );
         };
 
         const fetchProduct = async () => {
@@ -906,6 +1049,9 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             if (event.key === "ArrowRight") showImage(1);
             if (event.key === "ArrowLeft") showImage(-1);
         });
+
+        imagePrev?.addEventListener("click", () => showImage(-1));
+        imageNext?.addEventListener("click", () => showImage(1));
 
         fetchProduct();
     </script>

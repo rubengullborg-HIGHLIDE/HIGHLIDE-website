@@ -1,0 +1,195 @@
+---
+interface Props {
+    title?: string;
+    description?: string;
+}
+
+const {
+    title = "Du vil måske også kunne lide",
+    description = "Lignende produkter fra andre lokale butikker.",
+} = Astro.props;
+---
+
+<section class="pt-1" data-product-recommendations>
+    <div class="flex items-end justify-between gap-4">
+        <div>
+            <h2
+                class="text-base font-semibold tracking-[-0.01em] text-[#171411]"
+            >
+                {title}
+            </h2>
+            <p class="mt-1 text-sm leading-6 text-[#6e645d]">
+                {description}
+            </p>
+        </div>
+    </div>
+
+    <div
+        class="-mx-4 mt-5 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
+        data-similar-products
+    >
+        <div
+            class="w-full rounded-xl border border-dashed border-[#ded5ca] bg-[#fbf8f2] px-4 py-5 text-sm text-[#6f655b]"
+            data-similar-loading
+        >
+            Finder lignende produkter...
+        </div>
+    </div>
+</section>
+
+<script>
+    import {
+        getProductHref,
+        getProductSource,
+        mapOverviewProduct,
+        productSources,
+    } from "../lib/productSources.js";
+    import { supabase } from "../lib/supabaseClient.js";
+
+    const fallbackImage = "/images/clothes/Brown_coat.png";
+    const recommendations = document.querySelector(
+        "[data-product-recommendations]",
+    );
+    const similarProducts = recommendations?.querySelector(
+        "[data-similar-products]",
+    );
+    const similarLoading = recommendations?.querySelector(
+        "[data-similar-loading]",
+    );
+
+    const formatPrice = (value, currency = "DKK") => {
+        const numberValue =
+            typeof value === "number" ? value : Number.parseFloat(value);
+
+        if (Number.isFinite(numberValue)) {
+            return `${new Intl.NumberFormat("da-DK").format(numberValue)} ${currency}`;
+        }
+
+        return value ? String(value) : "Pris ikke angivet";
+    };
+
+    const createSimilarCard = (product) => {
+        const link = document.createElement("a");
+        link.href = getProductHref(product);
+        link.className =
+            "group w-[9.5rem] shrink-0 text-[#1e1a17] sm:w-[11rem]";
+        link.setAttribute(
+            "aria-label",
+            `Se detaljer for ${product.brand} ${product.name}`,
+        );
+
+        const imageWrap = document.createElement("div");
+        imageWrap.className =
+            "aspect-[0.78] overflow-hidden rounded-xl bg-[#eee5d9]";
+
+        const image = document.createElement("img");
+        image.src = product.image;
+        image.alt = `${product.brand} ${product.name}`;
+        image.loading = "lazy";
+        image.className =
+            "h-full w-full object-contain transition duration-200 group-hover:scale-[1.03]";
+
+        const brand = document.createElement("p");
+        brand.className =
+            "mt-3 truncate text-xs font-extrabold uppercase tracking-[0.08em] text-[#4d1515]";
+        brand.textContent = product.brand;
+
+        const name = document.createElement("p");
+        name.className =
+            "mt-1 line-clamp-2 text-sm leading-5 text-[#4f4741]";
+        name.textContent = product.name;
+
+        const price = document.createElement("p");
+        price.className = "mt-2 text-sm font-semibold text-[#171411]";
+        price.textContent = formatPrice(product.price, product.currency);
+
+        imageWrap.append(image);
+        link.append(imageWrap, brand, name, price);
+
+        return link;
+    };
+
+    const renderSimilarProducts = (products) => {
+        if (!similarProducts) return;
+
+        similarProducts.innerHTML = "";
+
+        if (products.length === 0) {
+            const empty = document.createElement("div");
+            empty.className =
+                "w-full rounded-xl border border-dashed border-[#ded5ca] bg-[#fbf8f2] px-4 py-5 text-sm text-[#6f655b]";
+            empty.textContent =
+                "Der er ikke nok lignende produkter fra andre butikker endnu.";
+            similarProducts.append(empty);
+            return;
+        }
+
+        products.forEach((product) =>
+            similarProducts.append(createSimilarCard(product)),
+        );
+    };
+
+    const fetchSimilarProducts = async (product, source) => {
+        if (!similarProducts) return;
+
+        similarLoading?.toggleAttribute("hidden", false);
+        const category = product.category || product.product_type;
+        const sources = productSources.filter((item) => item.key !== source.key);
+
+        const fetchCandidates = async (matchCategory) => {
+            const batches = await Promise.all(
+                sources.map(async (candidateSource) => {
+                    let query = supabase
+                        .from(candidateSource.table)
+                        .select(candidateSource.overviewSelect)
+                        .order(candidateSource.orderColumn, {
+                            ascending: true,
+                        })
+                        .limit(4);
+
+                    query = candidateSource.applyAvailableFilter(query);
+
+                    if (matchCategory && category) {
+                        query = query.eq("category", category);
+                    }
+
+                    const { data, error } = await query;
+                    if (error) throw error;
+
+                    return (data ?? []).map((item) =>
+                        mapOverviewProduct(item, candidateSource, fallbackImage),
+                    );
+                }),
+            );
+
+            return batches.flat();
+        };
+
+        try {
+            const categoryMatches = category ? await fetchCandidates(true) : [];
+            const fallbackProducts =
+                categoryMatches.length > 0
+                    ? categoryMatches
+                    : await fetchCandidates(false);
+
+            renderSimilarProducts(fallbackProducts.slice(0, 8));
+        } catch (error) {
+            console.error(error);
+            renderSimilarProducts([]);
+        }
+    };
+
+    document.addEventListener("highlide:product-detail-ready", (event) => {
+        const product = event.detail?.product;
+        if (!product) return;
+
+        fetchSimilarProducts(product, getProductSource(product.sourceKey));
+    });
+
+    if (window.highlideCurrentProduct) {
+        fetchSimilarProducts(
+            window.highlideCurrentProduct,
+            getProductSource(window.highlideCurrentProduct.sourceKey),
+        );
+    }
+</script>

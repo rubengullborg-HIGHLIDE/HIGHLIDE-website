@@ -46,8 +46,13 @@ const {
         )
     }
 
-    <div class:list={["w-full", compact ? "max-w-none" : "max-w-2xl"]}>
-        <form role="search" method="get" action={action}>
+    <div
+        class:list={[
+            "flex w-full items-center gap-2",
+            compact ? "max-w-none" : "max-w-2xl",
+        ]}
+    >
+        <form class="min-w-0 flex-1" role="search" method="get" action={action}>
             <label class="sr-only" for="frontpage-search">{placeholder}</label>
             <div
                 class:list={[
@@ -74,7 +79,6 @@ const {
                 </button>
             </div>
         </form>
-
         {
             storeFilters && (
                 <ProductFilters action={action} />

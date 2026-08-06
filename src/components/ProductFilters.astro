@@ -46,10 +46,10 @@ const dynamicSections = [
 ];
 ---
 
-<div class="mt-3 text-left" data-product-filters data-filter-action={action}>
+<div class="shrink-0 text-left" data-product-filters data-filter-action={action}>
     <button
         type="button"
-        class="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#d6ccc1] bg-white px-4 py-2 text-sm font-medium text-[#1e1a17] transition hover:border-[#420e0e] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-[#f8f4ec]"
+        class="inline-flex h-12 items-center gap-2 rounded-full border border-[#d6ccc1] bg-white px-4 text-base font-medium text-[#1e1a17] transition hover:border-[#420e0e] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-[#f8f4ec]"
         data-filter-open
         aria-haspopup="dialog"
     >
@@ -153,21 +153,26 @@ const dynamicSections = [
                             <span class="accordion-mark text-xl font-light" aria-hidden="true">+</span>
                         </span>
                     </summary>
-                    <div class="grid grid-cols-2 gap-3 pb-6">
-                        <label class="text-sm text-[#6e645d]">
-                            Fra
-                            <span class="mt-1 flex min-h-11 items-center rounded-lg border border-[#d6ccc1] bg-white px-3 focus-within:border-[#420e0e] focus-within:ring-1 focus-within:ring-[#420e0e]">
-                                <input class="min-w-0 flex-1 border-0 bg-transparent text-[#1e1a17] outline-none" type="number" min="0" inputmode="numeric" name={productFilterParams.minPrice} />
-                                <span class="text-xs">kr.</span>
-                            </span>
-                        </label>
-                        <label class="text-sm text-[#6e645d]">
-                            Til
-                            <span class="mt-1 flex min-h-11 items-center rounded-lg border border-[#d6ccc1] bg-white px-3 focus-within:border-[#420e0e] focus-within:ring-1 focus-within:ring-[#420e0e]">
-                                <input class="min-w-0 flex-1 border-0 bg-transparent text-[#1e1a17] outline-none" type="number" min="0" inputmode="numeric" name={productFilterParams.maxPrice} />
-                                <span class="text-xs">kr.</span>
-                            </span>
-                        </label>
+                    <div class="pb-6">
+                        <div class="flex items-center justify-between gap-4 text-sm">
+                            <span class="font-medium text-[#171411]">Pris op til</span>
+                            <output class="font-semibold text-[#420e0e]" data-price-output>Alle priser</output>
+                        </div>
+                        <input
+                            class="price-slider mt-5 h-2 w-full cursor-pointer appearance-none rounded-full bg-[#e4dbd3]"
+                            type="range"
+                            min="0"
+                            max="5000"
+                            step="50"
+                            value="5000"
+                            aria-label="Maksimal pris"
+                            data-price-range
+                        />
+                        <input type="hidden" name={productFilterParams.maxPrice} data-price-value />
+                        <div class="mt-3 flex justify-between text-xs text-[#6e645d]">
+                            <span>0 kr.</span>
+                            <span>5.000+ kr.</span>
+                        </div>
                     </div>
                 </details>
             </div>
@@ -258,6 +263,9 @@ const dynamicSections = [
         const clearButton = root.querySelector("[data-filter-clear]");
         const applyButton = root.querySelector("[data-filter-apply]");
         const badge = root.querySelector("[data-filter-badge]");
+        const priceRange = root.querySelector("[data-price-range]");
+        const priceValue = root.querySelector("[data-price-value]");
+        const priceOutput = root.querySelector("[data-price-output]");
         const action = root.dataset.filterAction || "/Produkt-overblik";
         const searchForm = root.closest("section")?.querySelector('form[role="search"]');
         const searchInput = searchForm?.querySelector('input[name="q"]');
@@ -277,6 +285,18 @@ const dynamicSections = [
             if (input) input.checked = checked;
         };
 
+        const syncPriceSlider = () => {
+            if (!priceRange || !priceValue || !priceOutput) return;
+
+            const max = Number(priceRange.max);
+            const value = Number(priceRange.value);
+            const hasLimit = Number.isFinite(value) && value < max;
+            priceValue.value = hasLimit ? String(value) : "";
+            priceOutput.textContent = hasLimit
+                ? `${new Intl.NumberFormat("da-DK").format(value)} kr.`
+                : "Alle priser";
+        };
+
         const restoreFromUrl = () => {
             form.reset();
             const filters = parseProductFilters(new URL(window.location.href).searchParams);
@@ -294,6 +314,12 @@ const dynamicSections = [
             const maxPrice = form.elements.namedItem(productFilterParams.maxPrice);
             if (minPrice) minPrice.value = filters.minPrice ?? "";
             if (maxPrice) maxPrice.value = filters.maxPrice ?? "";
+            if (priceRange) {
+                const sliderMax = Number(priceRange.max);
+                const restoredMax = filters.maxPrice ?? sliderMax;
+                priceRange.value = String(Math.min(sliderMax, Math.max(0, restoredMax)));
+            }
+            syncPriceSlider();
             updateUi();
         };
 
@@ -410,6 +436,7 @@ const dynamicSections = [
         closeButton?.addEventListener("click", () => dialog.close());
         clearButton?.addEventListener("click", () => {
             form.reset();
+            syncPriceSlider();
             updateUi();
             scheduleCount();
         });
@@ -441,14 +468,14 @@ const dynamicSections = [
         });
 
         form?.addEventListener("change", () => {
+            syncPriceSlider();
             updateUi();
             scheduleCount();
         });
-        form?.querySelectorAll('input[type="number"]').forEach((input) => {
-            input.addEventListener("input", () => {
-                updateUi();
-                scheduleCount();
-            });
+        priceRange?.addEventListener("input", () => {
+            syncPriceSlider();
+            updateUi();
+            scheduleCount();
         });
 
         form?.addEventListener("submit", (event) => {
@@ -548,6 +575,31 @@ const dynamicSections = [
     .filter-checkbox:focus-visible {
         outline: 2px solid #420e0e;
         outline-offset: 2px;
+    }
+
+    .price-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 1.5rem;
+        width: 1.5rem;
+        border: 0;
+        border-radius: 999px;
+        background: #420e0e;
+        box-shadow: 0 4px 14px rgba(66, 14, 14, 0.24);
+    }
+
+    .price-slider::-moz-range-thumb {
+        height: 1.5rem;
+        width: 1.5rem;
+        border: 0;
+        border-radius: 999px;
+        background: #420e0e;
+        box-shadow: 0 4px 14px rgba(66, 14, 14, 0.24);
+    }
+
+    .price-slider:focus-visible {
+        outline: 2px solid #420e0e;
+        outline-offset: 0.35rem;
     }
 
     @keyframes filter-sheet-in {
