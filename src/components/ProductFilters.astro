@@ -1,0 +1,575 @@
+---
+import {
+    clothingTypeOptions,
+    productFilterParams,
+} from "../lib/productFilters.js";
+import { productSources } from "../lib/productSources.js";
+
+interface Props {
+    action?: string;
+}
+
+const { action = "/Produkt-overblik" } = Astro.props;
+
+const staticSections = [
+    {
+        key: "stores",
+        label: "Butik",
+        name: productFilterParams.stores,
+        options: productSources.map((source) => ({
+            value: source.key,
+            label: source.storeName,
+        })),
+    },
+    {
+        key: "types",
+        label: "Tøjtype",
+        name: productFilterParams.types,
+        options: clothingTypeOptions,
+    },
+];
+
+const dynamicSections = [
+    {
+        key: "brands",
+        label: "Brand",
+        name: productFilterParams.brands,
+        searchable: true,
+    },
+    {
+        key: "colors",
+        label: "Farve",
+        name: productFilterParams.colors,
+        searchable: false,
+        note: "Kun produkter med en angivet farvegruppe vises, når du vælger en farve.",
+    },
+];
+---
+
+<div class="mt-3 text-left" data-product-filters data-filter-action={action}>
+    <button
+        type="button"
+        class="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#d6ccc1] bg-white px-4 py-2 text-sm font-medium text-[#1e1a17] transition hover:border-[#420e0e] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-[#f8f4ec]"
+        data-filter-open
+        aria-haspopup="dialog"
+    >
+        <span aria-hidden="true" class="filter-glyph"><i></i><i></i><i></i></span>
+        Filtre
+        <span
+            class="hidden min-w-5 rounded-full bg-[#420e0e] px-1.5 py-0.5 text-center text-xs font-semibold leading-4 text-white"
+            data-filter-badge
+        ></span>
+    </button>
+
+    <dialog
+        class="filter-dialog m-0 h-auto max-h-[92dvh] w-full max-w-none overflow-hidden border-0 bg-white p-0 text-[#1e1a17] backdrop:bg-black/45 md:m-auto md:max-h-[85dvh] md:w-[36rem] md:rounded-2xl"
+        data-filter-dialog
+        aria-labelledby="product-filter-title"
+    >
+        <form class="flex h-full max-h-[92dvh] flex-col md:max-h-[85dvh]" data-filter-form>
+            <header class="sticky top-0 z-10 border-b border-[#e3dbd3] bg-white px-5 pb-4 pt-2 md:px-6 md:pt-5">
+                <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-[#d6ccc1] md:hidden"></div>
+                <div class="flex min-h-11 items-center justify-between gap-4">
+                    <h2 id="product-filter-title" class="text-xl font-semibold">Filtre</h2>
+                    <button
+                        type="button"
+                        class="grid size-11 place-items-center rounded-full text-2xl leading-none text-[#1e1a17] transition hover:bg-[#f8f4ec] focus:outline-none focus:ring-2 focus:ring-[#420e0e]"
+                        data-filter-close
+                        aria-label="Luk filtre"
+                    >
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 md:px-6" data-filter-scroll>
+                {
+                    staticSections.map((section, index) => (
+                        <details
+                            class="filter-section border-b border-[#e3dbd3]"
+                            data-filter-section
+                            open={index === 0}
+                        >
+                            <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-3 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]">
+                                <span>{section.label}</span>
+                                <span class="flex items-center gap-3">
+                                    <span class="text-sm font-normal text-[#6e645d]" data-section-count={section.name} />
+                                    <span class="accordion-mark text-xl font-light" aria-hidden="true">+</span>
+                                </span>
+                            </summary>
+                            <div class="grid gap-1 pb-5">
+                                {section.options.map((option) => (
+                                    <label class="filter-option flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 text-sm transition hover:bg-[#f8f4ec]">
+                                        <input
+                                            class="filter-checkbox size-5 shrink-0 appearance-none rounded border border-[#a99e94] bg-white"
+                                            type="checkbox"
+                                            name={section.name}
+                                            value={option.value}
+                                        />
+                                        <span>{option.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </details>
+                    ))
+                }
+
+                {
+                    dynamicSections.map((section) => (
+                        <details class="filter-section border-b border-[#e3dbd3]" data-filter-section>
+                            <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-3 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]">
+                                <span>{section.label}</span>
+                                <span class="flex items-center gap-3">
+                                    <span class="text-sm font-normal text-[#6e645d]" data-section-count={section.name} />
+                                    <span class="accordion-mark text-xl font-light" aria-hidden="true">+</span>
+                                </span>
+                            </summary>
+                            <div class="pb-5">
+                                {section.note && <p class="mb-3 text-xs leading-5 text-[#6e645d]">{section.note}</p>}
+                                {section.searchable && (
+                                    <label class="mb-3 block">
+                                        <span class="sr-only">Søg i {section.label.toLowerCase()}</span>
+                                        <input
+                                            type="search"
+                                            class="min-h-11 w-full rounded-lg border border-[#d6ccc1] bg-white px-3 text-sm outline-none placeholder:text-[#8d837b] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]"
+                                            placeholder={`Søg i ${section.label.toLowerCase()}`}
+                                            data-option-search={section.key}
+                                        />
+                                    </label>
+                                )}
+                                <div class="grid gap-1" data-dynamic-options={section.key} data-input-name={section.name}>
+                                    <p class="py-3 text-sm text-[#6e645d]" data-options-loading>Henter valgmuligheder...</p>
+                                </div>
+                            </div>
+                        </details>
+                    ))
+                }
+
+                <details class="filter-section border-b border-[#e3dbd3]" data-filter-section>
+                    <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-3 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]">
+                        <span>Pris</span>
+                        <span class="flex items-center gap-3">
+                            <span class="text-sm font-normal text-[#6e645d]" data-section-count="price" />
+                            <span class="accordion-mark text-xl font-light" aria-hidden="true">+</span>
+                        </span>
+                    </summary>
+                    <div class="grid grid-cols-2 gap-3 pb-6">
+                        <label class="text-sm text-[#6e645d]">
+                            Fra
+                            <span class="mt-1 flex min-h-11 items-center rounded-lg border border-[#d6ccc1] bg-white px-3 focus-within:border-[#420e0e] focus-within:ring-1 focus-within:ring-[#420e0e]">
+                                <input class="min-w-0 flex-1 border-0 bg-transparent text-[#1e1a17] outline-none" type="number" min="0" inputmode="numeric" name={productFilterParams.minPrice} />
+                                <span class="text-xs">kr.</span>
+                            </span>
+                        </label>
+                        <label class="text-sm text-[#6e645d]">
+                            Til
+                            <span class="mt-1 flex min-h-11 items-center rounded-lg border border-[#d6ccc1] bg-white px-3 focus-within:border-[#420e0e] focus-within:ring-1 focus-within:ring-[#420e0e]">
+                                <input class="min-w-0 flex-1 border-0 bg-transparent text-[#1e1a17] outline-none" type="number" min="0" inputmode="numeric" name={productFilterParams.maxPrice} />
+                                <span class="text-xs">kr.</span>
+                            </span>
+                        </label>
+                    </div>
+                </details>
+            </div>
+
+            <footer class="sticky bottom-0 z-10 flex items-center gap-3 border-t border-[#e3dbd3] bg-white px-5 py-4 md:px-6">
+                <button
+                    type="button"
+                    class="min-h-11 shrink-0 px-2 text-sm font-medium text-[#420e0e] underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-[#420e0e]"
+                    data-filter-clear
+                >
+                    Ryd alle
+                </button>
+                <button
+                    type="submit"
+                    class="min-h-12 flex-1 rounded-full bg-[#420e0e] px-5 text-sm font-semibold text-white transition hover:bg-[#561313] disabled:cursor-wait disabled:opacity-70 focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2"
+                    data-filter-apply
+                >
+                    Vis produkter
+                </button>
+            </footer>
+        </form>
+    </dialog>
+</div>
+
+<script>
+    import {
+        applyProductFilters,
+        getActiveFilterCount,
+        getProductSourcesForFilters,
+        parseProductFilters,
+        productFilterParamNames,
+        productFilterParams,
+    } from "../lib/productFilters.js";
+    import {
+        applyProductSearch,
+        productSources,
+    } from "../lib/productSources.js";
+    import { supabase } from "../lib/supabaseClient.js";
+
+    const filterRoots = document.querySelectorAll("[data-product-filters]");
+    const facetColumns = "id, brand, color_group";
+    let facetPromise;
+
+    const fetchAllRows = async (source) => {
+        const rows = [];
+        const pageSize = 1000;
+
+        for (let from = 0; ; from += pageSize) {
+            let query = supabase
+                .from(source.table)
+                .select(facetColumns)
+                .order(source.orderColumn, { ascending: true })
+                .range(from, from + pageSize - 1);
+            query = source.applyAvailableFilter(query);
+
+            const { data, error } = await query;
+            if (error) throw error;
+            rows.push(...(data ?? []));
+            if ((data?.length ?? 0) < pageSize) break;
+        }
+
+        return rows;
+    };
+
+    const getFacetValues = () => {
+        facetPromise ??= Promise.all(productSources.map(fetchAllRows)).then(
+            (sourceRows) => {
+                const rows = sourceRows.flat();
+                const unique = (values) =>
+                    [...new Set(values.filter((value) => typeof value === "string" && value.trim()))]
+                        .sort((a, b) => a.localeCompare(b, "da", { sensitivity: "base" }));
+
+                return {
+                    brands: unique(rows.map((row) => row.brand)),
+                    colors: unique(rows.map((row) => row.color_group)),
+                };
+            },
+        );
+
+        return facetPromise;
+    };
+
+    filterRoots.forEach((root) => {
+        const dialog = root.querySelector("[data-filter-dialog]");
+        const form = root.querySelector("[data-filter-form]");
+        const openButton = root.querySelector("[data-filter-open]");
+        const closeButton = root.querySelector("[data-filter-close]");
+        const clearButton = root.querySelector("[data-filter-clear]");
+        const applyButton = root.querySelector("[data-filter-apply]");
+        const badge = root.querySelector("[data-filter-badge]");
+        const action = root.dataset.filterAction || "/Produkt-overblik";
+        const searchForm = root.closest("section")?.querySelector('form[role="search"]');
+        const searchInput = searchForm?.querySelector('input[name="q"]');
+        let countTimer;
+        let countRequest = 0;
+        let facetsLoaded = false;
+
+        const getFormFilters = () => {
+            const data = new FormData(form);
+            return parseProductFilters(new URLSearchParams(data));
+        };
+
+        const setCheckbox = (name, value, checked) => {
+            const input = [...form.querySelectorAll(`input[name="${name}"]`)].find(
+                (candidate) => candidate.value === value,
+            );
+            if (input) input.checked = checked;
+        };
+
+        const restoreFromUrl = () => {
+            form.reset();
+            const filters = parseProductFilters(new URL(window.location.href).searchParams);
+            Object.entries({
+                [productFilterParams.stores]: filters.stores,
+                [productFilterParams.types]: filters.types,
+                [productFilterParams.brands]: filters.brands,
+                [productFilterParams.colors]: filters.colors,
+                [productFilterParams.fits]: filters.fits,
+            }).forEach(([name, values]) =>
+                values.forEach((value) => setCheckbox(name, value, true)),
+            );
+
+            const minPrice = form.elements.namedItem(productFilterParams.minPrice);
+            const maxPrice = form.elements.namedItem(productFilterParams.maxPrice);
+            if (minPrice) minPrice.value = filters.minPrice ?? "";
+            if (maxPrice) maxPrice.value = filters.maxPrice ?? "";
+            updateUi();
+        };
+
+        const renderDynamicOptions = async () => {
+            if (facetsLoaded) return;
+
+            try {
+                const facets = await getFacetValues();
+                Object.entries(facets).forEach(([key, values]) => {
+                    const container = form.querySelector(`[data-dynamic-options="${key}"]`);
+                    const inputName = container?.dataset.inputName;
+                    if (!container || !inputName) return;
+                    container.innerHTML = "";
+
+                    values.forEach((value) => {
+                        const label = document.createElement("label");
+                        label.className = "filter-option flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 text-sm transition hover:bg-[#f8f4ec]";
+                        label.dataset.optionText = value.toLocaleLowerCase("da");
+
+                        const input = document.createElement("input");
+                        input.type = "checkbox";
+                        input.name = inputName;
+                        input.value = value;
+                        input.className = "filter-checkbox size-5 shrink-0 appearance-none rounded border border-[#a99e94] bg-white";
+
+                        const text = document.createElement("span");
+                        text.textContent = value.replace(/\s+/g, " ").trim();
+                        label.append(input, text);
+                        container.append(label);
+                    });
+                });
+                facetsLoaded = true;
+                restoreFromUrl();
+            } catch (error) {
+                console.error("Kunne ikke hente filtermuligheder", error);
+                form.querySelectorAll("[data-dynamic-options]").forEach((container) => {
+                    container.innerHTML = '<p class="py-3 text-sm text-[#6e645d]">Valgmulighederne kunne ikke hentes.</p>';
+                });
+            }
+        };
+
+        const updateUi = () => {
+            const filters = getFormFilters();
+            const selectedByName = new Map();
+            form.querySelectorAll('input[type="checkbox"]:checked').forEach((input) => {
+                selectedByName.set(input.name, (selectedByName.get(input.name) ?? 0) + 1);
+            });
+
+            form.querySelectorAll("[data-section-count]").forEach((element) => {
+                const key = element.dataset.sectionCount;
+                const count = key === "price"
+                    ? Number(filters.minPrice != null) + Number(filters.maxPrice != null)
+                    : selectedByName.get(key) ?? 0;
+                element.textContent = count > 0 ? `${count} valgt` : "";
+            });
+        };
+
+        const updateBadge = () => {
+            const count = getActiveFilterCount(
+                parseProductFilters(new URL(window.location.href).searchParams),
+            );
+            badge.textContent = String(count);
+            badge.classList.toggle("hidden", count === 0);
+            openButton.classList.toggle("border-[#420e0e]", count > 0);
+        };
+
+        const updateResultCount = async () => {
+            const requestId = ++countRequest;
+            const filters = getFormFilters();
+            const sources = getProductSourcesForFilters(productSources, filters);
+            const query = searchInput?.value.trim() ?? "";
+            applyButton.disabled = true;
+            applyButton.textContent = "Tæller produkter...";
+
+            try {
+                const counts = await Promise.all(
+                    sources.map(async (source) => {
+                        let countQuery = supabase
+                            .from(source.table)
+                            .select("id", { count: "exact", head: true });
+                        countQuery = source.applyAvailableFilter(countQuery);
+                        countQuery = applyProductFilters(countQuery, filters);
+                        countQuery = applyProductSearch(countQuery, source, query);
+                        const { count, error } = await countQuery;
+                        if (error) throw error;
+                        return count ?? 0;
+                    }),
+                );
+                if (requestId !== countRequest) return;
+                const total = counts.reduce((sum, count) => sum + count, 0);
+                applyButton.textContent = `Vis ${total} ${total === 1 ? "produkt" : "produkter"}`;
+            } catch (error) {
+                console.error("Kunne ikke tælle filtrerede produkter", error);
+                if (requestId === countRequest) applyButton.textContent = "Vis produkter";
+            } finally {
+                if (requestId === countRequest) applyButton.disabled = false;
+            }
+        };
+
+        const scheduleCount = () => {
+            window.clearTimeout(countTimer);
+            countTimer = window.setTimeout(updateResultCount, 250);
+        };
+
+        const openDialog = () => {
+            restoreFromUrl();
+            dialog.showModal();
+            document.documentElement.classList.add("filter-dialog-open");
+            renderDynamicOptions();
+            scheduleCount();
+        };
+
+        openButton?.addEventListener("click", openDialog);
+        closeButton?.addEventListener("click", () => dialog.close());
+        clearButton?.addEventListener("click", () => {
+            form.reset();
+            updateUi();
+            scheduleCount();
+        });
+
+        dialog?.addEventListener("click", (event) => {
+            if (event.target === dialog) dialog.close();
+        });
+        dialog?.addEventListener("close", () => {
+            document.documentElement.classList.remove("filter-dialog-open");
+        });
+
+        form?.querySelectorAll("[data-filter-section]").forEach((section) => {
+            section.addEventListener("toggle", () => {
+                if (!section.open) return;
+                form.querySelectorAll("[data-filter-section]").forEach((other) => {
+                    if (other !== section) other.open = false;
+                });
+            });
+        });
+
+        form?.querySelectorAll("[data-option-search]").forEach((input) => {
+            input.addEventListener("input", () => {
+                const container = form.querySelector(`[data-dynamic-options="${input.dataset.optionSearch}"]`);
+                const term = input.value.trim().toLocaleLowerCase("da");
+                container?.querySelectorAll("[data-option-text]").forEach((option) => {
+                    option.hidden = Boolean(term) && !option.dataset.optionText.includes(term);
+                });
+            });
+        });
+
+        form?.addEventListener("change", () => {
+            updateUi();
+            scheduleCount();
+        });
+        form?.querySelectorAll('input[type="number"]').forEach((input) => {
+            input.addEventListener("input", () => {
+                updateUi();
+                scheduleCount();
+            });
+        });
+
+        form?.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const destination = new URL(window.location.href);
+            destination.pathname = action;
+            destination.searchParams.delete("page");
+            productFilterParamNames.forEach((name) => destination.searchParams.delete(name));
+
+            const data = new FormData(form);
+            productFilterParamNames.forEach((name) => {
+                data.getAll(name).forEach((value) => {
+                    const cleanValue = String(value).trim();
+                    if (cleanValue) destination.searchParams.append(name, cleanValue);
+                });
+            });
+
+            const query = searchInput?.value.trim() ?? "";
+            if (query) destination.searchParams.set("q", query);
+            else destination.searchParams.delete("q");
+            window.location.assign(`${destination.pathname}${destination.search}`);
+        });
+
+        searchForm?.addEventListener("submit", () => {
+            productFilterParamNames.forEach((name) => {
+                searchForm.querySelectorAll(`input[data-preserved-filter][name="${name}"]`).forEach((input) => input.remove());
+            });
+            const currentParams = new URL(window.location.href).searchParams;
+            productFilterParamNames.forEach((name) => {
+                currentParams.getAll(name).forEach((value) => {
+                    const hidden = document.createElement("input");
+                    hidden.type = "hidden";
+                    hidden.name = name;
+                    hidden.value = value;
+                    hidden.dataset.preservedFilter = "";
+                    searchForm.append(hidden);
+                });
+            });
+        });
+
+        updateBadge();
+    });
+</script>
+
+<style is:global>
+    .filter-dialog {
+        inset: auto 0 0;
+        border-radius: 1rem 1rem 0 0;
+    }
+
+    .filter-dialog[open] {
+        animation: filter-sheet-in 180ms ease-out;
+    }
+
+    .filter-dialog-open {
+        overflow: hidden;
+    }
+
+    .filter-dialog::backdrop {
+        animation: filter-backdrop-in 180ms ease-out;
+    }
+
+    .filter-glyph {
+        display: grid;
+        width: 1rem;
+        gap: 0.17rem;
+    }
+
+    .filter-glyph i {
+        display: block;
+        height: 1px;
+        background: currentColor;
+    }
+
+    .filter-glyph i:nth-child(2) {
+        width: 0.7rem;
+    }
+
+    .filter-section summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .filter-section[open] .accordion-mark {
+        transform: rotate(45deg);
+    }
+
+    .accordion-mark {
+        transition: transform 150ms ease;
+    }
+
+    .filter-checkbox:checked {
+        border-color: #420e0e;
+        background-color: #420e0e;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m3.5 8 3 3 6-6' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    }
+
+    .filter-checkbox:focus-visible {
+        outline: 2px solid #420e0e;
+        outline-offset: 2px;
+    }
+
+    @keyframes filter-sheet-in {
+        from { transform: translateY(1.5rem); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes filter-backdrop-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @media (min-width: 768px) {
+        .filter-dialog {
+            inset: 0;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .filter-dialog[open],
+        .filter-dialog::backdrop {
+            animation: none;
+        }
+    }
+</style>
