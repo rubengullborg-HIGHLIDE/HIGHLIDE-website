@@ -153,11 +153,43 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                             >
                             </h1>
                         </div>
-                        <p
-                            class="shrink-0 pt-1 text-[1.35rem] font-semibold text-[#171411] sm:text-[1.5rem]"
-                            data-product-price
-                        >
-                        </p>
+                        <div class="shrink-0 pt-1 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <span
+                                    class="hidden items-center gap-1 rounded-full bg-[#420e0e] px-2 py-1 text-xs font-semibold text-white"
+                                    data-product-sale-badge
+                                >
+                                    <svg
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        aria-hidden="true"
+                                        class="h-3.5 w-3.5"
+                                    >
+                                        <path
+                                            d="M9 9h.01M15 15h.01M8 16 16 8"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"></path>
+                                        <path
+                                            d="M4.5 12.5 11.5 5.5h7v7l-7 7-7-7Z"
+                                            stroke="currentColor"
+                                            stroke-width="1.8"
+                                            stroke-linejoin="round"></path>
+                                    </svg>
+                                    Udsalg
+                                </span>
+                                <p
+                                    class="text-[1.35rem] font-semibold text-[#171411] sm:text-[1.5rem]"
+                                    data-product-price
+                                >
+                                </p>
+                            </div>
+                            <p
+                                class="mt-1 hidden text-sm font-medium text-[#8a8178] line-through"
+                                data-product-list-price
+                            >
+                            </p>
+                        </div>
                     </div>
 
                     <p
@@ -213,9 +245,11 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                                 Lager i Aarhus
                             </h2>
                             <p class="mt-1 text-sm leading-6 text-[#6e645d]">
-                                Grønne størrelser er på lager lokalt. Røde
-                                størrelser er kendte, men ikke på lager i den
-                                valgte butik.
+                                Lagerstatus er baseret på de oplysninger, vi har
+                                kunnet hente fra butikkerne, og er ikke en
+                                garanti. Grønne størrelser er registreret på
+                                lager lokalt, røde størrelser er ikke
+                                registreret på lager.
                             </p>
                         </div>
                     </div>
@@ -350,6 +384,8 @@ import SiteLayout from "../layouts/SiteLayout.astro";
         const brand = detail?.querySelector("[data-product-brand]");
         const name = detail?.querySelector("[data-product-name]");
         const price = detail?.querySelector("[data-product-price]");
+        const listPrice = detail?.querySelector("[data-product-list-price]");
+        const saleBadge = detail?.querySelector("[data-product-sale-badge]");
         const stock = detail?.querySelector("[data-product-stock]");
         const storeName = detail?.querySelector("[data-product-store]");
         const variantsSection = detail?.querySelector(
@@ -399,6 +435,15 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             }
 
             return value ? String(value) : "Pris ikke angivet";
+        };
+
+        const getPriceNumber = (value) => {
+            if (value == null || value === "") return null;
+
+            const numberValue =
+                typeof value === "number" ? value : Number.parseFloat(value);
+
+            return Number.isFinite(numberValue) ? numberValue : null;
         };
 
         const formatValue = (value) => {
@@ -677,12 +722,23 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                     sizes.forEach(({ size, stock: sizeStock, available }) => {
                         const item = document.createElement("span");
                         item.className = available
-                            ? "inline-flex min-h-9 items-center rounded-full border border-[#8bcfa1] bg-[#e9f7ee] px-3 text-sm font-semibold text-[#1f6f3d]"
-                            : "inline-flex min-h-9 items-center rounded-full border border-[#e4b7ae] bg-[#fff1ef] px-3 text-sm font-medium text-[#9a3c2f] opacity-85";
-                        item.textContent =
-                            available && sizeStock != null && sizeStock > 1
-                                ? `${size} · ${sizeStock}`
-                                : size;
+                            ? "inline-flex min-h-[3.85rem] min-w-[4.35rem] flex-col items-center justify-center rounded-xl border border-[#8bcfa1] bg-[#e9f7ee] px-3 py-2 text-center text-[#1f6f3d]"
+                            : "inline-flex min-h-[3.85rem] min-w-[4.35rem] flex-col items-center justify-center rounded-xl border border-[#e4b7ae] bg-[#fff1ef] px-3 py-2 text-center text-[#9a3c2f] opacity-85";
+                        const sizeLabel = document.createElement("span");
+                        sizeLabel.className = "text-sm font-bold leading-5";
+                        sizeLabel.textContent = size;
+
+                        const stockLabel = document.createElement("span");
+                        stockLabel.className = available
+                            ? "mt-0.5 text-xs font-semibold leading-4"
+                            : "mt-0.5 text-[0.68rem] font-medium leading-4";
+                        stockLabel.textContent = available
+                            ? sizeStock != null
+                                ? `${sizeStock} ${sizeStock === 1 ? "stk." : "stk."}`
+                                : "På lager"
+                            : "Ikke på lager";
+
+                        item.append(sizeLabel, stockLabel);
                         item.setAttribute(
                             "aria-label",
                             available
@@ -899,6 +955,8 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 product.pris ?? product.price,
                 product.currency,
             );
+            const productPriceValue = product.pris ?? product.price;
+            const productListPriceValue = product.list_price;
             const productStore = product.store || "Ukendt butik";
             const totalAarhusStock =
                 product.aarhusTotalStock == null
@@ -917,6 +975,24 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             if (brand) brand.textContent = productBrand;
             if (name) name.textContent = productName;
             if (price) price.textContent = productPrice;
+            if (listPrice && saleBadge) {
+                const currentPriceNumber = getPriceNumber(productPriceValue);
+                const listPriceNumber = getPriceNumber(productListPriceValue);
+                const isOnSale =
+                    currentPriceNumber != null &&
+                    listPriceNumber != null &&
+                    listPriceNumber > currentPriceNumber;
+
+                listPrice.hidden = !isOnSale;
+                saleBadge.classList.toggle("hidden", !isOnSale);
+                saleBadge.classList.toggle("inline-flex", isOnSale);
+                if (isOnSale) {
+                    listPrice.textContent = formatPrice(
+                        productListPriceValue,
+                        product.currency,
+                    );
+                }
+            }
             if (stock) {
                 stock.textContent = `${formatStockCount(
                     totalAarhusStock,

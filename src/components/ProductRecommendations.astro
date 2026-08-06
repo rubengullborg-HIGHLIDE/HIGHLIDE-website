@@ -91,20 +91,30 @@ const {
 
         const brand = document.createElement("p");
         brand.className =
-            "mt-3 truncate text-xs font-extrabold uppercase tracking-[0.08em] text-[#4d1515]";
+            "truncate text-xs font-bold uppercase tracking-[0.08em] text-[#6e645d]";
         brand.textContent = product.brand;
+
+        const store = document.createElement("p");
+        store.className =
+            "truncate text-sm font-semibold text-[#4d1515]";
+        store.textContent = product.store;
 
         const name = document.createElement("p");
         name.className =
-            "mt-1 line-clamp-2 text-sm leading-5 text-[#4f4741]";
+            "line-clamp-2 text-sm leading-5 text-[#4f4741]";
         name.textContent = product.name;
 
         const price = document.createElement("p");
-        price.className = "mt-2 text-sm font-semibold text-[#171411]";
+        price.className = "text-sm font-semibold text-[#171411]";
         price.textContent = formatPrice(product.price, product.currency);
 
+        const meta = document.createElement("div");
+        meta.className =
+            "mt-3 grid min-h-[7.75rem] grid-rows-[1.25rem_1.5rem_2.75rem_1.5rem] content-start gap-1";
+
         imageWrap.append(image);
-        link.append(imageWrap, brand, name, price);
+        meta.append(store, brand, name, price);
+        link.append(imageWrap, meta);
 
         return link;
     };
