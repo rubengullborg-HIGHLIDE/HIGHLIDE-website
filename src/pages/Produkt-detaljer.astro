@@ -12,7 +12,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
         id="product-detail"
     >
         <div
-            class="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-[#f3eee6] sm:left-auto sm:w-full sm:translate-x-0"
+            class="relative -mx-4 w-auto overflow-hidden bg-[#f3eee6] sm:mx-0 sm:w-full"
             data-image-stage
         >
             <button
@@ -117,6 +117,24 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 >
                 </div>
 
+                <section data-product-variants hidden>
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="text-sm font-semibold text-[#171411]">
+                            Farve
+                        </h2>
+                        <p
+                            class="text-sm text-[#6e645d]"
+                            data-product-variant-label
+                        >
+                        </p>
+                    </div>
+                    <div
+                        class="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-2"
+                        data-product-variant-options
+                    >
+                    </div>
+                </section>
+
                 <div
                     class="rounded-xl border border-[#ded5ca] bg-[#f1ebe3] px-4 py-3 text-[#2f2a26]"
                 >
@@ -214,6 +232,12 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             "local_inventory",
             "local_total_stock",
             "local_available",
+            "product_url",
+            "inventory_checked_at",
+            "scraped_at",
+            "created_at",
+            "updated_at",
+            "first_seen_at",
             "webshop_sizes",
             "current_price",
             "list_price",
@@ -232,6 +256,9 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             "vector",
             "vectors",
             "raw",
+            "category_path",
+            "collections",
+            "tags",
         ]);
         const sizeKeys = [
             "sizes",
@@ -259,6 +286,18 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             first_seen_at: "Først set",
             color_group: "Farvegruppe",
             fit: "Pasform",
+            product_type: "Produkttype",
+            country_of_origin: "Produceret i",
+            care_instructions: "Pleje",
+            weight: "Vægt",
+            closure: "Lukning",
+            windproof: "Vindbeskyttelse",
+            vandsoejletryk: "Vandsøjletryk",
+            har_haette: "Hætte",
+            fit_guidance: "Størrelsesråd",
+            highlights: "Detaljer",
+            model_info: "Model",
+            snapshot_updated_at: "Senest opdateret",
         };
 
         const backButton = detail?.querySelector("[data-back-button]");
@@ -272,6 +311,15 @@ import SiteLayout from "../layouts/SiteLayout.astro";
         const stock = detail?.querySelector("[data-product-stock]");
         const stockTotal = detail?.querySelector("[data-product-stock-total]");
         const highlights = detail?.querySelector("[data-product-highlights]");
+        const variantsSection = detail?.querySelector(
+            "[data-product-variants]",
+        );
+        const variantsLabel = detail?.querySelector(
+            "[data-product-variant-label]",
+        );
+        const variantsOptions = detail?.querySelector(
+            "[data-product-variant-options]",
+        );
         const productUrl = detail?.querySelector("[data-product-url]");
         const storeStock = detail?.querySelector("[data-product-store-stock]");
         const extra = detail?.querySelector("[data-product-extra]");
@@ -312,7 +360,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 
         const formatValue = (value) => {
             if (value == null) return "";
-            if (Array.isArray(value)) return value.map(formatValue).join(", ");
+            if (Array.isArray(value)) return value.map(formatValue).join("\n");
             if (typeof value === "object") {
                 return Object.entries(value)
                     .filter(([, entryValue]) => !isEmptyValue(entryValue))
@@ -324,6 +372,19 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             }
 
             return String(value);
+        };
+
+        const formatTimestamp = (value) => {
+            if (!value) return "Ikke oplyst";
+
+            const timestamp = new Date(value);
+            if (Number.isNaN(timestamp.getTime())) return String(value);
+
+            return new Intl.DateTimeFormat("da-DK", {
+                dateStyle: "long",
+                timeStyle: "short",
+                timeZone: "Europe/Copenhagen",
+            }).format(timestamp);
         };
 
         const getProductName = (product) =>
@@ -390,8 +451,10 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             renderImageDots();
         };
 
-        const formatStockCount = (stockCount) => {
-            if (!Number.isFinite(stockCount)) return "Lager ukendt";
+        const formatStockCount = (stockCount, isAvailable = true) => {
+            if (!Number.isFinite(stockCount)) {
+                return isAvailable ? "På lager" : "Ikke på lager";
+            }
             if (stockCount === 0) return "Ikke på lager";
             if (stockCount === 1) return "1 stk. på lager";
 
@@ -406,7 +469,8 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 .filter(([, value]) => value?.available)
                 .map(([size, value]) => ({
                     size,
-                    stock: Number(value.stock ?? 0),
+                    stock:
+                        value.stock == null ? null : Number(value.stock),
                 }));
         };
 
@@ -418,7 +482,10 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 
             Object.entries(source.storeLabels).forEach(([storeKey, label]) => {
                 const store = stores[storeKey] ?? {};
-                const totalStock = Number(store.total_stock ?? 0);
+                const totalStock =
+                    store.total_stock == null
+                        ? null
+                        : Number(store.total_stock);
                 const isAvailable =
                     Boolean(store.available) || totalStock > 0;
                 const availableSizes = getStoreSizes(store);
@@ -441,7 +508,10 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 status.className = isAvailable
                     ? "mt-1 text-sm font-medium text-[#2d7f46]"
                     : "mt-1 text-sm font-medium text-[#8a8178]";
-                status.textContent = formatStockCount(totalStock);
+                status.textContent = formatStockCount(
+                    totalStock,
+                    isAvailable,
+                );
 
                 titleWrap.append(title, status);
 
@@ -463,7 +533,9 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                         item.className =
                             "inline-flex min-h-9 items-center rounded-full border border-[#ded5ca] bg-[#f8f4ec] px-3 text-sm font-medium text-[#3e3530]";
                         item.textContent =
-                            sizeStock > 1 ? `${size} · ${sizeStock}` : size;
+                            sizeStock != null && sizeStock > 1
+                                ? `${size} · ${sizeStock}`
+                                : size;
                         sizeList.append(item);
                     });
 
@@ -495,20 +567,139 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             });
         };
 
+        const renderVariants = (variants, selectedProduct) => {
+            if (!variantsSection || !variantsOptions || !variantsLabel) return;
+
+            variantsOptions.innerHTML = "";
+            variantsSection.hidden = variants.length <= 1;
+            variantsLabel.textContent = selectedProduct.color || "Valgt farve";
+
+            if (variants.length <= 1) return;
+
+            variants.forEach((variant) => {
+                const isSelected = String(variant.id) === String(selectedProduct.id);
+                const isAvailable = variant.aarhus_available === true;
+                const option = document.createElement("button");
+                option.type = "button";
+                option.className = isSelected
+                    ? "w-[7.5rem] shrink-0 rounded-lg border border-[#420e0e] bg-white p-2 text-left ring-1 ring-[#420e0e]"
+                    : "w-[7.5rem] shrink-0 rounded-lg border border-[#ded5ca] bg-white p-2 text-left transition hover:border-[#8f7f73] focus:outline-none focus:ring-2 focus:ring-[#420e0e]";
+                option.setAttribute("aria-pressed", String(isSelected));
+                option.setAttribute(
+                    "aria-label",
+                    `${variant.color || variant.name}${isAvailable ? "" : ", ikke på lager i Aarhus"}`,
+                );
+
+                const optionImage = document.createElement("img");
+                optionImage.src = getProductImages(variant)[0];
+                optionImage.alt = "";
+                optionImage.loading = "lazy";
+                optionImage.className =
+                    "aspect-square w-full rounded-md bg-[#f3eee6] object-contain";
+
+                const optionName = document.createElement("span");
+                optionName.className =
+                    "mt-2 block truncate text-sm font-semibold text-[#2f2a26]";
+                optionName.textContent = variant.color || "Farve";
+
+                const optionStatus = document.createElement("span");
+                optionStatus.className = isAvailable
+                    ? "mt-1 flex items-center gap-1.5 text-xs text-[#2d7f46]"
+                    : "mt-1 flex items-center gap-1.5 text-xs text-[#756b63]";
+                optionStatus.innerHTML = `<span class="size-1.5 shrink-0 rounded-full ${isAvailable ? "bg-[#258f4a]" : "bg-[#b8aea5]"}" aria-hidden="true"></span>${isAvailable ? "På lager" : "Ikke i Aarhus"}`;
+
+                option.append(optionImage, optionName, optionStatus);
+                option.addEventListener("click", () => {
+                    if (isSelected) return;
+
+                    const nextUrl = new URL(window.location.href);
+                    nextUrl.searchParams.set("id", String(variant.id));
+                    window.history.replaceState({}, "", nextUrl);
+                    renderProduct(variant);
+                    renderVariants(variants, variant);
+                });
+                variantsOptions.append(option);
+            });
+        };
+
         const renderExtraEntries = (product) => {
             if (!extra) return;
 
             const usedSizeKeys = new Set(
                 sizeKeys.filter((key) => !isEmptyValue(product[key])),
             );
+            const structuralKeys = new Set([
+                "specifications",
+                "size_guide",
+                "model_info",
+                "care_instructions",
+                "highlights",
+            ]);
             const entries = Object.entries(product).filter(
                 ([key, value]) =>
                     !technicalKeys.has(key) &&
                     !omittedExtraKeys.has(key) &&
+                    !structuralKeys.has(key) &&
                     !key.toLowerCase().includes("vector") &&
                     !usedSizeKeys.has(key) &&
                     !isEmptyValue(value),
             );
+
+            const specifications =
+                product.specifications &&
+                typeof product.specifications === "object" &&
+                !Array.isArray(product.specifications)
+                    ? Object.entries(product.specifications).filter(
+                          ([key, value]) =>
+                              key !== "features" &&
+                              isEmptyValue(product[key]) &&
+                              !isEmptyValue(value),
+                      )
+                    : [];
+
+            if (!isEmptyValue(product.highlights)) {
+                entries.push(["highlights", product.highlights]);
+            }
+
+            if (!isEmptyValue(product.care_instructions)) {
+                const careValue = Array.isArray(product.care_instructions)
+                    ? product.care_instructions
+                          .map(
+                              (item) =>
+                                  item?.localized_description ??
+                                  item?.description,
+                          )
+                          .filter(Boolean)
+                    : product.care_instructions;
+                entries.push(["care_instructions", careValue]);
+            }
+
+            const sizeGuidance = product.size_guide?.fit_guidance;
+            if (!isEmptyValue(sizeGuidance)) {
+                entries.push(["fit_guidance", sizeGuidance]);
+            }
+
+            const modelInfo = product.model_info;
+            if (!isEmptyValue(modelInfo)) {
+                const modelValue = Array.isArray(modelInfo?.models)
+                    ? modelInfo.models
+                          .map((model) => model?.text)
+                          .filter(Boolean)
+                    : modelInfo?.name && modelInfo?.height_cm
+                      ? `${modelInfo.name} er ${modelInfo.height_cm} cm og bruger str. ${modelInfo.wears_size ?? "ukendt"}`
+                      : modelInfo;
+                entries.push(["model_info", modelValue]);
+            }
+
+            entries.push(...specifications);
+            entries.push([
+                "snapshot_updated_at",
+                formatTimestamp(
+                    product.updated_at ??
+                        product.inventory_checked_at ??
+                        product.scraped_at,
+                ),
+            ]);
 
             extra.innerHTML = "";
 
@@ -565,7 +756,10 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 product.currency,
             );
             const productStore = product.store || "Ukendt butik";
-            const totalAarhusStock = Number(product.aarhusTotalStock ?? 0);
+            const totalAarhusStock =
+                product.aarhusTotalStock == null
+                    ? null
+                    : Number(product.aarhusTotalStock);
             currentImages = getProductImages(product);
             currentImageIndex = 0;
 
@@ -580,7 +774,10 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             if (name) name.textContent = productName;
             if (price) price.textContent = productPrice;
             if (stock) {
-                stock.textContent = `${formatStockCount(totalAarhusStock)} i Aarhus`;
+                stock.textContent = `${formatStockCount(
+                    totalAarhusStock,
+                    product.aarhus_available === true,
+                )} i Aarhus`;
             }
             if (stockTotal) {
                 stockTotal.textContent = productStore;
@@ -589,6 +786,9 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 productUrl.href = getProductUrl(product);
                 productUrl.classList.remove("hidden");
                 productUrl.classList.add("inline-flex");
+            } else if (productUrl) {
+                productUrl.classList.add("hidden");
+                productUrl.classList.remove("inline-flex");
             }
 
             document.title = `${productBrand} ${productName}`;
@@ -615,7 +815,9 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 .select(source.detailSelect)
                 .eq("id", productId);
 
-            query = source.applyAvailableFilter(query);
+            if (!source.allowUnavailableDetails) {
+                query = source.applyAvailableFilter(query);
+            }
 
             const { data, error } = await query.single();
 
@@ -625,7 +827,43 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 return;
             }
 
-            renderProduct(normalizeDetailProduct(data, source));
+            let variants = [data];
+            const variantGroupColumn = source.variantGroupColumn;
+            const variantGroupValue = variantGroupColumn
+                ? data[variantGroupColumn]
+                : null;
+
+            if (variantGroupColumn && variantGroupValue) {
+                let variantsQuery = supabase
+                    .from(source.table)
+                    .select(source.detailSelect)
+                    .eq(variantGroupColumn, variantGroupValue)
+                    .order(source.orderColumn, { ascending: true });
+
+                if (!source.allowUnavailableDetails) {
+                    variantsQuery = source.applyAvailableFilter(variantsQuery);
+                }
+
+                const { data: variantRows, error: variantsError } =
+                    await variantsQuery;
+
+                if (variantsError) {
+                    console.error(variantsError);
+                } else if (variantRows?.length > 0) {
+                    variants = variantRows;
+                }
+            }
+
+            const normalizedVariants = variants.map((variant) =>
+                normalizeDetailProduct(variant, source),
+            );
+            const selectedProduct =
+                normalizedVariants.find(
+                    (variant) => String(variant.id) === String(productId),
+                ) ?? normalizeDetailProduct(data, source);
+
+            renderProduct(selectedProduct);
+            renderVariants(normalizedVariants, selectedProduct);
         };
 
         backButton?.addEventListener("click", () => {
