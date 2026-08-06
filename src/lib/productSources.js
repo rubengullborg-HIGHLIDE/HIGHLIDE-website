@@ -8,6 +8,20 @@ const romerhusStoreLabels = {
     "romerhus-aarhus": "Rømerhus",
 };
 
+const lakorStoreLabels = {
+    "lakor-aarhus": "LAKOR Aarhus",
+};
+
+const rainsStoreLabels = {
+    "rains-aarhus": "Rains Aarhus, Klostertorv",
+};
+
+const withSharedProductSchema = (source) => ({
+    variantGroupColumn: "source_parent_id",
+    allowUnavailableDetails: true,
+    ...source,
+});
+
 export const productSources = [
     {
         key: "kaufmann",
@@ -19,6 +33,7 @@ export const productSources = [
         searchColumns: ["name", "brand", "color", "category"],
         orderColumn: "id",
         storeLabels: kaufmannStoreLabels,
+        aarhusStoreKey: null,
         inventoryColumn: "aarhus_inventory",
         applyAvailableFilter: (query) => query.eq("aarhus_available", true),
     },
@@ -32,10 +47,39 @@ export const productSources = [
         searchColumns: ["name", "brand", "color", "category"],
         orderColumn: "id",
         storeLabels: romerhusStoreLabels,
+        aarhusStoreKey: "romerhus-aarhus",
         inventoryColumn: "local_inventory",
         applyAvailableFilter: (query) => query.eq("aarhus_available", true),
     },
-];
+    {
+        key: "lakor",
+        table: "lakor_products",
+        storeName: "LAKOR",
+        overviewSelect:
+            "id, name, brand, current_price, currency, color, category, images, local_inventory, aarhus_available",
+        detailSelect: "*",
+        searchColumns: ["name", "brand", "color", "category"],
+        orderColumn: "id",
+        storeLabels: lakorStoreLabels,
+        aarhusStoreKey: "lakor-aarhus",
+        inventoryColumn: "local_inventory",
+        applyAvailableFilter: (query) => query.eq("aarhus_available", true),
+    },
+    {
+        key: "rains",
+        table: "rains_products",
+        storeName: "Rains",
+        overviewSelect:
+            "id, name, brand, current_price, currency, color, category, images, aarhus_total_stock, aarhus_available",
+        detailSelect: "*",
+        searchColumns: ["name", "brand", "color", "category", "product_type"],
+        orderColumn: "id",
+        storeLabels: rainsStoreLabels,
+        aarhusStoreKey: "rains-aarhus",
+        inventoryColumn: "local_inventory",
+        applyAvailableFilter: (query) => query.eq("aarhus_available", true),
+    },
+].map(withSharedProductSchema);
 
 export const defaultProductSource = productSources[0];
 
@@ -68,6 +112,24 @@ export const getProductUrl = (product) =>
 export const getSourceProductName = (product) =>
     product.name ?? product.navn ?? "Produkt";
 
+const getKnownStock = (value) => {
+    if (value == null || value === "") return null;
+
+    const stock = Number(value);
+    return Number.isFinite(stock) ? stock : null;
+};
+
+export const getAarhusTotalStock = (product, source) => {
+    const directStock = getKnownStock(product.aarhus_total_stock);
+    if (directStock != null) return directStock;
+    if (!source.aarhusStoreKey) return null;
+
+    return getKnownStock(
+        product[source.inventoryColumn]?.stores?.[source.aarhusStoreKey]
+            ?.total_stock,
+    );
+};
+
 export const mapOverviewProduct = (product, source, fallbackImage) => ({
     id: product.id,
     sourceKey: source.key,
@@ -78,7 +140,7 @@ export const mapOverviewProduct = (product, source, fallbackImage) => ({
     store: source.storeName,
     detail: product.color || product.category || "Produkt",
     image: getFirstImage(product.images, fallbackImage),
-    stock: product.aarhus_total_stock,
+    stock: getAarhusTotalStock(product, source),
 });
 
 export const normalizeDetailProduct = (product, source) => ({
@@ -90,7 +152,7 @@ export const normalizeDetailProduct = (product, source) => ({
     store: source.storeName,
     product_url: getProductUrl(product),
     sizes: product.webshop_sizes ?? product.sizes,
-    aarhusTotalStock: product.aarhus_total_stock,
+    aarhusTotalStock: getAarhusTotalStock(product, source),
     aarhusInventory: product[source.inventoryColumn] ?? product.aarhus_inventory,
 });
 

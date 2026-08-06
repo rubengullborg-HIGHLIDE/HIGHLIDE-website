@@ -10,7 +10,7 @@ interface Props {
     storeFilters?: boolean;
 }
 
-import { productSources } from "../lib/productSources.js";
+import ProductFilters from "./ProductFilters.astro";
 
 const {
     heading = "Find din stil",
@@ -48,12 +48,6 @@ const {
 
     <div class:list={["w-full", compact ? "max-w-none" : "max-w-2xl"]}>
         <form role="search" method="get" action={action}>
-            <input
-                type="hidden"
-                name="butik"
-                data-store-filter-input
-                disabled
-            />
             <label class="sr-only" for="frontpage-search">{placeholder}</label>
             <div
                 class:list={[
@@ -83,92 +77,8 @@ const {
 
         {
             storeFilters && (
-                <nav
-                    class="mt-3 flex gap-2 overflow-x-auto pb-1"
-                    aria-label="Filtrer efter butik"
-                    data-store-filters
-                    data-filter-action={action}
-                >
-                    <a
-                        class="store-filter shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-[#f8f4ec]"
-                        href={action}
-                        data-store-filter
-                        data-store-key="all"
-                        data-active="false"
-                    >
-                        Alle butikker
-                    </a>
-                    {
-                        productSources.map((source) => (
-                            <a
-                                class="store-filter shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-[#f8f4ec]"
-                                href={`${action}?butik=${encodeURIComponent(source.key)}`}
-                                data-store-filter
-                                data-store-key={source.key}
-                                data-active="false"
-                            >
-                                {source.storeName}
-                            </a>
-                        ))
-                    }
-                </nav>
+                <ProductFilters action={action} />
             )
         }
     </div>
 </section>
-
-<script>
-    document.querySelectorAll("[data-store-filters]").forEach((filters) => {
-        const filterAction = filters.dataset.filterAction || "/Produkt-overblik";
-        const links = [...filters.querySelectorAll("[data-store-filter]")];
-        const params = new URLSearchParams(window.location.search);
-        const requestedStore = params.get("butik");
-        const hasRequestedStore = links.some(
-            (link) => link.dataset.storeKey === requestedStore,
-        );
-        const activeStore = hasRequestedStore ? requestedStore : "all";
-        const storeInput = filters
-            .closest("section")
-            ?.querySelector("[data-store-filter-input]");
-
-        if (storeInput) {
-            storeInput.disabled = activeStore === "all";
-            storeInput.value = activeStore === "all" ? "" : activeStore;
-        }
-
-        links.forEach((link) => {
-            const storeKey = link.dataset.storeKey || "all";
-            const destination = new URL(window.location.href);
-            destination.pathname = filterAction;
-
-            if (storeKey === "all") {
-                destination.searchParams.delete("butik");
-            } else {
-                destination.searchParams.set("butik", storeKey);
-            }
-
-            link.href = `${destination.pathname}${destination.search}${destination.hash}`;
-            link.dataset.active = String(storeKey === activeStore);
-            link.toggleAttribute("aria-current", storeKey === activeStore);
-        });
-    });
-</script>
-
-<style>
-    .store-filter[data-active="true"] {
-        border-color: #420e0e;
-        background: #420e0e;
-        color: white;
-    }
-
-    .store-filter[data-active="false"] {
-        border-color: #d6ccc1;
-        background: white;
-        color: #514840;
-    }
-
-    .store-filter[data-active="false"]:hover {
-        border-color: #420e0e;
-        color: #420e0e;
-    }
-</style>

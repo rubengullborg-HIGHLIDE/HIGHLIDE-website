@@ -135,6 +135,11 @@ const defaultZoom = 3;
             mapOverviewProduct,
             productSources,
         } from "../lib/productSources.js";
+        import {
+            applyProductFilters,
+            getProductSourcesForFilters,
+            parseProductFilters,
+        } from "../lib/productFilters.js";
         import { supabase } from "../lib/supabaseClient.js";
 
         const overview = document.getElementById("product-overview");
@@ -164,12 +169,10 @@ const defaultZoom = 3;
         const fallbackImage = "/images/clothes/Brown_coat.png";
         const url = new URL(window.location.href);
         const searchQuery = (url.searchParams.get("q") ?? "").trim();
-        const requestedStore = url.searchParams.get("butik");
-        const hasRequestedStore = productSources.some(
-            (source) => source.key === requestedStore,
-        );
-        const activeSources = productSources.filter(
-            (source) => !hasRequestedStore || source.key === requestedStore,
+        const activeFilters = parseProductFilters(url.searchParams);
+        const activeSources = getProductSourcesForFilters(
+            productSources,
+            activeFilters,
         );
         const storedZoom =
             window.localStorage.getItem(zoomStorageKey) ?? String(defaultZoom);
@@ -278,7 +281,11 @@ const defaultZoom = 3;
             const details = document.createElement("p");
             details.className =
                 "details mt-1 text-[0.9rem] uppercase text-[#8a8178]";
-            details.textContent = `${product.detail} • ${product.store} • ${product.stock} på lager i Aarhus`;
+            const stockCopy =
+                product.stock == null
+                    ? "På lager i Aarhus"
+                    : `${product.stock} på lager i Aarhus`;
+            details.textContent = `${product.detail} • ${product.store} • ${stockCopy}`;
 
             meta.append(brand, name, price, details);
             link.append(imageWrap, meta);
@@ -412,6 +419,7 @@ const defaultZoom = 3;
                 .range(from, to);
 
             query = source.applyAvailableFilter(query);
+            query = applyProductFilters(query, activeFilters);
 
             if (searchQuery) {
                 query = applyProductSearch(query, source, searchQuery);
