@@ -22,6 +22,11 @@ const siteName = "HIGHLIDE";
 const pageTitle = title === siteName ? siteName : `${title} | ${siteName}`;
 const canonicalUrl = new URL(canonicalPath, Astro.site ?? Astro.url).toString();
 const imageUrl = new URL(image, Astro.site ?? Astro.url).toString();
+const accessGateEnabled = import.meta.env.PUBLIC_SITE_LOCK_ENABLED !== "false";
+const accessGateHash =
+    import.meta.env.PUBLIC_SITE_LOCK_PASSWORD_HASH ??
+    "879a28365811686d2d7d904e2e770fc4a36668255cf8339ac476757bc0a2495f";
+const shouldNoindex = noindex || accessGateEnabled;
 
 type NavItem = {
     href: string;
@@ -77,12 +82,12 @@ const navSections: NavSection[] = [
 ---
 
 <!doctype html>
-<html lang="da">
+<html lang="da" data-access={accessGateEnabled ? "locked" : undefined}>
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content={description} />
-        {noindex && <meta name="robots" content="noindex,follow" />}
+        {shouldNoindex && <meta name="robots" content="noindex,nofollow" />}
         <meta name="generator" content={Astro.generator} />
         <link rel="canonical" href={canonicalUrl} />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -98,14 +103,48 @@ const navSections: NavSection[] = [
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={imageUrl} />
         <title>{pageTitle}</title>
+        {
+            accessGateEnabled && (
+                <>
+                    <script is:inline>
+                        {`
+                            try {
+                                if (window.sessionStorage.getItem("highlideAccess") === "granted") {
+                                    document.documentElement.dataset.access = "granted";
+                                } else {
+                                    document.documentElement.dataset.access = "locked";
+                                }
+                            } catch {
+                                document.documentElement.dataset.access = "locked";
+                            }
+                        `}
+                    </script>
+                    <style is:inline>
+                        {`
+                            html[data-access="locked"] [data-access-shell] {
+                                opacity: 0;
+                                pointer-events: none;
+                                user-select: none;
+                            }
+
+                            html[data-access="granted"] [data-access-gate] {
+                                display: none;
+                            }
+                        `}
+                    </style>
+                </>
+            )
+        }
     </head>
     <body
         class="min-h-screen bg-[#f8f4ec] text-[#1e1a17]"
     >
         <div
-            class="flex min-h-screen flex-col"
+            class="flex min-h-screen flex-col transition-opacity duration-150"
             id="site-shell"
+            data-access-shell
             data-drawer-open="false"
+            inert={accessGateEnabled ? true : undefined}
         >
             <header
                 class="sticky top-0 z-20 border-b border-black/10 bg-[#f8f4ec]/85 backdrop-blur-md"
@@ -233,6 +272,94 @@ const navSections: NavSection[] = [
             <Footer />
         </div>
 
+        {
+            accessGateEnabled && (
+                <section
+                    class="fixed inset-0 z-50 isolate grid h-[100svh] max-h-[100svh] place-items-center overflow-hidden bg-[#420e0e] p-4 text-[#1e1a17]"
+                    style={{
+                        backgroundImage:
+                            "radial-gradient(circle at 50% 38%, rgba(152, 49, 43, 0.58), transparent 32rem), linear-gradient(145deg, #5b1716 0%, #420e0e 56%, #2b0808 100%)",
+                    }}
+                    data-access-gate
+                    aria-labelledby="access-gate-title"
+                >
+                    <div
+                        class="pointer-events-none absolute inset-x-0 bottom-[-0.16em] -z-10 select-none whitespace-nowrap text-center text-[clamp(7.5rem,24vw,22rem)] font-black leading-none tracking-[-0.04em] text-transparent"
+                        style={{ WebkitTextStroke: "1px rgba(255, 250, 241, 0.14)" }}
+                        aria-hidden="true"
+                    >
+                        AARHUS
+                    </div>
+
+                    <svg
+                        class="pointer-events-none absolute inset-0 -z-10 h-full w-full text-[#fffaf1]/20"
+                        viewBox="0 0 1440 900"
+                        preserveAspectRatio="none"
+                        fill="none"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M-80 180C176 75 332 112 445 254C558 396 506 559 682 643C858 727 1010 611 1034 449C1058 287 1184 203 1520 250"
+                            stroke="currentColor"
+                            stroke-width="2"></path>
+                        <circle cx="445" cy="254" r="7" fill="currentColor"></circle>
+                        <circle cx="1034" cy="449" r="7" fill="currentColor"></circle>
+                    </svg>
+
+                    <div class="relative z-10 w-full max-w-sm bg-[#fffaf1] px-5 py-5 shadow-[10px_10px_0_rgba(22,3,3,0.34)] sm:px-6 sm:py-6">
+                        <img
+                            src="/HIGHLIDE_logo_dark.png"
+                            alt="HIGHLIDE"
+                            class="mb-5 h-7 w-auto sm:mb-7 sm:h-8"
+                        />
+                        <h1
+                            class="mb-3 text-2xl font-semibold leading-tight text-[#1e1a17]"
+                            id="access-gate-title"
+                        >
+                            Testadgang
+                        </h1>
+                        <p class="mb-6 text-sm leading-6 text-[#554c43]">
+                            HIGHLIDE er midlertidigt lukket for offentlig adgang.
+                            Indtast testkoden for at fortsætte.
+                        </p>
+                        <form class="space-y-3 sm:space-y-4" data-access-form>
+                            <label class="block text-sm font-medium text-[#1e1a17]" for="access-password">
+                                Kodeord
+                            </label>
+                            <input
+                                class="h-12 w-full border border-black/20 bg-white px-3 text-base text-[#1e1a17] outline-none transition placeholder:text-[#6f655b] focus:border-[#1e1a17]"
+                                id="access-password"
+                                name="password"
+                                type="password"
+                                autocomplete="current-password"
+                                inputmode="text"
+                                placeholder="Indtast kodeord"
+                                data-access-input
+                            />
+                            <p
+                                class="hidden text-sm font-medium text-[#8f1d1d]"
+                                data-access-error
+                                role="alert"
+                            >
+                                Koden er ikke korrekt.
+                            </p>
+                            <button
+                                class="flex h-12 w-full items-center justify-center bg-[#1e1a17] px-4 text-sm font-semibold text-white transition hover:bg-[#352e28] focus:outline-none focus:ring-2 focus:ring-[#1e1a17] focus:ring-offset-2 focus:ring-offset-[#fffaf1]"
+                                type="submit"
+                            >
+                                Fortsæt
+                            </button>
+                        </form>
+                        <noscript>
+                            <p class="mt-4 text-sm font-medium text-[#8f1d1d]">
+                                JavaScript skal være slået til for at åbne testsiden.
+                            </p>
+                        </noscript>
+                    </div>
+                </section>
+            )
+        }
+
         <script is:inline>
             const shell = document.getElementById("site-shell");
             const menuButton = document.querySelector("[data-menu-button]");
@@ -278,5 +405,67 @@ const navSections: NavSection[] = [
                 if (event.key === "Escape") setDrawerOpen(false);
             });
         </script>
+        {
+            accessGateEnabled && (
+                <script
+                    is:inline
+                    define:vars={{ accessGateHash }}
+                >
+                    const accessForm = document.querySelector("[data-access-form]");
+                    const accessInput = document.querySelector("[data-access-input]");
+                    const accessError = document.querySelector("[data-access-error]");
+                    const accessGate = document.querySelector("[data-access-gate]");
+                    const accessShell = document.querySelector("[data-access-shell]");
+
+                    const hashValue = async (value) => {
+                        const bytes = new TextEncoder().encode(value);
+                        const buffer = await crypto.subtle.digest("SHA-256", bytes);
+
+                        return [...new Uint8Array(buffer)]
+                            .map((byte) => byte.toString(16).padStart(2, "0"))
+                            .join("");
+                    };
+
+                    if (document.documentElement.dataset.access !== "granted") {
+                        accessInput?.focus();
+                    }
+
+                    accessForm?.addEventListener("submit", async (event) => {
+                        event.preventDefault();
+
+                        const input = accessInput;
+                        if (!(input instanceof HTMLInputElement)) return;
+
+                        const isValid = (await hashValue(input.value.trim())) === accessGateHash;
+
+                        if (!isValid) {
+                            try {
+                                window.sessionStorage.removeItem("highlideAccess");
+                            } catch {
+                                // Storage can be unavailable in strict browser modes.
+                            }
+
+                            accessError?.classList.remove("hidden");
+                            input.setAttribute("aria-invalid", "true");
+                            input.focus();
+                            input.select();
+                            return;
+                        }
+
+                        try {
+                            window.sessionStorage.setItem("highlideAccess", "granted");
+                        } catch {
+                            // The visual lock can still be lifted even if storage is unavailable.
+                        }
+
+                        document.documentElement.dataset.access = "granted";
+                        input.removeAttribute("aria-invalid");
+                        accessError?.classList.add("hidden");
+                        accessGate?.remove();
+                        accessShell?.removeAttribute("inert");
+                    });
+                </script>
+            )
+        }
     </body>
 </html>
