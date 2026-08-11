@@ -222,6 +222,15 @@ const defaultZoom = 3;
             return `${new Intl.NumberFormat("da-DK").format(numberValue)} ${currency}`;
         };
 
+        const getPriceNumber = (value) => {
+            if (value == null || value === "") return null;
+
+            const numberValue =
+                typeof value === "number" ? value : Number.parseFloat(value);
+
+            return Number.isFinite(numberValue) ? numberValue : null;
+        };
+
         const mapProduct = (product, source) => {
             const mappedProduct = mapOverviewProduct(
                 product,
@@ -231,8 +240,11 @@ const defaultZoom = 3;
 
             return {
                 ...mappedProduct,
-                price: formatPrice(
-                    mappedProduct.price,
+                priceValue: mappedProduct.price,
+                price: formatPrice(mappedProduct.price, mappedProduct.currency),
+                listPriceValue: mappedProduct.listPrice,
+                listPrice: formatPrice(
+                    mappedProduct.listPrice,
                     mappedProduct.currency,
                 ),
             };
@@ -242,7 +254,7 @@ const defaultZoom = 3;
             const link = document.createElement("a");
             link.href = getProductHref(product);
             link.className =
-                "product-card block text-[#1e1a17] transition hover:opacity-90";
+                "product-card block rounded-[1.05rem] border border-transparent text-[#1e1a17] transition";
             link.dataset.productCard = "";
             link.dataset.productId = String(product.id);
             link.setAttribute(
@@ -252,42 +264,75 @@ const defaultZoom = 3;
 
             const imageWrap = document.createElement("div");
             imageWrap.className =
-                "product-image-wrap relative aspect-[0.78] overflow-hidden rounded-[1.15rem] bg-gradient-to-b from-[#e8e1d4] to-[#d8d0c2]";
+                "product-image-wrap relative aspect-[0.78] overflow-hidden rounded-[0.9rem]";
 
             const image = document.createElement("img");
             image.src = product.image;
             image.alt = `${product.brand} ${product.name}`;
             image.loading = "lazy";
-            image.className = "product-image h-full w-full object-contain";
+            image.className =
+                "product-image h-full w-full object-contain object-center";
 
             imageWrap.append(image);
 
             const meta = document.createElement("div");
-            meta.className = "product-meta grid content-start px-1 pt-3";
+            meta.className =
+                "product-meta grid content-start px-1 pt-3";
+
+            const store = document.createElement("p");
+            store.className =
+                "store truncate text-xs font-semibold uppercase tracking-[0.08em] text-[#4d1515]";
+            store.textContent = product.store;
 
             const brand = document.createElement("p");
             brand.className =
-                "brand text-[0.95rem] font-extrabold uppercase tracking-[0.1em]";
+                "brand truncate text-xs font-semibold uppercase tracking-[0.08em] text-[#84786d]";
             brand.textContent = product.brand;
 
             const name = document.createElement("p");
-            name.className = "name mt-[0.15rem] text-base text-[#6e645d]";
+            name.className = "name text-base font-medium text-[#2f2a26]";
             name.textContent = product.name;
 
+            const priceRow = document.createElement("div");
+            priceRow.className = "price-row flex min-w-0 items-baseline gap-2";
+
             const price = document.createElement("p");
-            price.className = "price mt-[0.55rem] text-[1.1rem] font-medium";
+            price.className = "price text-[1.05rem] font-semibold text-[#171411]";
             price.textContent = product.price;
+
+            const currentPriceNumber = getPriceNumber(product.priceValue);
+            const listPriceNumber = getPriceNumber(product.listPriceValue);
+            const isOnSale =
+                currentPriceNumber != null &&
+                listPriceNumber != null &&
+                listPriceNumber > currentPriceNumber;
+
+            priceRow.append(price);
+
+            if (isOnSale) {
+                const listPrice = document.createElement("p");
+                listPrice.className =
+                    "list-price truncate text-sm font-medium text-[#8a8178] line-through";
+                listPrice.textContent = product.listPrice;
+
+                const saleBadge = document.createElement("span");
+                saleBadge.className =
+                    "sale-badge rounded-full bg-[#420e0e] px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase leading-4 text-white";
+                saleBadge.textContent = "Udsalg";
+
+                priceRow.append(listPrice, saleBadge);
+            }
 
             const details = document.createElement("p");
             details.className =
-                "details mt-1 text-[0.9rem] uppercase text-[#8a8178]";
+                "details text-sm text-[#6e645d]";
             const stockCopy =
                 product.stock == null
                     ? "På lager i Aarhus"
                     : `${product.stock} på lager i Aarhus`;
-            details.textContent = `${product.detail} • ${product.store} • ${stockCopy}`;
+            details.textContent = `${product.detail} · ${stockCopy}`;
 
-            meta.append(brand, name, price, details);
+            meta.append(store, brand, name, priceRow, details);
             link.append(imageWrap, meta);
 
             return link;
@@ -588,7 +633,9 @@ const defaultZoom = 3;
         }
 
         #product-overview[data-zoom="1"] .brand,
+        #product-overview[data-zoom="1"] .store,
         #product-overview[data-zoom="1"] .price,
+        #product-overview[data-zoom="1"] .price-row,
         #product-overview[data-zoom="1"] .details {
             display: none;
         }
@@ -611,6 +658,63 @@ const defaultZoom = 3;
             gap: 1.6rem 1rem;
         }
 
+        #product-overview .product-image-wrap {
+            background:
+                radial-gradient(
+                    ellipse at 50% 38%,
+                    rgba(255, 255, 255, 0.54) 0%,
+                    rgba(255, 255, 255, 0.24) 44%,
+                    rgba(232, 224, 212, 0.58) 100%
+                ),
+                #f2ece2;
+            box-shadow: inset 0 0 0 1px rgba(83, 69, 57, 0.08);
+        }
+
+        #product-overview[data-zoom="2"] .product-card,
+        #product-overview[data-zoom="3"] .product-card,
+        #product-overview[data-zoom="4"] .product-card {
+            padding: 0.42rem 0.42rem 0.88rem;
+            border-color: rgba(83, 69, 57, 0.16);
+            background: transparent;
+        }
+
+        #product-overview[data-zoom="2"] .product-card:hover,
+        #product-overview[data-zoom="3"] .product-card:hover,
+        #product-overview[data-zoom="4"] .product-card:hover {
+            border-color: rgba(66, 14, 14, 0.28);
+        }
+
+        #product-overview[data-zoom="2"] .product-image,
+        #product-overview[data-zoom="3"] .product-image,
+        #product-overview[data-zoom="4"] .product-image {
+            transform: scale(1.08);
+        }
+
+        #product-overview[data-zoom="2"] .product-meta,
+        #product-overview[data-zoom="3"] .product-meta,
+        #product-overview[data-zoom="4"] .product-meta {
+            grid-template-rows: 1.05rem 1.05rem 2.75rem 1.5rem 1.25rem;
+            gap: 0.18rem;
+            padding-right: 0.25rem;
+            padding-left: 0.25rem;
+        }
+
+        #product-overview[data-zoom="2"] .store,
+        #product-overview[data-zoom="2"] .brand,
+        #product-overview[data-zoom="2"] .price-row,
+        #product-overview[data-zoom="2"] .details,
+        #product-overview[data-zoom="3"] .store,
+        #product-overview[data-zoom="3"] .brand,
+        #product-overview[data-zoom="3"] .price-row,
+        #product-overview[data-zoom="3"] .details,
+        #product-overview[data-zoom="4"] .store,
+        #product-overview[data-zoom="4"] .brand,
+        #product-overview[data-zoom="4"] .price-row,
+        #product-overview[data-zoom="4"] .details {
+            min-width: 0;
+            align-self: start;
+        }
+
         #product-overview[data-zoom="2"] .brand,
         #product-overview[data-zoom="2"] .name,
         #product-overview[data-zoom="3"] .brand,
@@ -623,19 +727,26 @@ const defaultZoom = 3;
             word-break: break-word;
             -webkit-box-orient: vertical;
             line-height: 1.25;
-            min-height: 2.5em;
         }
 
-        #product-overview[data-zoom="2"] .brand {
+        #product-overview[data-zoom="2"] .brand,
+        #product-overview[data-zoom="3"] .brand,
+        #product-overview[data-zoom="4"] .brand {
+            -webkit-line-clamp: 1;
+        }
+
+        #product-overview[data-zoom="2"] .name,
+        #product-overview[data-zoom="3"] .name,
+        #product-overview[data-zoom="4"] .name {
             -webkit-line-clamp: 2;
         }
 
-        #product-overview[data-zoom="2"] .name {
-            -webkit-line-clamp: 2;
-        }
-
-        #product-overview[data-zoom="2"] .price {
-            margin-top: 0.4rem;
+        #product-overview[data-zoom="2"] .details,
+        #product-overview[data-zoom="3"] .details,
+        #product-overview[data-zoom="4"] .details {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         #product-overview[data-zoom="3"] .product-grid {
@@ -693,19 +804,27 @@ const defaultZoom = 3;
 
             #product-overview[data-zoom="2"] .product-meta {
                 padding: 0.55rem 0.15rem 0;
+                grid-template-rows: 1rem 1rem 2.45rem 1.35rem;
+                gap: 0.12rem;
             }
 
+            #product-overview[data-zoom="2"] .store,
             #product-overview[data-zoom="2"] .brand {
-                font-size: 0.82rem;
+                font-size: 0.68rem;
             }
 
             #product-overview[data-zoom="2"] .name {
-                font-size: 0.9rem;
+                font-size: 0.78rem;
+                line-height: 1.22;
             }
 
-            #product-overview[data-zoom="2"] .price {
-                margin-top: 0.3rem;
-                font-size: 0.95rem;
+            #product-overview[data-zoom="2"] .price,
+            #product-overview[data-zoom="2"] .list-price {
+                font-size: 0.78rem;
+            }
+
+            #product-overview[data-zoom="2"] .sale-badge {
+                display: none;
             }
 
             #product-overview[data-zoom="2"] .details {
