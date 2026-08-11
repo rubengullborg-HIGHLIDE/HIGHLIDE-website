@@ -16,6 +16,10 @@ const rainsStoreLabels = {
     "rains-aarhus": "Rains Aarhus, Klostertorv",
 };
 
+const stoyStoreLabels = {
+    "stoy-aarhus": "STOY Aarhus",
+};
+
 const withSharedProductSchema = (source) => ({
     variantGroupColumn: "source_parent_id",
     allowUnavailableDetails: true,
@@ -28,7 +32,7 @@ export const productSources = [
         table: "kaufmann_products",
         storeName: "Kaufmann",
         overviewSelect:
-            "id, name, brand, current_price, currency, color, category, images, aarhus_total_stock, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, aarhus_total_stock, aarhus_available",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category"],
         orderColumn: "id",
@@ -42,7 +46,7 @@ export const productSources = [
         table: "romerhus_products",
         storeName: "Rømerhus",
         overviewSelect:
-            "id, name, brand, current_price, currency, color, category, images, aarhus_total_stock, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, aarhus_total_stock, aarhus_available",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category"],
         orderColumn: "id",
@@ -56,7 +60,7 @@ export const productSources = [
         table: "lakor_products",
         storeName: "LAKOR",
         overviewSelect:
-            "id, name, brand, current_price, currency, color, category, images, local_inventory, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category"],
         orderColumn: "id",
@@ -70,12 +74,26 @@ export const productSources = [
         table: "rains_products",
         storeName: "Rains",
         overviewSelect:
-            "id, name, brand, current_price, currency, color, category, images, aarhus_total_stock, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, aarhus_total_stock, aarhus_available",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category", "product_type"],
         orderColumn: "id",
         storeLabels: rainsStoreLabels,
         aarhusStoreKey: "rains-aarhus",
+        inventoryColumn: "local_inventory",
+        applyAvailableFilter: (query) => query.eq("aarhus_available", true),
+    },
+    {
+        key: "stoy",
+        table: "stoy_products",
+        storeName: "STOY",
+        overviewSelect:
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
+        detailSelect: "*",
+        searchColumns: ["name", "brand", "color", "category", "product_type"],
+        orderColumn: "id",
+        storeLabels: stoyStoreLabels,
+        aarhusStoreKey: "stoy-aarhus",
         inventoryColumn: "local_inventory",
         applyAvailableFilter: (query) => query.eq("aarhus_available", true),
     },
@@ -121,6 +139,7 @@ const getKnownStock = (value) => {
 
 export const getAarhusTotalStock = (product, source) => {
     const directStock = getKnownStock(product.aarhus_total_stock);
+    if (directStock === 0 && product.aarhus_available === true) return null;
     if (directStock != null) return directStock;
     if (!source.aarhusStoreKey) return null;
 
@@ -136,6 +155,7 @@ export const mapOverviewProduct = (product, source, fallbackImage) => ({
     brand: product.brand || "Ukendt brand",
     name: getSourceProductName(product),
     price: getProductPrice(product),
+    listPrice: product.list_price,
     currency: product.currency || "DKK",
     store: source.storeName,
     detail: product.color || product.category || "Produkt",
