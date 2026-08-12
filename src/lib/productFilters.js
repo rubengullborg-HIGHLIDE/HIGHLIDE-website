@@ -87,6 +87,18 @@ export const clothingTypeOptions = [
             "name.ilike.*Vest*",
         ],
     },
+    {
+        value: "sko",
+        label: "Sko",
+        predicates: [
+            "category.ilike.*Shoe*",
+            "category.ilike.*Sneaker*",
+            "category.ilike.*Boot*",
+            "name.ilike.*Shoe*",
+            "name.ilike.*Sneaker*",
+            "name.ilike.*Boot*",
+        ],
+    },
 ];
 
 const getAllUnique = (params, name) => [

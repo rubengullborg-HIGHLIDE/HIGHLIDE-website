@@ -20,6 +20,14 @@ const stoyStoreLabels = {
     "stoy-aarhus": "STOY Aarhus",
 };
 
+const shoeChapterStoreLabels = {
+    "shoechapter-aarhus": "Shoe Chapter Aarhus",
+};
+
+const skagenClothingStoreLabels = {
+    "skagen-aarhus": "Skagen Clothing Aarhus",
+};
+
 const withSharedProductSchema = (source) => ({
     variantGroupColumn: "source_parent_id",
     allowUnavailableDetails: true,
@@ -94,6 +102,34 @@ export const productSources = [
         orderColumn: "id",
         storeLabels: stoyStoreLabels,
         aarhusStoreKey: "stoy-aarhus",
+        inventoryColumn: "local_inventory",
+        applyAvailableFilter: (query) => query.eq("aarhus_available", true),
+    },
+    {
+        key: "shoechapter",
+        table: "shoechapter_products",
+        storeName: "Shoe Chapter",
+        overviewSelect:
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
+        detailSelect: "*",
+        searchColumns: ["name", "brand", "color", "category", "product_type"],
+        orderColumn: "id",
+        storeLabels: shoeChapterStoreLabels,
+        aarhusStoreKey: "shoechapter-aarhus",
+        inventoryColumn: "local_inventory",
+        applyAvailableFilter: (query) => query.eq("aarhus_available", true),
+    },
+    {
+        key: "skagen-clothing",
+        table: "skagen_clothing_products",
+        storeName: "Skagen Clothing",
+        overviewSelect:
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
+        detailSelect: "*",
+        searchColumns: ["name", "brand", "color", "category", "product_type"],
+        orderColumn: "id",
+        storeLabels: skagenClothingStoreLabels,
+        aarhusStoreKey: "skagen-aarhus",
         inventoryColumn: "local_inventory",
         applyAvailableFilter: (query) => query.eq("aarhus_available", true),
     },
