@@ -1,0 +1,8 @@
+[build]
+  command = "pnpm build"
+  publish = "dist"
+
+[[edge_functions]]
+  function = "site-lock"
+  path = "/*"
+  excludedPath = "/robots.txt"
