@@ -77,10 +77,11 @@ const navSections: NavSection[] = [
 ---
 
 <!doctype html>
-<html lang="da">
+<html lang="da" translate="no">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="google" content="notranslate" />
         <meta name="description" content={description} />
         {noindex && <meta name="robots" content="noindex,nofollow" />}
         <meta name="generator" content={Astro.generator} />
@@ -111,11 +112,11 @@ const navSections: NavSection[] = [
                 class="sticky top-0 z-20 border-b border-black/10 bg-[#f8f4ec]/85 backdrop-blur-md"
             >
                 <div
-                    class="mx-auto grid max-w-[1120px] grid-cols-[auto_1fr_auto] items-center px-4 py-4 md:px-8"
+                    class="relative mx-auto flex max-w-[1120px] items-center justify-center px-4 py-4 md:px-8"
                 >
                     <button
                         class:list={[
-                            "inline-flex h-11 w-11 shrink-0 items-center justify-center bg-transparent text-[#1e1a17] transition hover:opacity-70",
+                            "absolute left-4 inline-flex h-11 w-11 shrink-0 items-center justify-center bg-transparent text-[#1e1a17] transition hover:opacity-70 md:left-8",
                         ]}
                         type="button"
                         aria-label="Åbn menu"
@@ -138,7 +139,7 @@ const navSections: NavSection[] = [
                     </button>
 
                     <a
-                        class="justify-self-center inline-flex items-center"
+                        class="inline-flex items-center"
                         href="/"
                         aria-label="HIGHLIDE forside"
                     >
