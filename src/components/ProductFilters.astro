@@ -1,7 +1,9 @@
 ---
 import {
     clothingTypeOptions,
+    defaultProductSort,
     productFilterParams,
+    productSortOptions,
 } from "../lib/productFilters.js";
 import { productSources } from "../lib/productSources.js";
 
@@ -175,6 +177,40 @@ const dynamicSections = [
                         </div>
                     </div>
                 </details>
+
+                <div class="grid grid-cols-[minmax(0,1fr)_8.75rem] items-center gap-3 border-b border-[#e3dbd3] py-3">
+                    <label class="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 text-sm transition hover:bg-[#f8f4ec]">
+                        <input
+                            class="filter-checkbox size-5 shrink-0 appearance-none rounded border border-[#a99e94] bg-white"
+                            type="checkbox"
+                            name={productFilterParams.onSale}
+                            value="true"
+                            data-sale-filter
+                        />
+                        <span>
+                            <span class="block font-medium">Kun på udsalg</span>
+                            <span class="mt-0.5 block text-xs text-[#6e645d]">Vis kun produkter med nedsat pris</span>
+                        </span>
+                    </label>
+                    <label class="relative block min-w-0">
+                        <span class="pointer-events-none absolute left-3 top-1.5 z-[1] text-[0.65rem] leading-3 text-[#6e645d]">Sortér efter</span>
+                        <select
+                            class="h-12 w-full appearance-none rounded-lg border border-[#d6ccc1] bg-white pb-1 pl-3 pr-8 pt-4 text-xs font-medium text-[#1e1a17] outline-none transition hover:border-[#420e0e] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]"
+                            name={productFilterParams.sort}
+                            aria-label="Sortér efter"
+                            data-sort-select
+                        >
+                            {
+                                productSortOptions.map((option) => (
+                                    <option value={option.value} selected={option.value === defaultProductSort}>
+                                        {option.label}
+                                    </option>
+                                ))
+                            }
+                        </select>
+                        <span class="pointer-events-none absolute bottom-3 right-3 text-sm leading-none text-[#6e645d]" aria-hidden="true">⌄</span>
+                    </label>
+                </div>
             </div>
 
             <footer class="sticky bottom-0 z-10 flex items-center gap-3 border-t border-[#e3dbd3] bg-white px-5 py-4 md:px-6">
@@ -205,6 +241,7 @@ const dynamicSections = [
         parseProductFilters,
         productFilterParamNames,
         productFilterParams,
+        defaultProductSort,
     } from "../lib/productFilters.js";
     import {
         applyProductSearch,
@@ -266,6 +303,8 @@ const dynamicSections = [
         const priceRange = root.querySelector("[data-price-range]");
         const priceValue = root.querySelector("[data-price-value]");
         const priceOutput = root.querySelector("[data-price-output]");
+        const saleFilter = root.querySelector("[data-sale-filter]");
+        const sortSelect = root.querySelector("[data-sort-select]");
         const action = root.dataset.filterAction || "/Produkt-overblik";
         const searchForm = root.closest("section")?.querySelector('form[role="search"]');
         const searchInput = searchForm?.querySelector('input[name="q"]');
@@ -309,6 +348,9 @@ const dynamicSections = [
             }).forEach(([name, values]) =>
                 values.forEach((value) => setCheckbox(name, value, true)),
             );
+
+            if (saleFilter) saleFilter.checked = filters.onSale;
+            if (sortSelect) sortSelect.value = filters.sort;
 
             const minPrice = form.elements.namedItem(productFilterParams.minPrice);
             const maxPrice = form.elements.namedItem(productFilterParams.maxPrice);
@@ -375,6 +417,7 @@ const dynamicSections = [
                     : selectedByName.get(key) ?? 0;
                 element.textContent = count > 0 ? `${count} valgt` : "";
             });
+
         };
 
         const updateBadge = () => {
@@ -489,6 +532,9 @@ const dynamicSections = [
             productFilterParamNames.forEach((name) => {
                 data.getAll(name).forEach((value) => {
                     const cleanValue = String(value).trim();
+                    if (name === productFilterParams.sort && cleanValue === defaultProductSort) {
+                        return;
+                    }
                     if (cleanValue) destination.searchParams.append(name, cleanValue);
                 });
             });

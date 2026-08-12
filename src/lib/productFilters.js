@@ -6,9 +6,42 @@ export const productFilterParams = {
     fits: "fit",
     minPrice: "prisFra",
     maxPrice: "prisTil",
+    onSale: "udsalg",
+    sort: "sortering",
 };
 
 export const productFilterParamNames = Object.values(productFilterParams);
+
+export const defaultProductSort = "standard";
+
+export const productSortOptions = [
+    { value: defaultProductSort, label: "Standard" },
+    { value: "price-asc", label: "Pris: lav til høj" },
+    { value: "price-desc", label: "Pris: høj til lav" },
+    { value: "name-asc", label: "Navn: A–Å" },
+    { value: "brand-asc", label: "Brand: A–Å" },
+];
+
+const productSortOrders = {
+    [defaultProductSort]: [{ column: "id", ascending: true }],
+    "price-asc": [
+        { column: "current_price", ascending: true },
+        { column: "id", ascending: true },
+    ],
+    "price-desc": [
+        { column: "current_price", ascending: false },
+        { column: "id", ascending: true },
+    ],
+    "name-asc": [
+        { column: "name", ascending: true },
+        { column: "id", ascending: true },
+    ],
+    "brand-asc": [
+        { column: "brand", ascending: true },
+        { column: "name", ascending: true },
+        { column: "id", ascending: true },
+    ],
+};
 
 export const clothingTypeOptions = [
     {
@@ -116,6 +149,9 @@ const parsePrice = (value) => {
     return Number.isFinite(numberValue) ? numberValue : null;
 };
 
+const parseSort = (value) =>
+    Object.hasOwn(productSortOrders, value) ? value : defaultProductSort;
+
 export const parseProductFilters = (params) => ({
     stores: getAllUnique(params, productFilterParams.stores),
     types: getAllUnique(params, productFilterParams.types),
@@ -124,6 +160,10 @@ export const parseProductFilters = (params) => ({
     fits: getAllUnique(params, productFilterParams.fits),
     minPrice: parsePrice(params.get(productFilterParams.minPrice)),
     maxPrice: parsePrice(params.get(productFilterParams.maxPrice)),
+    onSale: ["true", "1", "on"].includes(
+        String(params.get(productFilterParams.onSale) ?? "").toLowerCase(),
+    ),
+    sort: parseSort(params.get(productFilterParams.sort)),
 });
 
 export const getActiveFilterCount = (filters) =>
@@ -133,7 +173,22 @@ export const getActiveFilterCount = (filters) =>
     filters.colors.length +
     filters.fits.length +
     Number(filters.minPrice != null) +
-    Number(filters.maxPrice != null);
+    Number(filters.maxPrice != null) +
+    Number(filters.onSale) +
+    Number(filters.sort !== defaultProductSort);
+
+export const getProductSort = (sort) =>
+    productSortOrders[parseSort(sort)] ?? productSortOrders[defaultProductSort];
+
+export const applyProductSort = (query, sort) =>
+    getProductSort(sort).reduce(
+        (currentQuery, order) =>
+            currentQuery.order(order.column, {
+                ascending: order.ascending,
+                nullsFirst: false,
+            }),
+        query,
+    );
 
 export const getProductSourcesForFilters = (sources, filters) => {
     if (filters.stores.length === 0) return sources;
@@ -168,6 +223,10 @@ export const applyProductFilters = (query, filters) => {
 
     if (filters.maxPrice != null) {
         query = query.lte("current_price", filters.maxPrice);
+    }
+
+    if (filters.onSale) {
+        query = query.not("list_price", "is", null);
     }
 
     return query;
