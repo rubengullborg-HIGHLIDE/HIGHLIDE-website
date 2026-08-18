@@ -86,11 +86,10 @@ const dynamicSections = [
 
             <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 md:px-6" data-filter-scroll>
                 {
-                    staticSections.map((section, index) => (
+                    staticSections.map((section) => (
                         <details
                             class="filter-section border-b border-[#e3dbd3]"
                             data-filter-section
-                            open={index === 0}
                         >
                             <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-3 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]">
                                 <span>{section.label}</span>
@@ -469,6 +468,9 @@ const dynamicSections = [
 
         const openDialog = () => {
             restoreFromUrl();
+            form.querySelectorAll("[data-filter-section]").forEach((section) => {
+                section.open = false;
+            });
             dialog.showModal();
             document.documentElement.classList.add("filter-dialog-open");
             renderDynamicOptions();
@@ -661,6 +663,7 @@ const dynamicSections = [
     @media (min-width: 768px) {
         .filter-dialog {
             inset: 0;
+            border-radius: 1rem;
         }
     }
 
