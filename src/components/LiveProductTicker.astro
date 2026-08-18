@@ -1,0 +1,187 @@
+---
+---
+
+<section class="py-14 md:py-20" aria-labelledby="live-products-title" data-live-products>
+    <div class="flex items-end justify-between gap-5 border-t border-black/20 pt-8 md:pt-10">
+        <div class="max-w-2xl">
+            <h2 id="live-products-title" class="text-balance text-[2rem] font-semibold leading-tight tracking-[-0.035em] text-[#1e1a17] md:text-[2.75rem]">
+                Lige nu i Aarhus
+            </h2>
+            <p class="mt-3 max-w-xl text-pretty text-base leading-7 text-[#5c534b] md:text-lg">
+                Et levende kig ind i produkter, som lokale butikker har registreret på lager.
+            </p>
+        </div>
+        <button
+            type="button"
+            class="hidden min-h-11 shrink-0 items-center rounded-full border border-black/20 px-4 text-sm font-medium text-[#1e1a17] transition hover:border-[#420e0e] hover:text-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] sm:inline-flex"
+            data-ticker-toggle
+            aria-pressed="false"
+        >
+            Pause
+        </button>
+    </div>
+
+    <div class="ticker-window -mx-4 mt-8 overflow-hidden px-4 md:-mx-8 md:px-8" data-ticker-window aria-busy="true">
+        <div class="ticker-loading flex gap-4" data-ticker-loading aria-label="Henter lokale produkter">
+            {Array.from({ length: 5 }).map(() => (
+                <div class="w-52 shrink-0 md:w-60" aria-hidden="true">
+                    <div class="aspect-[4/5] animate-pulse rounded-xl bg-black/5"></div>
+                    <div class="mt-3 h-3 w-20 animate-pulse rounded bg-black/5"></div>
+                    <div class="mt-2 h-4 w-36 animate-pulse rounded bg-black/5"></div>
+                </div>
+            ))}
+        </div>
+        <div class="ticker-track hidden w-max gap-4" data-ticker-track></div>
+        <div class="hidden rounded-xl border border-black/15 px-5 py-6 text-sm text-[#5c534b]" data-ticker-error>
+            Produktstrømmen kunne ikke hentes lige nu.
+            <a class="ml-1 font-semibold text-[#420e0e] underline underline-offset-4" href="/Produkt-overblik">Se alle produkter</a>
+        </div>
+    </div>
+
+    <a href="/Produkt-overblik" class="mt-7 inline-flex min-h-11 items-center text-sm font-semibold text-[#420e0e] underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]">
+        Gå til hele kataloget <span class="ml-2" aria-hidden="true">→</span>
+    </a>
+</section>
+
+<script>
+    import {
+        getProductHref,
+        mapOverviewProduct,
+        productSources,
+    } from "../lib/productSources.js";
+    import { supabase } from "../lib/supabaseClient.js";
+
+    document.querySelectorAll("[data-live-products]").forEach((root) => {
+        const windowElement = root.querySelector("[data-ticker-window]");
+        const loading = root.querySelector("[data-ticker-loading]");
+        const track = root.querySelector("[data-ticker-track]");
+        const errorState = root.querySelector("[data-ticker-error]");
+        const toggle = root.querySelector("[data-ticker-toggle]");
+        const fallbackImage = "/images/clothes/Brown_coat.png";
+
+        const fetchSourceProducts = async (source) => {
+            let query = supabase
+                .from(source.table)
+                .select(source.overviewSelect)
+                .order(source.orderColumn, { ascending: false })
+                .limit(2);
+            query = source.applyAvailableFilter(query);
+
+            const { data, error } = await query;
+            if (error) throw error;
+
+            return (data ?? []).map((product) =>
+                mapOverviewProduct(product, source, fallbackImage),
+            );
+        };
+
+        const createCard = (product, duplicate = false) => {
+            const link = document.createElement("a");
+            link.href = getProductHref(product);
+            link.className = "ticker-card group block w-52 shrink-0 text-[#1e1a17] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-4 md:w-60";
+            link.setAttribute("aria-label", `Se ${product.brand} ${product.name} fra ${product.store}`);
+            if (duplicate) {
+                link.tabIndex = -1;
+                link.setAttribute("aria-hidden", "true");
+            }
+
+            const imageWrap = document.createElement("div");
+            imageWrap.className = "relative aspect-[4/5] overflow-hidden rounded-xl bg-[#f1ece4]";
+
+            const image = document.createElement("img");
+            image.src = product.image;
+            image.alt = duplicate ? "" : `${product.brand} ${product.name}`;
+            image.loading = "lazy";
+            image.className = "h-full w-full object-contain p-4 transition duration-300 group-hover:scale-[1.025] motion-reduce:transition-none";
+
+            const status = document.createElement("span");
+            status.className = "absolute bottom-3 left-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#225d35] shadow-[0_2px_8px_rgba(30,26,23,0.12)]";
+            status.innerHTML = `<span class="size-2 rounded-full bg-[#2d7f46]"></span>${product.stock == null ? "På lager i Aarhus" : `${product.stock} på lager`}`;
+
+            const meta = document.createElement("div");
+            meta.className = "px-1 pt-3";
+            const store = document.createElement("p");
+            store.className = "truncate text-xs font-semibold text-[#420e0e]";
+            store.textContent = product.store;
+            const name = document.createElement("p");
+            name.className = "mt-1 truncate text-sm font-medium text-[#1e1a17]";
+            name.textContent = `${product.brand} · ${product.name}`;
+
+            imageWrap.append(image, status);
+            meta.append(store, name);
+            link.append(imageWrap, meta);
+            return link;
+        };
+
+        Promise.all(productSources.map(fetchSourceProducts))
+            .then((sourceProducts) => {
+                const products = sourceProducts.flat();
+                if (!products.length) throw new Error("Ingen produkter fundet");
+
+                const firstGroup = document.createElement("div");
+                firstGroup.className = "ticker-group flex gap-4";
+                products.forEach((product) => firstGroup.append(createCard(product)));
+
+                const duplicateGroup = document.createElement("div");
+                duplicateGroup.className = "ticker-group flex gap-4";
+                duplicateGroup.setAttribute("aria-hidden", "true");
+                products.forEach((product) => duplicateGroup.append(createCard(product, true)));
+
+                track.replaceChildren(firstGroup, duplicateGroup);
+                loading.classList.add("hidden");
+                track.classList.remove("hidden");
+                track.classList.add("flex");
+                windowElement.setAttribute("aria-busy", "false");
+            })
+            .catch((error) => {
+                console.error("Kunne ikke hente produkter til forsiden", error);
+                loading.classList.add("hidden");
+                errorState.classList.remove("hidden");
+                windowElement.setAttribute("aria-busy", "false");
+            });
+
+        toggle?.addEventListener("click", () => {
+            const paused = root.dataset.tickerPaused !== "true";
+            root.dataset.tickerPaused = String(paused);
+            toggle.setAttribute("aria-pressed", String(paused));
+            toggle.textContent = paused ? "Fortsæt" : "Pause";
+        });
+    });
+</script>
+
+<style is:global>
+    [data-live-products] .ticker-track {
+        animation: highlide-product-stream 52s linear infinite;
+    }
+
+    [data-live-products][data-ticker-paused="true"] .ticker-track,
+    [data-live-products] .ticker-window:hover .ticker-track,
+    [data-live-products] .ticker-window:focus-within .ticker-track {
+        animation-play-state: paused;
+    }
+
+    @keyframes highlide-product-stream {
+        to {
+            transform: translateX(calc(-50% - 0.5rem));
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-live-products] .ticker-track {
+            animation: none;
+        }
+
+        [data-live-products] .ticker-window {
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        [data-live-products] [data-ticker-toggle] {
+            display: none;
+        }
+
+        [data-live-products] [data-ticker-loading] > div > div {
+            animation: none;
+        }
+    }
+</style>

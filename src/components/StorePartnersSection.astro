@@ -1,0 +1,103 @@
+---
+const partnerLogos = [
+    {
+        key: "kaufmann",
+        name: "Kaufmann",
+        src: "/logos/Kaufman_logo.png",
+        className: "max-h-9",
+    },
+    {
+        key: "lakor",
+        name: "LAKOR",
+        src: "/logos/Lakor_logo.png",
+        className: "max-h-8",
+    },
+    {
+        key: "rains",
+        name: "Rains",
+        src: "/logos/Rains_logo.svg",
+        className: "max-h-10",
+    },
+    {
+        key: "stoy",
+        name: "STOY",
+        src: "/logos/Stoy_logo.png",
+        className: "max-h-14",
+    },
+    {
+        key: "shoechapter",
+        name: "Shoe Chapter",
+        src: "/logos/SC_logo.png",
+        className: "max-h-14",
+    },
+    {
+        key: "skagen-clothing",
+        name: "Skagen Clothing",
+        src: "/logos/Skagen_clothing_logo.svg",
+        className: "max-h-7 scale-[1.30]",
+    },
+    {
+        key: "suitclub",
+        name: "SUIT CLUB",
+        src: "/logos/Suitclub_logo.svg",
+        className: "max-h-9",
+    },
+    {
+        key: "cejf",
+        name: "Ćejf",
+        src: "/logos/Cejf_logo.png",
+        className: "max-h-14 origin-left scale-[1.54]",
+    },
+];
+---
+
+<section
+    class="border-y border-black/15 py-9 md:py-11"
+    aria-labelledby="partner-stores-title"
+>
+    <div class="grid gap-8 md:grid-cols-[15rem_1fr] md:items-center md:gap-12">
+        <div class="max-w-xs">
+            <h2
+                id="partner-stores-title"
+                class="text-lg font-semibold text-[#1e1a17]"
+            >
+                Butikker på HIGHLIDE
+            </h2>
+            <p class="mt-2 text-sm leading-6 text-[#5c534b]">
+                Lokale sortimenter samlet på tværs af Aarhus.
+            </p>
+        </div>
+
+        <ul
+            class="grid grid-cols-2 items-center gap-x-7 gap-y-7 sm:grid-cols-3"
+            aria-label="Butikker på HIGHLIDE"
+        >
+            {
+                partnerLogos.map((store) => (
+                    <li class="flex min-h-14 items-center">
+                        <a
+                            href={`/Butiks-info#${store.key}`}
+                            class="inline-flex min-h-11 w-full items-center opacity-75 transition hover:opacity-100 focus:outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#420e0e]"
+                            aria-label={`Se ${store.name} på HIGHLIDE`}
+                        >
+                            <img
+                                src={store.src}
+                                alt={store.name}
+                                class:list={[
+                                    "max-w-[8.5rem] object-contain object-left",
+                                    store.className,
+                                ]}
+                                loading="lazy"
+                            />
+                        </a>
+                    </li>
+                ))
+            }
+            <li
+                class="flex min-h-14 items-center text-sm font-semibold text-[#5c534b]"
+            >
+                og mange flere...
+            </li>
+        </ul>
+    </div>
+</section>

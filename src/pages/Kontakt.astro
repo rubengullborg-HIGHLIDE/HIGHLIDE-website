@@ -1,0 +1,38 @@
+---
+import InfoPageLayout from "../components/InfoPageLayout.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+import { siteInfo } from "../lib/siteInfo.js";
+---
+
+<SiteLayout title="Kontakt" description="Kontakt HIGHLIDE med spørgsmål, feedback eller butikshenvendelser.">
+    <InfoPageLayout
+        eyebrow="Kontakt"
+        title="Lad os høre fra dig"
+        intro="Har du feedback, et spørgsmål eller driver du en butik, der bør være med på HIGHLIDE? Skriv til os."
+    >
+        <section>
+            <h2>Send en e-mail</h2>
+            <p>Brug gerne en tydelig emnelinje, så vi hurtigt kan sende din henvendelse det rigtige sted hen.</p>
+            <a href={`mailto:${siteInfo.email}`} class="mt-6 inline-flex min-h-12 items-center rounded-full bg-[#420e0e] px-6 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-2">{siteInfo.email}</a>
+        </section>
+
+        <section>
+            <h2>Det kan du kontakte os om</h2>
+            <ul>
+                <li>Spørgsmål til produkter, lagerstatus eller butikker</li>
+                <li>Forslag og feedback til HIGHLIDE</li>
+                <li>Rettelser til butiks- eller produktoplysninger</li>
+                <li>Samarbejde med lokale modebutikker</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Virksomhedsoplysninger</h2>
+            <address class="mt-4 not-italic text-base leading-8 text-[#5c534b]">
+                {siteInfo.name}<br />
+                {siteInfo.address}<br />
+                CVR {siteInfo.cvr}
+            </address>
+        </section>
+    </InfoPageLayout>
+</SiteLayout>

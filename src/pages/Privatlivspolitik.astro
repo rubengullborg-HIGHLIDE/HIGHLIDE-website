@@ -1,0 +1,57 @@
+---
+import InfoPageLayout from "../components/InfoPageLayout.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+import { siteInfo } from "../lib/siteInfo.js";
+---
+
+<SiteLayout title="Privatlivspolitik" description="Læs hvordan HIGHLIDE behandler personoplysninger." canonicalPath="/Privatlivspolitik">
+    <InfoPageLayout
+        eyebrow="Privatlivspolitik · opdateret 18. august 2026"
+        title="Dine oplysninger skal være til at forstå"
+        intro="Her beskriver vi, hvilke oplysninger den nuværende version af HIGHLIDE kan behandle, hvorfor vi gør det, og hvilke rettigheder du har."
+    >
+        <section>
+            <h2>Dataansvarlig</h2>
+            <p>{siteInfo.name}, CVR {siteInfo.cvr}, {siteInfo.address}, er dataansvarlig for den behandling af personoplysninger, der beskrives her.</p>
+            <p>Spørgsmål om privatliv kan sendes til <a href={`mailto:${siteInfo.email}`}>{siteInfo.email}</a>.</p>
+        </section>
+
+        <section>
+            <h2>Oplysninger vi kan behandle</h2>
+            <h3>Når du bruger hjemmesiden</h3>
+            <p>Vores hosting- og databaseleverandører kan behandle tekniske oplysninger som IP-adresse, tidspunkt, browseroplysninger og anmodede sider for at levere og beskytte tjenesten. Søgninger og filtre ligger i sidens webadresse og kan derfor fremgå af tekniske logs. Vi bruger ikke disse oplysninger til at opbygge en personlig profil.</p>
+            <h3>Når du kontakter os</h3>
+            <p>Hvis du sender os en e-mail, behandler vi de kontaktoplysninger og det indhold, du selv vælger at sende, for at kunne besvare og følge op på din henvendelse.</p>
+            <h3>Produkt- og butiksdata</h3>
+            <p>Produkt- og lageroplysninger på HIGHLIDE vedrører butikkernes sortiment og er som udgangspunkt ikke personoplysninger om besøgende.</p>
+        </section>
+
+        <section>
+            <h2>Formål og behandlingsgrundlag</h2>
+            <p>Tekniske data behandles for at drive, fejlfinde og beskytte hjemmesiden. Grundlaget er vores legitime interesse i at kunne levere en sikker og velfungerende tjeneste.</p>
+            <p>Oplysninger i henvendelser behandles for at besvare dig og håndtere den dialog, du selv har taget initiativ til. Afhængigt af henvendelsen sker det som led i en aftale eller på baggrund af vores legitime interesse i at kommunikere med brugere og samarbejdspartnere.</p>
+        </section>
+
+        <section>
+            <h2>Leverandører og eksterne links</h2>
+            <p>Vi bruger tekniske leverandører til blandt andet hosting og database. De må kun behandle oplysninger efter vores instrukser og gældende databeskyttelsesregler. Hvis oplysninger behandles uden for EU/EØS, skal der være et gyldigt overførselsgrundlag.</p>
+            <p>HIGHLIDE linker også til butikker og andre eksterne hjemmesider. Når du forlader HIGHLIDE, gælder den pågældende hjemmesides egen privatlivspolitik.</p>
+        </section>
+
+        <section>
+            <h2>Cookies og analyse</h2>
+            <p>Den nuværende version af HIGHLIDE bruger ikke marketingcookies eller analyseværktøjer til at følge din adfærd på tværs af hjemmesider. Hvis det ændrer sig, opdaterer vi denne politik og indhenter samtykke, hvor reglerne kræver det.</p>
+        </section>
+
+        <section>
+            <h2>Hvor længe gemmer vi oplysninger?</h2>
+            <p>Vi gemmer kun oplysninger, så længe de er nødvendige til det formål, de blev indsamlet til. Tekniske logs følger leverandørernes drifts- og sikkerhedsperioder. Henvendelser slettes eller anonymiseres, når dialogen er afsluttet og der ikke længere er et sagligt eller lovmæssigt behov for at gemme dem.</p>
+        </section>
+
+        <section>
+            <h2>Dine rettigheder</h2>
+            <p>Efter databeskyttelsesreglerne kan du afhængigt af situationen bede om indsigt, rettelse, sletning, begrænsning eller udlevering af dine personoplysninger. Du kan også gøre indsigelse mod en behandling.</p>
+            <p>Kontakt os på <a href={`mailto:${siteInfo.email}`}>{siteInfo.email}</a>, hvis du vil bruge dine rettigheder. Du kan klage til <a href="https://www.datatilsynet.dk/borger/klage-til-datatilsynet" rel="external">Datatilsynet</a>, hvis du mener, at dine oplysninger behandles i strid med reglerne.</p>
+        </section>
+    </InfoPageLayout>
+</SiteLayout>

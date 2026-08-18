@@ -1,0 +1,80 @@
+---
+interface Props {
+    eyebrow: string;
+    title: string;
+    intro: string;
+}
+
+const { eyebrow, title, intro } = Astro.props;
+---
+
+<section class="mx-auto max-w-5xl py-8 md:py-14">
+    <header class="max-w-3xl border-b border-black/15 pb-9 md:pb-12">
+        <p class="text-sm font-semibold text-[#420e0e]">{eyebrow}</p>
+        <h1 class="mt-4 text-balance text-[2.55rem] font-semibold leading-[1.02] tracking-[-0.04em] text-[#1e1a17] md:text-[4rem]">
+            {title}
+        </h1>
+        <p class="mt-5 max-w-2xl text-pretty text-base leading-8 text-[#5c534b] md:text-lg">
+            {intro}
+        </p>
+    </header>
+
+    <div class="info-page-content mt-9 max-w-3xl md:mt-12">
+        <slot />
+    </div>
+</section>
+
+<style is:global>
+    .info-page-content > section + section {
+        margin-top: 3rem;
+        padding-top: 3rem;
+        border-top: 1px solid rgb(0 0 0 / 0.15);
+    }
+
+    .info-page-content h2 {
+        color: #1e1a17;
+        font-size: clamp(1.45rem, 1.8vw, 1.8rem);
+        font-weight: 600;
+        line-height: 1.2;
+        letter-spacing: -0.025em;
+        text-wrap: balance;
+    }
+
+    .info-page-content h3 {
+        margin-top: 1.75rem;
+        color: #1e1a17;
+        font-size: 1rem;
+        font-weight: 650;
+        line-height: 1.5;
+    }
+
+    .info-page-content p,
+    .info-page-content li {
+        color: #5c534b;
+        font-size: 1rem;
+        line-height: 1.85;
+        text-wrap: pretty;
+    }
+
+    .info-page-content h2 + p,
+    .info-page-content h3 + p,
+    .info-page-content p + p,
+    .info-page-content p + ul,
+    .info-page-content ul + p {
+        margin-top: 0.9rem;
+    }
+
+    .info-page-content ul {
+        margin-top: 1rem;
+        padding-left: 1.2rem;
+        list-style: disc;
+    }
+
+    .info-page-content a:not([class]) {
+        color: #420e0e;
+        font-weight: 600;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.2em;
+    }
+</style>

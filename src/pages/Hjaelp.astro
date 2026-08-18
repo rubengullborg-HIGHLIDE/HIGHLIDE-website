@@ -1,0 +1,52 @@
+---
+import InfoPageLayout from "../components/InfoPageLayout.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+---
+
+<SiteLayout title="Hjælp" description="Få svar på de mest almindelige spørgsmål om HIGHLIDE.">
+    <InfoPageLayout
+        eyebrow="Hjælp"
+        title="Sådan bruger du HIGHLIDE"
+        intro="Her finder du svar på de mest almindelige spørgsmål om produkter, lagerstatus og lokale butikker."
+    >
+        <section>
+            <h2>Ofte stillede spørgsmål</h2>
+            <div class="mt-5 divide-y divide-black/15 border-y border-black/15">
+                <details class="group py-1">
+                    <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-3 font-semibold text-[#1e1a17] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]">
+                        Kan jeg købe produkter direkte på HIGHLIDE?
+                        <span class="text-xl font-light transition group-open:rotate-45" aria-hidden="true">+</span>
+                    </summary>
+                    <p class="max-w-2xl pb-5">Ikke endnu. HIGHLIDE hjælper dig med at opdage varen og finde butikken. Herfra kan du besøge butikkens egen side eller den fysiske butik.</p>
+                </details>
+                <details class="group py-1">
+                    <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-3 font-semibold text-[#1e1a17] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]">
+                        Hvor præcis er lagerstatus?
+                        <span class="text-xl font-light transition group-open:rotate-45" aria-hidden="true">+</span>
+                    </summary>
+                    <p class="max-w-2xl pb-5">Vi viser den senest registrerede lagerstatus fra butikken. Lageret kan ændre sig hurtigt, så kontakt gerne butikken, hvis du vil være helt sikker før et besøg.</p>
+                </details>
+                <details class="group py-1">
+                    <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-3 font-semibold text-[#1e1a17] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]">
+                        Hvorfor kan jeg ikke finde en bestemt vare eller butik?
+                        <span class="text-xl font-light transition group-open:rotate-45" aria-hidden="true">+</span>
+                    </summary>
+                    <p class="max-w-2xl pb-5">Kataloget vokser løbende. Ikke alle lokale butikker eller produkter er med endnu, og enkelte varer kan forsvinde, når de ikke længere er på lager.</p>
+                </details>
+                <details class="group py-1">
+                    <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-3 font-semibold text-[#1e1a17] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]">
+                        Hvilke byer dækker HIGHLIDE?
+                        <span class="text-xl font-light transition group-open:rotate-45" aria-hidden="true">+</span>
+                    </summary>
+                    <p class="max-w-2xl pb-5">Den nuværende version fokuserer på Aarhus. Flere byer kan komme til, når oplevelsen og samarbejdet med butikkerne er på plads.</p>
+                </details>
+            </div>
+        </section>
+
+        <section>
+            <h2>Mangler du stadig et svar?</h2>
+            <p>Fortæl os, hvad du sidder fast i, eller hvis du har fundet oplysninger, der bør rettes.</p>
+            <a href="/Kontakt" class="mt-6 inline-flex min-h-12 items-center rounded-full bg-[#420e0e] px-6 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-2">Kontakt HIGHLIDE</a>
+        </section>
+    </InfoPageLayout>
+</SiteLayout>

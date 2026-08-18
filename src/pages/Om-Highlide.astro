@@ -1,37 +1,40 @@
 ---
+import InfoPageLayout from "../components/InfoPageLayout.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
 ---
 
-<SiteLayout
-    title="Om HIGHLIDE"
-    description="HIGHLIDE hjælper dig med at opdage tøj fra mindre lokale modebutikker i Aarhus."
->
-    <section class="mx-auto max-w-3xl py-10 md:py-16">
-        <p class="text-sm font-bold uppercase tracking-[0.18em] text-[#7b6f64]">
-            Om HIGHLIDE
-        </p>
-        <h1
-            class="mt-4 text-[2.4rem] font-semibold leading-[1.05] tracking-[-0.04em] text-[#1e1a17] md:text-[3.6rem]"
-        >
-            Mere lokal mode. Mindre standard browsing.
-        </h1>
-        <div class="mt-6 space-y-5 text-base leading-8 text-[#5c534b] md:text-lg">
+<SiteLayout title="Om HIGHLIDE" description="HIGHLIDE gør lokal mode i Aarhus lettere at opdage.">
+    <InfoPageLayout
+        eyebrow="Om HIGHLIDE"
+        title="Lokal mode skal være lettere at finde"
+        intro="HIGHLIDE samler produkter fra mindre modebutikker, så flere kan opdage det udvalg, der allerede findes i byen."
+    >
+        <section>
+            <h2>Hvorfor vi bygger HIGHLIDE</h2>
             <p>
-                HIGHLIDE er en mobil-først platform for tøj fra mindre lokale
-                modebutikker. Første version fokuserer på Aarhus og på at gøre
-                det nemmere at opdage produkter, butikker og brands uden altid
-                at starte hos de store kæder.
+                Det er nemt at starte sin søgning hos de største webshops. Det betyder også, at lokale butikker og deres udvalg let bliver overset — selv når den rigtige vare ligger få gader væk.
             </p>
             <p>
-                Målet er en hurtig og enkel oplevelse: søg, find noget
-                interessant, og gå videre til den butik, der har varen.
+                HIGHLIDE skal gøre den lokale mulighed lige så synlig og enkel: søg på tværs af butikker, se hvad der er registreret på lager, og find frem til den fysiske butik.
             </p>
-        </div>
-        <a
-            href="/Produkt-overblik"
-            class="mt-8 inline-flex w-fit items-center rounded-full bg-[#420e0e] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#551515]"
-        >
-            Se produkter
-        </a>
-    </section>
+        </section>
+
+        <section>
+            <h2>Aarhus først</h2>
+            <p>
+                Vi starter tæt på. Aarhus har en stærk blanding af selvstændige butikker, lokale brands og kuraterede sortimenter. Ved at fokusere på én by kan vi skabe en oplevelse, der føles konkret og brugbar, før HIGHLIDE vokser videre.
+            </p>
+        </section>
+
+        <section>
+            <h2>En platform i udvikling</h2>
+            <p>
+                HIGHLIDE er i en tidlig version. Produkt- og lageroplysninger udvikles løbende sammen med butikkerne, og sortimentet bliver gradvist større. Feedback fra brugere og butikker er en vigtig del af arbejdet.
+            </p>
+            <div class="mt-7 flex flex-wrap gap-3">
+                <a href="/Produkt-overblik" class="inline-flex min-h-12 items-center rounded-full bg-[#420e0e] px-6 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-2">Se produkter</a>
+                <a href="/Kontakt" class="inline-flex min-h-12 items-center rounded-full border border-black/20 px-6 text-sm font-semibold text-[#1e1a17] transition hover:border-[#420e0e] hover:text-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]">Kontakt os</a>
+            </div>
+        </section>
+    </InfoPageLayout>
 </SiteLayout>

@@ -1,47 +1,22 @@
----
-const benefits = [
-    "Find produkter fra mindre butikker",
-    "Se hvor varen er registreret på lager",
-    "Planlæg dit besøg i Aarhus",
-];
----
-
-<section class="overflow-hidden rounded-xl bg-[#dbeafc] px-6 py-10 md:px-10 md:py-14 lg:px-14">
-    <div class="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
-        <div>
-            <h2 class="max-w-md text-[2.1rem] font-semibold leading-tight tracking-[-0.035em] text-[#1e1a17] md:text-[2.8rem]">
-                Lokale butikker, samlet ét sted
+<section class="overflow-hidden rounded-xl bg-[#dbeafc] px-6 py-10 md:px-10 md:py-12 lg:px-14">
+    <div class="grid items-end gap-8 lg:grid-cols-[1fr_auto] lg:gap-14">
+        <div class="max-w-2xl">
+            <p class="text-sm font-semibold text-[#420e0e]">Fra skærm til gade</p>
+            <h2 class="mt-3 text-balance text-[2.1rem] font-semibold leading-tight tracking-[-0.035em] text-[#1e1a17] md:text-[2.8rem]">
+                Bag hvert fund står en butik i Aarhus
             </h2>
-            <p class="mt-4 max-w-lg text-base leading-7 text-[#3f4751] md:text-lg">
-                HIGHLIDE gør det lettere at opdage de butikker, brands og
-                produkter, der giver Aarhus sin egen stil.
+            <p class="mt-4 max-w-xl text-pretty text-base leading-7 text-[#3f4751] md:text-lg">
+                Find adresse, åbningstider og butikkens aktuelle produkter, før du tager ind til byen.
             </p>
-            <ul class="mt-8 space-y-4">
-                {benefits.map((benefit) => (
-                    <li class="flex items-center gap-3 text-sm font-medium text-[#27303a] md:text-base">
-                        <span class="h-2 w-2 shrink-0 rounded-full bg-[#420e0e]" aria-hidden="true"></span>
-                        {benefit}
-                    </li>
-                ))}
-            </ul>
-            <a
-                href="/Butiks-info"
-                class="mt-8 inline-flex min-h-11 items-center justify-center rounded-full bg-[#420e0e] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-[#dbeafc]"
-            >
-                Se alle butikker
-            </a>
+            <p class="mt-6 text-sm font-medium text-[#3f4751]">
+                Latinerkvarteret · Store Torv · Klostertorv · Strøget
+            </p>
         </div>
-
-        <div class="grid min-h-80 grid-cols-2 gap-3 sm:min-h-96">
-            <div class="row-span-2 flex items-center justify-center overflow-hidden rounded-xl bg-[#f4efe7] p-5">
-                <img src="/images/clothes/Brown_coat.png" alt="Brun frakke" class="h-full w-full object-contain" loading="lazy" />
-            </div>
-            <div class="flex items-center justify-center overflow-hidden rounded-xl bg-white/70 p-5">
-                <img src="/images/clothes/Striped_pants.png" alt="Stribede bukser" class="h-full w-full object-contain" loading="lazy" />
-            </div>
-            <div class="flex items-center justify-center overflow-hidden rounded-xl bg-[#f4efe7] p-5">
-                <img src="/images/clothes/Brown_shoes.png" alt="Brune sko" class="h-full w-full object-contain" loading="lazy" />
-            </div>
-        </div>
+        <a
+            href="/Butiks-info"
+            class="inline-flex min-h-12 w-fit shrink-0 items-center justify-center rounded-full bg-[#420e0e] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-[#dbeafc]"
+        >
+            Find en butik <span class="ml-2" aria-hidden="true">→</span>
+        </a>
     </div>
 </section>
