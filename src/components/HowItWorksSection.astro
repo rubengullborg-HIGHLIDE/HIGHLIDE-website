@@ -1,0 +1,120 @@
+---
+import { getStoreDirectoryHref } from "../lib/storeDirectory.js";
+---
+
+<section class="py-14 md:py-20" aria-labelledby="how-highlide-works">
+    <div class="border-t border-black/20 pt-8 md:pt-10">
+        <div class="mb-10 max-w-2xl md:mb-12">
+            <h2
+                id="how-highlide-works"
+                class="text-[2rem] font-semibold leading-tight tracking-[-0.035em] text-[#1e1a17] md:text-[2.75rem]"
+            >
+                Fra søgning til lokal butik
+            </h2>
+            <p class="mt-3 max-w-xl text-base leading-7 text-[#5c534b] md:text-lg">
+                HIGHLIDE samler lokale sortimenter, så du kan finde varen,
+                tjekke lageret og fortsætte direkte til butikken.
+            </p>
+        </div>
+
+        <ol class="grid gap-10 md:grid-cols-3 md:gap-6 lg:gap-10">
+            <li class="flex min-w-0 flex-col">
+                <div class="flex items-start gap-4">
+                    <span class="text-2xl font-semibold text-[#420e0e]">1</span>
+                    <div>
+                        <h3 class="text-lg font-semibold text-[#1e1a17]">
+                            Søg lokalt
+                        </h3>
+                        <p class="mt-2 text-sm leading-6 text-[#5c534b]">
+                            Søg på tværs af produkter, brands og butikker i
+                            Aarhus.
+                        </p>
+                    </div>
+                </div>
+                <div
+                    class="mt-6 flex min-h-64 flex-1 items-center justify-center overflow-hidden rounded-xl border border-black/15 bg-[#f1ece4] px-8 py-7"
+                >
+                    <img
+                        src="/images/clothes/Blue_shirt.png"
+                        alt="Blå skjorte som eksempel på et lokalt produkt"
+                        class="h-52 w-full object-contain"
+                        loading="lazy"
+                    />
+                </div>
+            </li>
+
+            <li class="flex min-w-0 flex-col">
+                <div class="flex items-start gap-4">
+                    <span class="text-2xl font-semibold text-[#420e0e]">2</span>
+                    <div>
+                        <h3 class="text-lg font-semibold text-[#1e1a17]">
+                            Se lager i Aarhus
+                        </h3>
+                        <p class="mt-2 text-sm leading-6 text-[#5c534b]">
+                            Se størrelser og hvilke lokale butikker der har
+                            varen registreret på lager.
+                        </p>
+                    </div>
+                </div>
+                <div
+                    class="mt-6 flex min-h-64 flex-1 flex-col justify-center rounded-xl border border-black/15 bg-white px-5 py-6"
+                    aria-label="Eksempel på lokal lagerstatus"
+                >
+                    <p class="text-sm font-semibold text-[#1e1a17]">Størrelse</p>
+                    <div class="mt-3 flex flex-wrap gap-2" aria-hidden="true">
+                        <span class="grid h-11 min-w-11 place-items-center rounded-lg border border-black/15 text-sm">XS</span>
+                        <span class="grid h-11 min-w-11 place-items-center rounded-lg bg-[#1e1a17] text-sm font-semibold text-white">S</span>
+                        <span class="grid h-11 min-w-11 place-items-center rounded-lg border border-black/15 text-sm">M</span>
+                        <span class="grid h-11 min-w-11 place-items-center rounded-lg border border-black/15 text-sm">L</span>
+                    </div>
+                    <div class="mt-6 border-t border-black/10 pt-4">
+                        <div class="flex items-center justify-between gap-4">
+                            <span class="flex items-center gap-2 text-sm font-medium text-[#1e1a17]">
+                                <span class="h-2.5 w-2.5 rounded-full bg-[#2d7f46]"></span>
+                                LAKOR Aarhus
+                            </span>
+                            <span class="text-sm text-[#2d7f46]">På lager</span>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+            <li class="flex min-w-0 flex-col">
+                <div class="flex items-start gap-4">
+                    <span class="text-2xl font-semibold text-[#420e0e]">3</span>
+                    <div>
+                        <h3 class="text-lg font-semibold text-[#1e1a17]">
+                            Find butikken
+                        </h3>
+                        <p class="mt-2 text-sm leading-6 text-[#5c534b]">
+                            Se adresse og åbningstider, og planlæg dit besøg i
+                            byen.
+                        </p>
+                    </div>
+                </div>
+                <div
+                    class="mt-6 flex min-h-64 flex-1 flex-col justify-center rounded-xl border border-black/15 bg-white px-6 py-7"
+                >
+                    <p class="text-xs font-semibold uppercase tracking-[0.08em] text-[#6f655b]">
+                        Latinerkvarteret
+                    </p>
+                    <p class="mt-2 text-xl font-semibold text-[#1e1a17]">
+                        LAKOR Aarhus
+                    </p>
+                    <address class="mt-4 not-italic text-sm leading-6 text-[#5c534b]">
+                        Graven 25<br />8000 Aarhus C
+                    </address>
+                    <p class="mt-3 text-sm text-[#5c534b]">
+                        Hverdage 10–18 · Lørdag 10–15
+                    </p>
+                    <a
+                        href={getStoreDirectoryHref("lakor")}
+                        class="mt-6 inline-flex min-h-11 w-fit items-center justify-center rounded-full bg-[#420e0e] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2"
+                    >
+                        Find butik
+                    </a>
+                </div>
+            </li>
+        </ol>
+    </div>
+</section>

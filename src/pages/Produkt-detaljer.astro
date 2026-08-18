@@ -266,6 +266,39 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             </div>
 
             <ProductRecommendations />
+
+            <section
+                class="hidden overflow-hidden rounded-xl bg-[#dbeafc] px-6 py-8 sm:px-8 sm:py-10"
+                data-store-handoff
+                aria-labelledby="store-handoff-title"
+            >
+                <div class="grid items-end gap-7 md:grid-cols-[1fr_auto] md:gap-10">
+                    <div>
+                        <p class="text-sm font-semibold text-[#420e0e]">
+                            Klar til at se varen i virkeligheden?
+                        </p>
+                        <h2
+                            id="store-handoff-title"
+                            class="mt-2 text-[1.9rem] font-semibold leading-tight tracking-[-0.035em] text-[#1e1a17] sm:text-[2.35rem]"
+                            data-store-handoff-title
+                        >
+                            Find butikken
+                        </h2>
+                        <p
+                            class="mt-3 max-w-2xl text-base leading-7 text-[#3f4751]"
+                            data-store-handoff-copy
+                        >
+                        </p>
+                    </div>
+                    <a
+                        href="/Butiks-info"
+                        class="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[#420e0e] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-[#dbeafc] md:w-auto"
+                        data-store-handoff-link
+                    >
+                        Find butik
+                    </a>
+                </div>
+            </section>
         </div>
     </section>
 
@@ -274,6 +307,10 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             getProductSource,
             normalizeDetailProduct,
         } from "../lib/productSources.js";
+        import {
+            getStoreDirectoryEntry,
+            getStoreDirectoryHref,
+        } from "../lib/storeDirectory.js";
         import { supabase } from "../lib/supabaseClient.js";
 
         const detail = document.getElementById("product-detail");
@@ -398,6 +435,16 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             "[data-product-description]",
         );
         const storeStock = detail?.querySelector("[data-product-store-stock]");
+        const storeHandoff = detail?.querySelector("[data-store-handoff]");
+        const storeHandoffTitle = detail?.querySelector(
+            "[data-store-handoff-title]",
+        );
+        const storeHandoffCopy = detail?.querySelector(
+            "[data-store-handoff-copy]",
+        );
+        const storeHandoffLink = detail?.querySelector(
+            "[data-store-handoff-link]",
+        );
         const extra = detail?.querySelector("[data-product-extra]");
         const loadingState = detail?.querySelector("[data-loading-state]");
         const errorState = detail?.querySelector("[data-error-state]");
@@ -1017,6 +1064,26 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             }
             if (storeName) {
                 storeName.textContent = productStore;
+            }
+
+            const directoryEntry = getStoreDirectoryEntry(product.sourceKey);
+            if (
+                directoryEntry &&
+                storeHandoff &&
+                storeHandoffTitle &&
+                storeHandoffCopy &&
+                storeHandoffLink
+            ) {
+                const primaryLocation = directoryEntry.locations[0];
+                const hasMultipleLocations = directoryEntry.locations.length > 1;
+
+                storeHandoff.classList.remove("hidden");
+                storeHandoffTitle.textContent = `Find ${directoryEntry.name} i Aarhus`;
+                storeHandoffCopy.textContent = hasMultipleLocations
+                    ? `Se adresser og åbningstider for ${directoryEntry.locations.length} lokale butikker, før du tager afsted.`
+                    : `Se adresse og åbningstider for ${primaryLocation.name}, før du tager afsted.`;
+                storeHandoffLink.href = getStoreDirectoryHref(product.sourceKey);
+                storeHandoffLink.textContent = `Find ${directoryEntry.name}`;
             }
 
             document.title = `${productBrand} ${productName}`;

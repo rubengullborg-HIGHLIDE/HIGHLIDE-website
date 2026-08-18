@@ -13,9 +13,9 @@ interface Props {
 import ProductFilters from "./ProductFilters.astro";
 
 const {
-    heading = "Find din stil",
+    heading = "Find din stil lokalt",
     description =
-        "Søg blandt tøj, brands og butikker fra lokale modebutikker i Aarhus.",
+        "Opdag produkter fra mindre lokale modebutikker, og se hvor de er på lager i Aarhus.",
     placeholder = "Søg efter tøj...",
     buttonLabel = "Søg",
     action = "",
@@ -25,64 +25,73 @@ const {
 } = Astro.props;
 ---
 
-<section
-    class:list={[
-        "mx-auto flex w-full flex-col",
-        compact
-            ? "max-w-5xl gap-6 py-4 md:py-6"
-            : "max-w-3xl items-center gap-8 py-16 text-center md:py-24",
-    ]}
->
-    {
-        !compact && (
-            <div class="space-y-3">
-                <h1 class="text-5xl font-semibold uppercase tracking-[0.04em] text-[#1e1a17] md:text-6xl">
-                    {heading}
-                </h1>
-                <p class="mx-auto max-w-2xl text-base leading-7 text-[#5c534b] md:text-lg">
-                    {description}
-                </p>
+{
+    compact ? (
+        <section class="mx-auto flex w-full max-w-5xl flex-col gap-6 py-4 md:py-6">
+            <div class="flex w-full items-center gap-2">
+                <form class="min-w-0 flex-1" role="search" method="get" action={action}>
+                    <label class="sr-only" for="product-search">{placeholder}</label>
+                    <div class="flex items-center rounded-full border border-black/15 bg-white p-2 shadow-[0_6px_8px_rgba(53,33,18,0.06)] transition focus-within:border-[#420E0E] focus-within:ring-1 focus-within:ring-[#420E0E]">
+                        <input
+                            id="product-search"
+                            name="q"
+                            type="search"
+                            placeholder={placeholder}
+                            value={value}
+                            class="min-w-0 flex-1 border-0 bg-transparent px-4 py-4 text-[1.05rem] text-[#1e1a17] placeholder:text-[#8a8178] focus:outline-none"
+                        />
+                        <button
+                            type="submit"
+                            class="shrink-0 cursor-pointer rounded-full bg-[#420E0E] px-6 py-3 text-base font-medium text-white transition hover:bg-[#551515] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2"
+                        >
+                            {buttonLabel}
+                        </button>
+                    </div>
+                </form>
+                {storeFilters && <ProductFilters action={action} />}
             </div>
-        )
-    }
-
-    <div
-        class:list={[
-            "flex w-full items-center gap-2",
-            compact ? "max-w-none" : "max-w-2xl",
-        ]}
-    >
-        <form class="min-w-0 flex-1" role="search" method="get" action={action}>
-            <label class="sr-only" for="frontpage-search">{placeholder}</label>
-            <div
-                class:list={[
-                    "flex items-center rounded-full border border-black/15 bg-white p-2 transition focus-within:border-[#420E0E] focus-within:ring-1 focus-within:ring-[#420E0E]",
-                    compact && "shadow-[0_12px_30px_rgba(53,33,18,0.08)]",
-                ]}
-            >
-                <input
-                    id="frontpage-search"
-                    name="q"
-                    type="search"
-                    placeholder={placeholder}
-                    value={value}
-                    class:list={[
-                        "min-w-0 flex-1 border-0 bg-transparent text-[#1e1a17] placeholder:text-[#8a8178] focus:outline-none",
-                        compact ? "px-4 py-4 text-[1.05rem]" : "px-4 py-3 text-base",
-                    ]}
-                />
-                <button
-                    type="submit"
-                    class="shrink-0 cursor-pointer rounded-full bg-[#420E0E] px-6 py-3 text-base font-medium text-white transition hover:opacity-90"
-                >
-                    {buttonLabel}
-                </button>
+        </section>
+    ) : (
+        <section class="relative -mx-4 -mt-8 min-h-[34rem] overflow-hidden bg-[#312a25] md:-mx-8 md:min-h-[38rem] lg:mx-0 lg:rounded-b-xl">
+            <img
+                src="/images/background/Walking_people.jpg"
+                alt="Personer foran en lokal modebutik i byen"
+                class="absolute inset-0 h-full w-full object-cover object-center"
+                fetchpriority="high"
+            />
+            <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(22,18,15,0.78)_0%,rgba(22,18,15,0.5)_45%,rgba(22,18,15,0.08)_78%)]" aria-hidden="true"></div>
+            <div class="relative flex min-h-[34rem] items-center px-5 py-16 md:min-h-[38rem] md:px-12 lg:px-16">
+                <div class="w-full max-w-2xl">
+                    <h1 class="max-w-xl text-[2.8rem] font-semibold leading-[0.98] tracking-[-0.04em] text-white sm:text-6xl md:text-[4.4rem]">
+                        {heading}
+                    </h1>
+                    <p class="mt-5 max-w-xl text-base leading-7 text-white/90 md:text-lg">
+                        {description}
+                    </p>
+                    <div class="mt-8 flex max-w-2xl items-center gap-2">
+                        <form class="min-w-0 flex-1" role="search" method="get" action={action}>
+                            <label class="sr-only" for="frontpage-search">{placeholder}</label>
+                            <div class="flex items-center rounded-full bg-white p-2 ring-1 ring-black/10 transition focus-within:ring-2 focus-within:ring-[#420E0E]">
+                                <input
+                                    id="frontpage-search"
+                                    name="q"
+                                    type="search"
+                                    placeholder={placeholder}
+                                    value={value}
+                                    class="min-w-0 flex-1 border-0 bg-transparent px-3 py-3 text-base text-[#1e1a17] placeholder:text-[#6f655b] focus:outline-none sm:px-5"
+                                />
+                                <button
+                                    type="submit"
+                                    class="shrink-0 cursor-pointer rounded-full bg-[#420E0E] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 sm:px-7 sm:text-base"
+                                >
+                                    {buttonLabel}
+                                </button>
+                            </div>
+                        </form>
+                        {storeFilters && <ProductFilters action={action} />}
+                    </div>
+                </div>
             </div>
-        </form>
-        {
-            storeFilters && (
-                <ProductFilters action={action} />
-            )
-        }
-    </div>
-</section>
+        </section>
+    )
+}

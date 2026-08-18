@@ -34,46 +34,38 @@ type NavSection = {
     items: NavItem[];
 };
 
+const primaryNavItems: NavItem[] = [
+    { href: "/", label: "Forside", icon: "/icons/Rektangler_icon.svg" },
+    {
+        href: "/Produkt-overblik",
+        label: "Produkter",
+        icon: "/icons/Produkt_icon.svg",
+    },
+    {
+        href: "/Butiks-info",
+        label: "Butikker",
+        icon: "/icons/Butik_icon.svg",
+    },
+];
+
 const navSections: NavSection[] = [
     {
         heading: "Sider",
-        items: [
-            { href: "/", label: "Forside", icon: "/icons/Rektangler_icon.svg" },
-            {
-                href: "/Butiks-info",
-                label: "Butikker",
-                icon: "/icons/Butik_icon.svg",
-            },
-            {
-                href: "/Produkt-overblik",
-                label: "Produkter",
-                icon: "/icons/Produkt_icon.svg",
-            },
-        ],
+        items: primaryNavItems,
     },
     {
-        heading: "Personligt",
-        items: [
-            {
-                href: "/Profil",
-                label: "Profil",
-                icon: "/icons/Profil_icon.svg",
-            },
-            {
-                href: "/Gemte-produkter",
-                label: "Favoritter",
-                icon: "/icons/Taske_icon.svg",
-            },
-        ],
-    },
-    {
+        heading: "Information",
         items: [
             { href: "/Om-Highlide", label: "Om HIGHLIDE" },
             { href: "/Hjaelp-kontakt", label: "Hjælp & Kontakt" },
-            { href: "/Auth", label: "Log ind" },
         ],
     },
 ];
+
+const normalizePath = (path: string) =>
+    path === "/" ? path : path.replace(/\/$/, "");
+const currentPath = normalizePath(Astro.url.pathname);
+const isCurrentPath = (href: string) => normalizePath(href) === currentPath;
 ---
 
 <!doctype html>
@@ -112,11 +104,11 @@ const navSections: NavSection[] = [
                 class="sticky top-0 z-20 border-b border-black/10 bg-[#f8f4ec]/85 backdrop-blur-md"
             >
                 <div
-                    class="relative mx-auto flex max-w-[1120px] items-center justify-center px-4 py-4 md:px-8"
+                    class="relative mx-auto flex max-w-[1120px] items-center justify-center px-4 py-4 md:px-8 lg:justify-between"
                 >
                     <button
                         class:list={[
-                            "absolute left-4 inline-flex h-11 w-11 shrink-0 items-center justify-center bg-transparent text-[#1e1a17] transition hover:opacity-70 md:left-8",
+                            "absolute left-4 inline-flex h-11 w-11 shrink-0 items-center justify-center bg-transparent text-[#1e1a17] transition hover:opacity-70 md:left-8 lg:hidden",
                         ]}
                         type="button"
                         aria-label="Åbn menu"
@@ -149,6 +141,24 @@ const navSections: NavSection[] = [
                             class="h-7 w-auto md:h-8"
                         />
                     </a>
+
+                    <nav class="hidden items-stretch gap-8 self-stretch lg:flex" aria-label="Primær navigation">
+                        {
+                            primaryNavItems.map((item) => (
+                                <a
+                                    href={item.href}
+                                    aria-current={isCurrentPath(item.href) ? "page" : undefined}
+                                    class:list={[
+                                        "relative inline-flex min-h-11 items-center text-sm font-semibold text-[#1e1a17] transition hover:text-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-4",
+                                        isCurrentPath(item.href) &&
+                                            "text-[#420e0e] after:absolute after:inset-x-0 after:-bottom-4 after:h-0.5 after:bg-[#420e0e]",
+                                    ]}
+                                >
+                                    {item.label}
+                                </a>
+                            ))
+                        }
+                    </nav>
                 </div>
             </header>
 
@@ -203,15 +213,24 @@ const navSections: NavSection[] = [
                                     {section.items.map((item) => (
                                         <li>
                                             <a
-                                                class="flex min-h-12 items-center gap-3 rounded-none px-0 py-3 text-base font-medium text-[#1e1a17] transition hover:opacity-70"
+                                                class:list={[
+                                                    "flex min-h-12 w-fit items-center gap-3 rounded-full px-3 py-2 text-base transition",
+                                                    isCurrentPath(item.href)
+                                                        ? "bg-[#420e0e] font-semibold text-white"
+                                                        : "font-medium text-[#1e1a17] hover:bg-black/5 hover:text-[#420e0e]",
+                                                ]}
                                                 href={item.href}
+                                                aria-current={isCurrentPath(item.href) ? "page" : undefined}
                                             >
                                                 {item.icon && (
                                                     <img
                                                         src={item.icon}
                                                         alt=""
                                                         aria-hidden="true"
-                                                        class="h-5 w-5 shrink-0 object-contain"
+                                                        class:list={[
+                                                            "h-5 w-5 shrink-0 object-contain",
+                                                            isCurrentPath(item.href) && "brightness-0 invert",
+                                                        ]}
                                                     />
                                                 )}
                                                 <span>{item.label}</span>

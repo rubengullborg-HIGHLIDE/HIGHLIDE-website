@@ -1,71 +1,47 @@
 ---
-interface Props {
-    heading?: string;
-    text?: string;
-}
-
-const {
-    text = "HIGHLIDE samler lokale modefund ét sted, så du hurtigere kan opdage butikker, styles og produkter i Aarhus uden at starte hos de store kæder hver gang.",
-} = Astro.props;
-
-const clothes = [
-    {
-        src: "/images/clothes/Blue_shirt.png",
-        alt: "Blå skjorte",
-        className:
-            "left-[-0.75rem] top-[-8%] w-14 -rotate-12 sm:w-16 md:left-[-5rem] md:top-[-12%] md:w-28 lg:w-32",
-    },
-    {
-        src: "/images/clothes/Brown_coat.png",
-        alt: "Brun frakke",
-        className:
-            "right-[-0.5rem] top-[-10%] w-16 rotate-12 sm:w-20 md:right-[-5rem] md:top-[-16%] md:w-32 lg:w-36",
-    },
-    {
-        src: "/images/clothes/Striped_pants.png",
-        alt: "Stribede bukser",
-        className:
-            "left-[1%] bottom-[-8%] w-16 rotate-[-8deg] sm:w-20 md:left-[-5rem] md:bottom-[-12%] md:w-32 lg:w-36",
-    },
-    {
-        src: "/images/clothes/Brown_shoes.png",
-        alt: "Brune sko",
-        className:
-            "right-[3%] bottom-[-8%] w-14 rotate-[10deg] sm:w-16 md:right-[-5rem] md:bottom-[-12%] md:w-28 lg:w-32",
-    },
+const benefits = [
+    "Find produkter fra mindre butikker",
+    "Se hvor varen er registreret på lager",
+    "Planlæg dit besøg i Aarhus",
 ];
 ---
 
-<section class="mx-auto w-full max-w-5xl md:-mt-12">
-    <div class="mx-auto max-w-3xl text-center">
-        <p class="mt-4 text-base leading-8 text-[#5c534b] md:text-lg">
-            {text}
-        </p>
-        <a
-            href="/Om-Highlide"
-            class="mt-4 inline-flex items-center text-sm font-medium text-[#420E0E] underline underline-offset-4 transition hover:opacity-80"
-        >
-            Læs mere
-        </a>
-    </div>
+<section class="overflow-hidden rounded-xl bg-[#dbeafc] px-6 py-10 md:px-10 md:py-14 lg:px-14">
+    <div class="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
+        <div>
+            <h2 class="max-w-md text-[2.1rem] font-semibold leading-tight tracking-[-0.035em] text-[#1e1a17] md:text-[2.8rem]">
+                Lokale butikker, samlet ét sted
+            </h2>
+            <p class="mt-4 max-w-lg text-base leading-7 text-[#3f4751] md:text-lg">
+                HIGHLIDE gør det lettere at opdage de butikker, brands og
+                produkter, der giver Aarhus sin egen stil.
+            </p>
+            <ul class="mt-8 space-y-4">
+                {benefits.map((benefit) => (
+                    <li class="flex items-center gap-3 text-sm font-medium text-[#27303a] md:text-base">
+                        <span class="h-2 w-2 shrink-0 rounded-full bg-[#420e0e]" aria-hidden="true"></span>
+                        {benefit}
+                    </li>
+                ))}
+            </ul>
+            <a
+                href="/Butiks-info"
+                class="mt-8 inline-flex min-h-11 items-center justify-center rounded-full bg-[#420e0e] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-[#dbeafc]"
+            >
+                Se alle butikker
+            </a>
+        </div>
 
-    <div class="relative mt-8 md:mt-10">
-        <div class="relative mx-auto max-w-3xl overflow-visible">
-            {
-                clothes.map((item) => (
-                    <img
-                        src={item.src}
-                        alt={item.alt}
-                        class={`pointer-events-none absolute z-0 hidden select-none md:block ${item.className}`}
-                    />
-                ))
-            }
-
-            <img
-                src="/images/background/Walking_people.jpg"
-                alt="Personer på gågade i byen"
-                class="relative z-10 mx-auto w-full max-w-3xl rounded-[1.5rem] sm:rounded-[2rem]"
-            />
+        <div class="grid min-h-80 grid-cols-2 gap-3 sm:min-h-96">
+            <div class="row-span-2 flex items-center justify-center overflow-hidden rounded-xl bg-[#f4efe7] p-5">
+                <img src="/images/clothes/Brown_coat.png" alt="Brun frakke" class="h-full w-full object-contain" loading="lazy" />
+            </div>
+            <div class="flex items-center justify-center overflow-hidden rounded-xl bg-white/70 p-5">
+                <img src="/images/clothes/Striped_pants.png" alt="Stribede bukser" class="h-full w-full object-contain" loading="lazy" />
+            </div>
+            <div class="flex items-center justify-center overflow-hidden rounded-xl bg-[#f4efe7] p-5">
+                <img src="/images/clothes/Brown_shoes.png" alt="Brune sko" class="h-full w-full object-contain" loading="lazy" />
+            </div>
         </div>
     </div>
 </section>

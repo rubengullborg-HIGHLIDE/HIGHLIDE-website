@@ -1,17 +1,175 @@
 ---
-import PlaceholderPage from "../components/PlaceholderPage.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
+import {
+    getStoreProductsHref,
+    storeDirectory,
+} from "../lib/storeDirectory.js";
+
+const getDirectionsHref = (address: string) =>
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 ---
 
 <SiteLayout
-    title="Butikker"
-    description="Find lokale modebutikker i Aarhus på HIGHLIDE."
+    title="Butikker i Aarhus"
+    description="Find adresser, åbningstider og produkter fra lokale modebutikker i Aarhus."
 >
-    <PlaceholderPage
-        eyebrow="Butikker"
-        title="Lokale butikker bliver næste skridt"
-        description="Her kommer en oversigt over de butikker, brands og adresser, der gør det lettere at finde mode tæt på dig."
-        primaryHref="/Produkt-overblik"
-        primaryLabel="Se produkter først"
-    />
+    <section class="pb-16 pt-6 md:pb-24 md:pt-12">
+        <header class="max-w-3xl">
+            <h1 class="text-[2.7rem] font-semibold leading-[1.02] tracking-[-0.04em] text-[#1e1a17] md:text-[4rem]">
+                Butikker i Aarhus
+            </h1>
+            <p class="mt-5 max-w-2xl text-base leading-7 text-[#5c534b] md:text-lg md:leading-8">
+                Mød butikkerne bag produkterne på HIGHLIDE. Se deres lokale
+                udvalg, find adressen, og tjek åbningstiderne før dit besøg.
+            </p>
+        </header>
+
+        <div class="mt-12 border-t border-black/20 md:mt-16">
+            {
+                storeDirectory.map((store, storeIndex) => (
+                    <article
+                        id={store.key}
+                        data-store-card
+                        data-store-key={store.key}
+                        class="scroll-mt-24 border-b border-black/20 py-10 md:py-14"
+                        aria-labelledby={`${store.key}-title`}
+                    >
+                        <div class="grid items-stretch gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+                            <div
+                                class:list={[
+                                    "grid min-h-72 grid-cols-2 gap-3",
+                                    storeIndex % 2 === 1 && "lg:order-2",
+                                ]}
+                            >
+                                {[0, 1, 2].map((imageIndex) => (
+                                    <div
+                                        class:list={[
+                                            "relative flex items-center justify-center overflow-hidden rounded-xl bg-[#f1ece4] p-5",
+                                            imageIndex === 0 && "row-span-2",
+                                        ]}
+                                        data-store-image-slot={String(imageIndex)}
+                                    >
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div class="flex min-w-0 flex-col justify-center">
+                                <p class="text-sm font-semibold text-[#420e0e]">
+                                    {store.area}
+                                </p>
+                                <h2
+                                    id={`${store.key}-title`}
+                                    class="mt-2 text-[2rem] font-semibold tracking-[-0.035em] text-[#1e1a17] md:text-[2.7rem]"
+                                >
+                                    {store.name}
+                                </h2>
+                                <p class="mt-4 max-w-xl text-base leading-7 text-[#5c534b]">
+                                    {store.description}
+                                </p>
+
+                                <div class="mt-7 space-y-5">
+                                    {store.locations.map((location) => (
+                                        <div class="border-t border-black/10 pt-4 first:border-t-0 first:pt-0">
+                                            <p class="font-semibold text-[#1e1a17]">
+                                                {location.name}
+                                            </p>
+                                            <address class="mt-1 not-italic text-sm leading-6 text-[#5c534b]">
+                                                {location.address}
+                                            </address>
+                                            <p class="mt-1 text-sm leading-6 text-[#5c534b]">
+                                                {location.hours}
+                                            </p>
+                                            <a
+                                                href={getDirectionsHref(location.address)}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                class="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-[#420e0e] underline decoration-[#420e0e]/35 underline-offset-4 transition hover:decoration-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]"
+                                            >
+                                                Find vej til {location.name}
+                                            </a>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div class="mt-8 flex flex-wrap items-center gap-3">
+                                    <a
+                                        href={getStoreProductsHref(store.key)}
+                                        class="inline-flex min-h-11 items-center justify-center rounded-full bg-[#420e0e] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2"
+                                    >
+                                        Se produkter
+                                    </a>
+                                    <a
+                                        href={store.website}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        class="inline-flex min-h-11 items-center justify-center rounded-full border border-[#8d8176] px-5 py-3 text-sm font-semibold text-[#1e1a17] transition hover:border-[#420e0e] hover:text-[#420e0e] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2"
+                                    >
+                                        Besøg butikkens side
+                                    </a>
+                                </div>
+                                <p class="mt-4 text-sm text-[#6e645d]">
+                                    Se produkter fra {store.name} på HIGHLIDE.
+                                </p>
+                            </div>
+                        </div>
+                    </article>
+                ))
+            }
+        </div>
+    </section>
+
+    <script>
+        import { productSources, getFirstImage } from "../lib/productSources.js";
+        import { supabase } from "../lib/supabaseClient.js";
+
+        const fallbackImage = "/images/clothes/Brown_coat.png";
+
+        const hydrateStore = async (card) => {
+            const source = productSources.find(
+                (item) => item.key === card.dataset.storeKey,
+            );
+            if (!source) return;
+
+            const imageSlots = [
+                ...card.querySelectorAll("[data-store-image-slot]"),
+            ];
+
+            let query = supabase
+                .from(source.table)
+                .select(source.overviewSelect);
+            query = source
+                .applyAvailableFilter(query)
+                .order(source.orderColumn, { ascending: true })
+                .limit(imageSlots.length);
+
+            const { data, error } = await query;
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            data?.forEach((product, index) => {
+                const slot = imageSlots[index];
+                if (!slot) return;
+
+                const image = document.createElement("img");
+                image.alt = `${product.brand || source.storeName} ${product.name || "produkt"}`;
+                image.loading = "lazy";
+                image.className =
+                    "h-full w-full object-contain opacity-0 transition-opacity duration-200 motion-reduce:transition-none";
+                image.addEventListener(
+                    "load",
+                    () => image.classList.add("opacity-100"),
+                    { once: true },
+                );
+                image.src = getFirstImage(product.images, fallbackImage);
+                slot.append(image);
+            });
+        };
+
+        document
+            .querySelectorAll("[data-store-card]")
+            .forEach((card) => hydrateStore(card));
+    </script>
 </SiteLayout>
