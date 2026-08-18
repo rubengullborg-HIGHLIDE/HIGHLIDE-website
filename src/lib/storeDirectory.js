@@ -114,6 +114,36 @@ export const storeDirectory = [
             },
         ],
     },
+    {
+        key: "suitclub",
+        name: "SUIT CLUB",
+        area: "Guldsmedgade",
+        description:
+            "Jakkesæt, skjorter og accessories med fokus på personlig vejledning og en skarp pasform.",
+        website: "https://suitclub.dk/",
+        locations: [
+            {
+                name: "SUIT CLUB Aarhus",
+                address: "Guldsmedgade 42, 8000 Aarhus C",
+                hours: "Se aktuelle åbningstider hos SUIT CLUB",
+            },
+        ],
+    },
+    {
+        key: "cejf",
+        name: "Ćejf",
+        area: "Latinerkvarteret",
+        description:
+            "Europæisk produceret herretøj i begrænsede oplag med fokus på materialer, håndværk og gennemtænkte detaljer.",
+        website: "https://cejf.dk/",
+        locations: [
+            {
+                name: "Ćejf Aarhus",
+                address: "Graven 3B, 8000 Aarhus C",
+                hours: "Se aktuelle åbningstider hos Ćejf",
+            },
+        ],
+    },
 ];
 
 export const getStoreDirectoryEntry = (storeKey) =>
@@ -124,4 +154,3 @@ export const getStoreDirectoryHref = (storeKey) =>
 
 export const getStoreProductsHref = (storeKey) =>
     `/Produkt-overblik?butik=${encodeURIComponent(storeKey)}`;
-

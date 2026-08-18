@@ -28,6 +28,14 @@ const skagenClothingStoreLabels = {
     "skagen-aarhus": "Skagen Clothing Aarhus",
 };
 
+const suitClubStoreLabels = {
+    "suitclub-aarhus": "SUIT CLUB Aarhus",
+};
+
+const cejfStoreLabels = {
+    "cejf-aarhus": "Ćejf Aarhus",
+};
+
 const withSharedProductSchema = (source) => ({
     variantGroupColumn: "source_parent_id",
     allowUnavailableDetails: true,
@@ -131,6 +139,36 @@ export const productSources = [
         storeLabels: skagenClothingStoreLabels,
         aarhusStoreKey: "skagen-aarhus",
         inventoryColumn: "local_inventory",
+        applyAvailableFilter: (query) => query.eq("aarhus_available", true),
+    },
+    {
+        key: "suitclub",
+        table: "suitclub_products",
+        storeName: "SUIT CLUB",
+        overviewSelect:
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
+        detailSelect: "*",
+        searchColumns: ["name", "brand", "color", "category", "product_type"],
+        orderColumn: "id",
+        storeLabels: suitClubStoreLabels,
+        aarhusStoreKey: "suitclub-aarhus",
+        inventoryColumn: "local_inventory",
+        variantGroupColumn: null,
+        applyAvailableFilter: (query) => query.eq("aarhus_available", true),
+    },
+    {
+        key: "cejf",
+        table: "cejf_products",
+        storeName: "Ćejf",
+        overviewSelect:
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
+        detailSelect: "*",
+        searchColumns: ["name", "brand", "color", "category"],
+        orderColumn: "id",
+        storeLabels: cejfStoreLabels,
+        aarhusStoreKey: "cejf-aarhus",
+        inventoryColumn: "local_inventory",
+        variantGroupColumn: null,
         applyAvailableFilter: (query) => query.eq("aarhus_available", true),
     },
 ].map(withSharedProductSchema);
