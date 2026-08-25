@@ -185,47 +185,6 @@ const getDirectionsHref = (address: string) =>
             .querySelectorAll("[data-store-card]")
             .forEach((card) => hydrateStore(card));
 
-        const viewedStores = new Set();
-        const captureStoreProfile = (card) => {
-            const storeKey = card.dataset.storeKey;
-            if (!storeKey || viewedStores.has(storeKey)) return;
-
-            const captured = captureAnalyticsEvent("store_profile_viewed", {
-                ...getStoreIntentContext(storeKey),
-                retailer_id: storeKey,
-                retailer_name: card.dataset.storeName ?? null,
-            });
-
-            if (captured) {
-                viewedStores.add(storeKey);
-                storeObserver.unobserve(card);
-            }
-        };
-        const storeObserver = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (!entry.isIntersecting) return;
-                    captureStoreProfile(entry.target);
-                });
-            },
-            { threshold: 0.2 },
-        );
-
-        document
-            .querySelectorAll("[data-store-card]")
-            .forEach((card) => storeObserver.observe(card));
-
-        window.addEventListener("highlide:analytics-consent-changed", (event) => {
-            if (event.detail?.consent !== "accepted") return;
-
-            document.querySelectorAll("[data-store-card]").forEach((card) => {
-                const rect = card.getBoundingClientRect();
-                if (rect.top < window.innerHeight && rect.bottom > 0) {
-                    captureStoreProfile(card);
-                }
-            });
-        });
-
         document.querySelectorAll("[data-store-directions]").forEach((link) => {
             link.addEventListener("click", () => {
                 const storeKey = link.dataset.storeKey;
