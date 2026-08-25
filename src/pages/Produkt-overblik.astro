@@ -134,6 +134,10 @@ const defaultZoom = 3;
             getProductSourcesForFilters,
             parseProductFilters,
         } from "../lib/productFilters.js";
+        import {
+            captureAnalyticsEvent,
+            getProductAnalyticsProperties,
+        } from "../lib/analytics.js";
         import { supabase } from "../lib/supabaseClient.js";
 
         const overview = document.getElementById("product-overview");
@@ -198,6 +202,8 @@ const defaultZoom = 3;
         let loadedCount = 0;
         let totalCount = 0;
         let isFetching = false;
+        let hasCapturedSearch = false;
+        let latestSearchResults = null;
         let sourceState = new Map();
         const zoomConfig = {
             1: { label: "Zoom niveau 1 af 4", pageSize: 50 },
@@ -263,13 +269,30 @@ const defaultZoom = 3;
             };
         };
 
-        const createProductCard = (product) => {
+        const createProductCard = (product, resultPosition) => {
             const link = document.createElement("a");
             link.href = getProductHref(product);
             link.className =
                 "product-card block rounded-[1.05rem] border border-transparent text-[#1e1a17] transition";
             link.dataset.productCard = "";
             link.dataset.productId = String(product.id);
+            link.addEventListener("click", () => {
+                const eventProperties = {
+                    ...getProductAnalyticsProperties(product),
+                    surface: "catalogue",
+                    search_query: searchQuery || null,
+                    result_position: resultPosition,
+                    result_count: totalCount,
+                };
+
+                captureAnalyticsEvent("product_clicked", eventProperties);
+                if (searchQuery) {
+                    captureAnalyticsEvent(
+                        "search_result_clicked",
+                        eventProperties,
+                    );
+                }
+            });
             link.setAttribute(
                 "aria-label",
                 `Se detaljer for ${product.brand} ${product.name}`,
@@ -620,6 +643,29 @@ const defaultZoom = 3;
             return products;
         };
 
+        const captureCompletedSearch = () => {
+            if (
+                !searchQuery ||
+                hasCapturedSearch ||
+                !Array.isArray(latestSearchResults)
+            ) {
+                return;
+            }
+
+            hasCapturedSearch = captureAnalyticsEvent("search_performed", {
+                query: searchQuery,
+                result_count: totalCount,
+                has_results: totalCount > 0,
+                returned_product_keys: latestSearchResults
+                    .map(
+                        (product) =>
+                            getProductAnalyticsProperties(product).product_key,
+                    )
+                    .filter(Boolean),
+                returned_result_count: latestSearchResults.length,
+            });
+        };
+
         const fetchProducts = async ({ reset = false } = {}) => {
             if (isFetching) return;
             isFetching = true;
@@ -678,9 +724,15 @@ const defaultZoom = 3;
                 (total, state) => total + (state.total ?? 0),
                 0,
             );
+            const firstResultPosition = loadedCount + 1;
             loadedCount += products.length;
 
             updateResultsCopy(totalCount, searchQuery);
+
+            if (reset) {
+                latestSearchResults = products;
+                captureCompletedSearch();
+            }
 
             if (!grid) {
                 isFetching = false;
@@ -688,8 +740,10 @@ const defaultZoom = 3;
                 return;
             }
 
-            products.forEach((product) =>
-                grid.append(createProductCard(product)),
+            products.forEach((product, index) =>
+                grid.append(
+                    createProductCard(product, firstResultPosition + index),
+                ),
             );
 
             cards = [...grid.querySelectorAll("[data-product-card]")];
@@ -711,6 +765,9 @@ const defaultZoom = 3;
             slider.value = String(currentZoom);
         }
         updateStickyHeaderOffset();
+        window.addEventListener("highlide:analytics-consent-changed", (event) => {
+            if (event.detail?.consent === "accepted") captureCompletedSearch();
+        });
         window.addEventListener("resize", updateStickyHeaderOffset);
         updateGrid(false);
 

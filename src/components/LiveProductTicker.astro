@@ -49,6 +49,10 @@
         mapOverviewProduct,
         productSources,
     } from "../lib/productSources.js";
+    import {
+        captureAnalyticsEvent,
+        getProductAnalyticsProperties,
+    } from "../lib/analytics.js";
     import { supabase } from "../lib/supabaseClient.js";
 
     document.querySelectorAll("[data-live-products]").forEach((root) => {
@@ -80,6 +84,14 @@
             link.href = getProductHref(product);
             link.className = "ticker-card group block w-52 shrink-0 text-[#1e1a17] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-4 md:w-60";
             link.setAttribute("aria-label", `Se ${product.brand} ${product.name} fra ${product.store}`);
+            if (!duplicate) {
+                link.addEventListener("click", () => {
+                    captureAnalyticsEvent("product_clicked", {
+                        ...getProductAnalyticsProperties(product),
+                        surface: "homepage_ticker",
+                    });
+                });
+            }
             if (duplicate) {
                 link.tabIndex = -1;
                 link.setAttribute("aria-hidden", "true");

@@ -1,0 +1,113 @@
+<script>
+    import posthog from "posthog-js";
+
+    const apiKey = import.meta.env.PUBLIC_POSTHOG_PROJECT_TOKEN;
+    const apiHost = import.meta.env.PUBLIC_POSTHOG_HOST;
+    const consentStorageKey = "highlide-analytics-consent";
+    const consentEventName = "highlide:analytics-consent-changed";
+    const sessionStartedKey = "highlide-analytics-session-started";
+    const trafficSourceKey = "highlide-analytics-traffic-source-recorded";
+    let initialized = false;
+    let pageViewCaptured = false;
+
+    const hasConsent = () => {
+        try {
+            return window.localStorage.getItem(consentStorageKey) === "accepted";
+        } catch {
+            return false;
+        }
+    };
+
+    const getTrafficSource = () => {
+        const url = new URL(window.location.href);
+        const referrer = document.referrer ? new URL(document.referrer) : null;
+        const referrerHost = referrer?.hostname.replace(/^www\./, "") ?? null;
+
+        return {
+            source: url.searchParams.get("utm_source") || referrerHost || "direct",
+            medium: url.searchParams.get("utm_medium"),
+            campaign: url.searchParams.get("utm_campaign"),
+            referrer_host: referrerHost,
+            landing_path: window.location.pathname,
+        };
+    };
+
+    const captureInitialEvents = () => {
+        if (!initialized || !hasConsent()) return;
+
+        if (!pageViewCaptured) {
+            posthog.capture("$pageview", {
+                $current_url: `${window.location.origin}${window.location.pathname}`,
+                pathname: window.location.pathname,
+            });
+            pageViewCaptured = true;
+        }
+
+        try {
+            if (!window.sessionStorage.getItem(sessionStartedKey)) {
+                posthog.capture("session_started", {
+                    entry_path: window.location.pathname,
+                });
+                window.sessionStorage.setItem(sessionStartedKey, "true");
+            }
+
+            if (!window.sessionStorage.getItem(trafficSourceKey)) {
+                posthog.capture("traffic_source_recorded", getTrafficSource());
+                window.sessionStorage.setItem(trafficSourceKey, "true");
+            }
+        } catch {
+            // Analytics still works when session storage is unavailable.
+        }
+    };
+
+    const enableAnalytics = () => {
+        if (!apiKey || !apiHost) {
+            if (import.meta.env.DEV) {
+                console.info(
+                    "PostHog is disabled until PUBLIC_POSTHOG_PROJECT_TOKEN and PUBLIC_POSTHOG_HOST are configured.",
+                );
+            }
+            return;
+        }
+
+        if (!initialized) {
+            posthog.init(apiKey, {
+                api_host: apiHost,
+                defaults: "2026-01-30",
+                autocapture: false,
+                capture_pageview: false,
+                capture_pageleave: false,
+                capture_exceptions: false,
+                disable_session_recording: true,
+                enable_heatmaps: false,
+                person_profiles: "never",
+                advanced_disable_flags: true,
+                opt_out_capturing_by_default: true,
+            });
+            initialized = true;
+            window.posthog = posthog;
+        } else {
+            posthog.reset();
+        }
+
+        posthog.opt_in_capturing();
+        pageViewCaptured = false;
+        captureInitialEvents();
+    };
+
+    const disableAnalytics = () => {
+        if (!initialized) return;
+
+        posthog.reset();
+        posthog.opt_out_capturing();
+        window.posthog = undefined;
+        pageViewCaptured = false;
+    };
+
+    window.addEventListener(consentEventName, (event) => {
+        if (event.detail?.consent === "accepted") enableAnalytics();
+        else disableAnalytics();
+    });
+
+    if (hasConsent()) enableAnalytics();
+</script>

@@ -6,20 +6,22 @@ import { siteInfo } from "../lib/siteInfo.js";
 
 <SiteLayout title="Privatlivspolitik" description="Læs hvordan HIGHLIDE behandler personoplysninger." canonicalPath="/Privatlivspolitik">
     <InfoPageLayout
-        eyebrow="Privatlivspolitik · opdateret 18. august 2026"
+        eyebrow="Privatlivspolitik · opdateret 25. august 2026"
         title="Dine oplysninger skal være til at forstå"
         intro="Her beskriver vi, hvilke oplysninger den nuværende version af HIGHLIDE kan behandle, hvorfor vi gør det, og hvilke rettigheder du har."
     >
         <section>
             <h2>Dataansvarlig</h2>
             <p>{siteInfo.name}, CVR {siteInfo.cvr}, {siteInfo.address}, er dataansvarlig for den behandling af personoplysninger, der beskrives her.</p>
-            <p>Spørgsmål om privatliv kan sendes til <a href={`mailto:${siteInfo.email}`}>{siteInfo.email}</a>.</p>
+            <p>Vores kontaktperson for databeskyttelse er {siteInfo.privacyContact}. Spørgsmål om privatliv kan sendes til <a href={`mailto:${siteInfo.email}`}>{siteInfo.email}</a>.</p>
         </section>
 
         <section>
             <h2>Oplysninger vi kan behandle</h2>
             <h3>Når du bruger hjemmesiden</h3>
             <p>Vores hosting- og databaseleverandører kan behandle tekniske oplysninger som IP-adresse, tidspunkt, browseroplysninger og anmodede sider for at levere og beskytte tjenesten. Søgninger og filtre ligger i sidens webadresse og kan derfor fremgå af tekniske logs. Vi bruger ikke disse oplysninger til at opbygge en personlig profil.</p>
+            <h3>Når du vælger analyse</h3>
+            <p>Hvis du giver samtykke, registrerer vi udvalgte hændelser som besøgte sider, søgetekst og søgeresultater, produktklik og -visninger, butiksvisninger samt klik på butikslinks og rutevejledning. Hændelserne kan indeholde produkt-id, butik, brand, kategori, tidspunkt, trafikkilde og en tilfældig browser- og sessionsidentifikator. Vi indsamler ikke skærmoptagelser og bruger ikke automatisk registrering af alle klik.</p>
             <h3>Når du kontakter os</h3>
             <p>Hvis du sender os en e-mail, behandler vi de kontaktoplysninger og det indhold, du selv vælger at sende, for at kunne besvare og følge op på din henvendelse.</p>
             <h3>Produkt- og butiksdata</h3>
@@ -30,22 +32,34 @@ import { siteInfo } from "../lib/siteInfo.js";
             <h2>Formål og behandlingsgrundlag</h2>
             <p>Tekniske data behandles for at drive, fejlfinde og beskytte hjemmesiden. Grundlaget er vores legitime interesse i at kunne levere en sikker og velfungerende tjeneste.</p>
             <p>Oplysninger i henvendelser behandles for at besvare dig og håndtere den dialog, du selv har taget initiativ til. Afhængigt af henvendelsen sker det som led i en aftale eller på baggrund af vores legitime interesse i at kommunikere med brugere og samarbejdspartnere.</p>
+            <p>Analysedata behandles kun på baggrund af dit samtykke. Formålet er at forstå efterspørgsel, forbedre søgning og produktoplevelse og give butikkerne aggregeret indsigt. Du kan til enhver tid trække samtykket tilbage.</p>
         </section>
 
         <section>
             <h2>Leverandører og eksterne links</h2>
-            <p>Vi bruger tekniske leverandører til blandt andet hosting og database. De må kun behandle oplysninger efter vores instrukser og gældende databeskyttelsesregler. Hvis oplysninger behandles uden for EU/EØS, skal der være et gyldigt overførselsgrundlag.</p>
+            <p>Vi bruger tekniske leverandører til blandt andet hosting og database. Til samtykkebaseret produktanalyse bruger vi PostHog som databehandler. De må kun behandle oplysninger efter vores instrukser og gældende databeskyttelsesregler. Hvis oplysninger behandles uden for EU/EØS, skal der være et gyldigt overførselsgrundlag.</p>
             <p>HIGHLIDE linker også til butikker og andre eksterne hjemmesider. Når du forlader HIGHLIDE, gælder den pågældende hjemmesides egen privatlivspolitik.</p>
         </section>
 
         <section>
             <h2>Cookies og analyse</h2>
-            <p>Den nuværende version af HIGHLIDE bruger ikke marketingcookies eller analyseværktøjer til at følge din adfærd på tværs af hjemmesider. Hvis det ændrer sig, opdaterer vi denne politik og indhenter samtykke, hvor reglerne kræver det.</p>
+            <p>PostHog indlæses først til dataindsamling, når du vælger “Tillad analyse”. Vi har slået autocapture, heatmaps, fejlautocapture og skærmoptagelser fra. PostHog bruger lokal lagring og cookies til at skelne anonyme browsere og sessioner. HIGHLIDE bruger ikke disse data til markedsføring eller til at følge dig på tværs af andre hjemmesider.</p>
+            <div class="mt-5 rounded-xl border border-black/10 bg-white p-5">
+                <p class="m-0 text-sm font-semibold text-[#1e1a17]" aria-live="polite" data-analytics-consent-status>Indlæser dit valg…</p>
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <button class="inline-flex min-h-11 items-center justify-center rounded-full bg-[#420e0e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#551515] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-[#c9c0b7]" type="button" data-withdraw-analytics-consent>
+                        Træk analysesamtykke tilbage
+                    </button>
+                    <button class="inline-flex min-h-11 items-center justify-center rounded-full border border-[#8d8176] px-5 py-3 text-sm font-semibold text-[#1e1a17] transition hover:border-[#420e0e] hover:text-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]" type="button" data-open-analytics-settings>
+                        Skift analysevalg
+                    </button>
+                </div>
+            </div>
         </section>
 
         <section>
             <h2>Hvor længe gemmer vi oplysninger?</h2>
-            <p>Vi gemmer kun oplysninger, så længe de er nødvendige til det formål, de blev indsamlet til. Tekniske logs følger leverandørernes drifts- og sikkerhedsperioder. Henvendelser slettes eller anonymiseres, når dialogen er afsluttet og der ikke længere er et sagligt eller lovmæssigt behov for at gemme dem.</p>
+            <p>Vi gemmer kun oplysninger, så længe de er nødvendige til det formål, de blev indsamlet til. Analysedata slettes eller anonymiseres senest 12 måneder efter indsamling. Tekniske logs følger leverandørernes drifts- og sikkerhedsperioder. Henvendelser slettes eller anonymiseres, når dialogen er afsluttet og der ikke længere er et sagligt eller lovmæssigt behov for at gemme dem.</p>
         </section>
 
         <section>

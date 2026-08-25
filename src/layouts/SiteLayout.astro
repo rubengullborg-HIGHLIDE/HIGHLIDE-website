@@ -1,6 +1,8 @@
 ---
 import "../styles/global.css";
 import Footer from "../components/Footer.astro";
+import PostHog from "../components/posthog.astro";
+import AnalyticsConsent from "../components/AnalyticsConsent.astro";
 
 interface Props {
     title?: string;
@@ -93,6 +95,7 @@ const isCurrentPath = (href: string) => normalizePath(href) === currentPath;
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={imageUrl} />
         <title>{pageTitle}</title>
+        <PostHog />
     </head>
     <body
         class="min-h-screen bg-[#f8f4ec] text-[#1e1a17]"
@@ -254,6 +257,8 @@ const isCurrentPath = (href: string) => normalizePath(href) === currentPath;
 
             <Footer />
         </div>
+
+        <AnalyticsConsent />
 
         <script is:inline>
             const shell = document.getElementById("site-shell");

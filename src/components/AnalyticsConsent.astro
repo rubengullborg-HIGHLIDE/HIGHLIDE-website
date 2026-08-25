@@ -1,0 +1,145 @@
+<section
+    class="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-3xl rounded-2xl border border-white/15 bg-[#420e0e] p-5 text-[#f8f4ec] shadow-[0_20px_60px_rgba(30,10,10,0.35)] sm:inset-x-6 sm:bottom-6 sm:p-6"
+    role="dialog"
+    aria-labelledby="analytics-consent-title"
+    aria-describedby="analytics-consent-description"
+    aria-modal="false"
+    data-analytics-consent-banner
+    hidden
+>
+    <div class="sm:flex sm:items-end sm:justify-between sm:gap-8">
+        <div class="max-w-xl">
+            <p class="text-xs font-bold uppercase tracking-[0.12em] text-white/65">
+                Dit valg
+            </p>
+            <h2
+                class="mt-2 text-xl font-semibold tracking-[-0.02em] text-white"
+                id="analytics-consent-title"
+            >
+                Hjælp os med at gøre HIGHLIDE bedre
+            </h2>
+            <p
+                class="mt-2 text-sm leading-6 text-white/80"
+                id="analytics-consent-description"
+            >
+                Med dit samtykke måler vi udvalgte handlinger som søgninger,
+                produktvisninger og klik på “find vej”. Vi bruger ikke
+                skærmoptagelser, autocapture eller marketingcookies.
+                <a
+                    class="font-semibold text-white underline decoration-white/45 underline-offset-4 hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    href="/Privatlivspolitik"
+                >
+                    Læs privatlivspolitikken
+                </a>
+            </p>
+        </div>
+
+        <div class="mt-5 grid shrink-0 grid-cols-1 gap-2 sm:mt-0 sm:min-w-48">
+            <button
+                class="inline-flex min-h-11 items-center justify-center rounded-full bg-[#f8f4ec] px-5 py-3 text-sm font-bold text-[#420e0e] transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#420e0e]"
+                type="button"
+                data-analytics-consent-accept
+            >
+                Tillad analyse
+            </button>
+            <button
+                class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/45 px-5 py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                type="button"
+                data-analytics-consent-reject
+            >
+                Kun nødvendige
+            </button>
+        </div>
+    </div>
+</section>
+
+<script>
+    const consentStorageKey = "highlide-analytics-consent";
+    const consentEventName = "highlide:analytics-consent-changed";
+    const banner = document.querySelector("[data-analytics-consent-banner]");
+    const acceptButton = banner?.querySelector(
+        "[data-analytics-consent-accept]",
+    );
+    const rejectButton = banner?.querySelector(
+        "[data-analytics-consent-reject]",
+    );
+
+    const getConsent = () => {
+        try {
+            const value = window.localStorage.getItem(consentStorageKey);
+            return value === "accepted" || value === "rejected" ? value : null;
+        } catch {
+            return null;
+        }
+    };
+
+    const updateConsentControls = () => {
+        const consent = getConsent();
+
+        document.querySelectorAll("[data-analytics-consent-status]").forEach((status) => {
+            status.textContent =
+                consent === "accepted"
+                    ? "Analyse er tilladt"
+                    : consent === "rejected"
+                      ? "Analyse er fravalgt"
+                      : "Du har ikke valgt endnu";
+        });
+
+        document.querySelectorAll("[data-withdraw-analytics-consent]").forEach((button) => {
+            button.disabled = consent !== "accepted";
+            button.textContent =
+                consent === "accepted"
+                    ? "Træk analysesamtykke tilbage"
+                    : "Analyse er fravalgt";
+        });
+    };
+
+    const hideBanner = () => {
+        if (banner) banner.hidden = true;
+    };
+
+    const openBanner = () => {
+        if (!banner) return;
+        banner.hidden = false;
+        window.requestAnimationFrame(() => acceptButton?.focus());
+    };
+
+    const setConsent = (value) => {
+        const previousConsent = getConsent();
+
+        try {
+            window.localStorage.setItem(consentStorageKey, value);
+        } catch {
+            // The choice applies to this page even if storage is unavailable.
+        }
+
+        hideBanner();
+        updateConsentControls();
+        if (previousConsent === value) return;
+
+        window.dispatchEvent(
+            new CustomEvent(consentEventName, { detail: { consent: value } }),
+        );
+    };
+
+    window.highlideAnalyticsConsent = {
+        get: getConsent,
+        open: openBanner,
+        accept: () => setConsent("accepted"),
+        reject: () => setConsent("rejected"),
+    };
+
+    acceptButton?.addEventListener("click", () => setConsent("accepted"));
+    rejectButton?.addEventListener("click", () => setConsent("rejected"));
+
+    document.querySelectorAll("[data-open-analytics-settings]").forEach((button) => {
+        button.addEventListener("click", openBanner);
+    });
+
+    document.querySelectorAll("[data-withdraw-analytics-consent]").forEach((button) => {
+        button.addEventListener("click", () => setConsent("rejected"));
+    });
+
+    updateConsentControls();
+    if (!getConsent()) openBanner();
+</script>

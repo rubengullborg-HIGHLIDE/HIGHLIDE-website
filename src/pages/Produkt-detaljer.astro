@@ -311,6 +311,11 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             getStoreDirectoryEntry,
             getStoreDirectoryHref,
         } from "../lib/storeDirectory.js";
+        import {
+            captureAnalyticsEvent,
+            getProductAnalyticsProperties,
+            setStoreIntentContext,
+        } from "../lib/analytics.js";
         import { supabase } from "../lib/supabaseClient.js";
 
         const detail = document.getElementById("product-detail");
@@ -455,6 +460,23 @@ import SiteLayout from "../layouts/SiteLayout.astro";
         let currentImages = [fallbackImage];
         let currentImageIndex = 0;
         let touchStartX = 0;
+        const viewedProductKeys = new Set();
+
+        const captureProductViewed = (product) => {
+            const analyticsProperties = getProductAnalyticsProperties(product);
+            if (
+                !analyticsProperties.product_key ||
+                viewedProductKeys.has(analyticsProperties.product_key)
+            ) {
+                return;
+            }
+
+            const captured = captureAnalyticsEvent("product_viewed", {
+                ...analyticsProperties,
+                surface: "product_detail",
+            });
+            if (captured) viewedProductKeys.add(analyticsProperties.product_key);
+        };
 
         const isEmptyValue = (value) => {
             if (value == null) return true;
@@ -873,6 +895,9 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 option.addEventListener("click", () => {
                     if (isSelected) return;
 
+                    captureAnalyticsEvent("product_variant_selected", {
+                        ...getProductAnalyticsProperties(variant),
+                    });
                     const nextUrl = new URL(window.location.href);
                     nextUrl.searchParams.set("id", String(variant.id));
                     window.history.replaceState({}, "", nextUrl);
@@ -1086,6 +1111,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                     ? `Se adresser og åbningstider for ${directoryEntry.locations.length} lokale butikker, før du tager afsted.`
                     : `Se adresse og åbningstider for ${primaryLocation.name}, før du tager afsted.`;
                 storeHandoffLink.href = getStoreDirectoryHref(product.sourceKey);
+                storeHandoffLink.dataset.storeKey = product.sourceKey;
                 storeHandoffLink.textContent = `Find ${directoryEntry.name}`;
             }
 
@@ -1096,6 +1122,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             renderExtraEntries(product);
             setState({ visible: true });
             window.highlideCurrentProduct = product;
+            captureProductViewed(product);
             document.dispatchEvent(
                 new CustomEvent("highlide:product-detail-ready", {
                     detail: { product },
@@ -1214,6 +1241,25 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 
         imagePrev?.addEventListener("click", () => showImage(-1));
         imageNext?.addEventListener("click", () => showImage(1));
+        window.addEventListener("highlide:analytics-consent-changed", (event) => {
+            if (
+                event.detail?.consent === "accepted" &&
+                window.highlideCurrentProduct
+            ) {
+                captureProductViewed(window.highlideCurrentProduct);
+            }
+        });
+        storeHandoffLink?.addEventListener("click", () => {
+            const product = window.highlideCurrentProduct ?? {};
+            const analyticsProperties = getProductAnalyticsProperties(product);
+            setStoreIntentContext(product);
+            captureAnalyticsEvent("show_in_store_clicked", {
+                ...analyticsProperties,
+                retailer_id:
+                    analyticsProperties.retailer_id ??
+                    storeHandoffLink.dataset.storeKey,
+            });
+        });
 
         fetchProduct();
     </script>

@@ -232,6 +232,7 @@ export const mapOverviewProduct = (product, source, fallbackImage) => ({
     listPrice: product.list_price,
     currency: product.currency || "DKK",
     store: source.storeName,
+    category: product.category ?? product.product_type ?? null,
     detail: product.color || product.category || "Produkt",
     image: getFirstImage(product.images, fallbackImage),
     stock: getAarhusTotalStock(product, source),

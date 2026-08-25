@@ -542,6 +542,12 @@ const dynamicSections = [
             });
 
             const query = searchInput?.value.trim() ?? "";
+            const filters = getFormFilters();
+            window.posthog?.capture("product_filters_applied", {
+                active_filter_count: getActiveFilterCount(filters),
+                has_search_query: Boolean(query),
+                sort: filters.sort,
+            });
             if (query) destination.searchParams.set("q", query);
             else destination.searchParams.delete("q");
             window.location.assign(`${destination.pathname}${destination.search}`);

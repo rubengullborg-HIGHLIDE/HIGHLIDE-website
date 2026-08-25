@@ -31,6 +31,7 @@ const getDirectionsHref = (address: string) =>
                         id={store.key}
                         data-store-card
                         data-store-key={store.key}
+                        data-store-name={store.name}
                         class="scroll-mt-24 border-b border-black/20 py-10 md:py-14"
                         aria-labelledby={`${store.key}-title`}
                     >
@@ -68,7 +69,7 @@ const getDirectionsHref = (address: string) =>
                                 </p>
 
                                 <div class="mt-7 space-y-5">
-                                    {store.locations.map((location) => (
+                                    {store.locations.map((location, locationIndex) => (
                                         <div class="border-t border-black/10 pt-4 first:border-t-0 first:pt-0">
                                             <p class="font-semibold text-[#1e1a17]">
                                                 {location.name}
@@ -84,6 +85,11 @@ const getDirectionsHref = (address: string) =>
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 class="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-[#420e0e] underline decoration-[#420e0e]/35 underline-offset-4 transition hover:decoration-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]"
+                                                data-store-directions
+                                                data-store-key={store.key}
+                                                data-store-name={store.name}
+                                                data-store-location-id={`${store.key}:${locationIndex + 1}`}
+                                                data-store-location-name={location.name}
                                             >
                                                 Find vej til {location.name}
                                             </a>
@@ -103,6 +109,9 @@ const getDirectionsHref = (address: string) =>
                                         target="_blank"
                                         rel="noreferrer"
                                         class="inline-flex min-h-11 items-center justify-center rounded-full border border-[#8d8176] px-5 py-3 text-sm font-semibold text-[#1e1a17] transition hover:border-[#420e0e] hover:text-[#420e0e] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2"
+                                        data-store-website
+                                        data-store-key={store.key}
+                                        data-store-name={store.name}
                                     >
                                         Besøg butikkens side
                                     </a>
@@ -120,6 +129,10 @@ const getDirectionsHref = (address: string) =>
 
     <script>
         import { productSources, getFirstImage } from "../lib/productSources.js";
+        import {
+            captureAnalyticsEvent,
+            getStoreIntentContext,
+        } from "../lib/analytics.js";
         import { supabase } from "../lib/supabaseClient.js";
 
         const fallbackImage = "/images/clothes/Brown_coat.png";
@@ -171,5 +184,70 @@ const getDirectionsHref = (address: string) =>
         document
             .querySelectorAll("[data-store-card]")
             .forEach((card) => hydrateStore(card));
+
+        const viewedStores = new Set();
+        const captureStoreProfile = (card) => {
+            const storeKey = card.dataset.storeKey;
+            if (!storeKey || viewedStores.has(storeKey)) return;
+
+            const captured = captureAnalyticsEvent("store_profile_viewed", {
+                ...getStoreIntentContext(storeKey),
+                retailer_id: storeKey,
+                retailer_name: card.dataset.storeName ?? null,
+            });
+
+            if (captured) {
+                viewedStores.add(storeKey);
+                storeObserver.unobserve(card);
+            }
+        };
+        const storeObserver = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    captureStoreProfile(entry.target);
+                });
+            },
+            { threshold: 0.2 },
+        );
+
+        document
+            .querySelectorAll("[data-store-card]")
+            .forEach((card) => storeObserver.observe(card));
+
+        window.addEventListener("highlide:analytics-consent-changed", (event) => {
+            if (event.detail?.consent !== "accepted") return;
+
+            document.querySelectorAll("[data-store-card]").forEach((card) => {
+                const rect = card.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    captureStoreProfile(card);
+                }
+            });
+        });
+
+        document.querySelectorAll("[data-store-directions]").forEach((link) => {
+            link.addEventListener("click", () => {
+                const storeKey = link.dataset.storeKey;
+                captureAnalyticsEvent("get_directions_clicked", {
+                    ...getStoreIntentContext(storeKey),
+                    retailer_id: storeKey,
+                    retailer_name: link.dataset.storeName,
+                    store_location_id: link.dataset.storeLocationId,
+                    store_location_name: link.dataset.storeLocationName,
+                });
+            });
+        });
+
+        document.querySelectorAll("[data-store-website]").forEach((link) => {
+            link.addEventListener("click", () => {
+                const storeKey = link.dataset.storeKey;
+                captureAnalyticsEvent("store_website_clicked", {
+                    ...getStoreIntentContext(storeKey),
+                    retailer_id: storeKey,
+                    retailer_name: link.dataset.storeName,
+                });
+            });
+        });
     </script>
 </SiteLayout>

@@ -44,6 +44,10 @@ const {
         mapOverviewProduct,
         productSources,
     } from "../lib/productSources.js";
+    import {
+        captureAnalyticsEvent,
+        getProductAnalyticsProperties,
+    } from "../lib/analytics.js";
     import { supabase } from "../lib/supabaseClient.js";
 
     const fallbackImage = "/images/clothes/Brown_coat.png";
@@ -77,6 +81,12 @@ const {
             "aria-label",
             `Se detaljer for ${product.brand} ${product.name}`,
         );
+        link.addEventListener("click", () => {
+            captureAnalyticsEvent("product_clicked", {
+                ...getProductAnalyticsProperties(product),
+                surface: "product_recommendation",
+            });
+        });
 
         const imageWrap = document.createElement("div");
         imageWrap.className =
