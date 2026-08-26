@@ -1,17 +1,514 @@
 ---
-import PlaceholderPage from "../components/PlaceholderPage.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
+
+const user = Astro.locals.user;
+const supabase = Astro.locals.supabase;
+
+if (!user || !supabase) {
+    return Astro.redirect("/Auth?mode=login", 303);
+}
+
+const [profileResponse, authResponse, consentHistoryResponse] =
+    await Promise.all([
+        supabase
+            .from("profiles")
+            .select("first_name, postal_code, age_confirmed_at")
+            .eq("id", user.id)
+            .maybeSingle(),
+        supabase.auth.getUser(),
+        supabase
+            .from("consent_events")
+            .select("status, source, occurred_at")
+            .eq("user_id", user.id)
+            .eq("purpose", "product_analytics")
+            .order("occurred_at", { ascending: false })
+            .order("id", { ascending: false })
+            .limit(20),
+    ]);
+
+const profile = profileResponse.data;
+const authUser = authResponse.data.user;
+const accountEmail = authUser?.email ?? user.email ?? "";
+const pendingEmail = authUser?.new_email ?? null;
+const consentHistory = consentHistoryResponse.data ?? [];
+const analyticsStatus = Astro.locals.analyticsConsent;
+const analyticsEnabled = analyticsStatus === "granted";
+
+const analyticsStatusLabel = analyticsEnabled
+    ? "Tilladt"
+    : analyticsStatus === "withdrawn"
+      ? "Trukket tilbage"
+      : "Ikke tilladt";
+
+const consentStatusLabels: Record<string, string> = {
+    granted: "Tilladt",
+    declined: "Fravalgt",
+    withdrawn: "Trukket tilbage",
+};
+
+const consentSourceLabels: Record<string, string> = {
+    signup: "Ved oprettelse",
+    profile_settings: "Fra Min profil",
+    privacy_settings: "Fra privatlivspolitikken",
+};
+
+const dateFormatter = new Intl.DateTimeFormat("da-DK", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Europe/Copenhagen",
+});
+
+type Feedback = {
+    message: string;
+    tone: "success" | "warning" | "error";
+};
+
+const feedbackByCode: Record<string, Feedback> = {
+    "profile-updated": {
+        message: "Dine personlige oplysninger er gemt.",
+        tone: "success",
+    },
+    "profile-invalid": {
+        message: "Tjek dit fornavn og dit firecifrede postnummer.",
+        tone: "error",
+    },
+    "profile-error": {
+        message: "Dine oplysninger kunne ikke gemmes. Prøv igen.",
+        tone: "error",
+    },
+    "email-updated": {
+        message: "Din e-mailadresse er ændret.",
+        tone: "success",
+    },
+    "email-pending": {
+        message:
+            "Bekræft ændringen via den e-mail, Supabase har sendt. Din nuværende adresse virker indtil da.",
+        tone: "warning",
+    },
+    "email-invalid": {
+        message: "Indtast en gyldig e-mailadresse.",
+        tone: "error",
+    },
+    "email-exists": {
+        message: "E-mailadressen bruges allerede af en anden konto.",
+        tone: "error",
+    },
+    "email-error": {
+        message: "E-mailadressen kunne ikke ændres. Prøv igen.",
+        tone: "error",
+    },
+    "password-updated": {
+        message: "Din adgangskode er ændret.",
+        tone: "success",
+    },
+    "password-invalid": {
+        message: "Adgangskoderne skal være ens og mindst otte tegn lange.",
+        tone: "error",
+    },
+    "password-reauth": {
+        message:
+            "Log ud og ind igen, før du ændrer adgangskoden. Det bekræfter, at det er dig.",
+        tone: "warning",
+    },
+    "password-error": {
+        message:
+            "Adgangskoden kunne ikke ændres. Tjek din nuværende adgangskode og prøv igen.",
+        tone: "error",
+    },
+    "consent-granted": {
+        message: "Produktanalyse er nu tilladt.",
+        tone: "success",
+    },
+    "consent-withdrawn": {
+        message: "Dit analysesamtykke er trukket tilbage.",
+        tone: "success",
+    },
+    "consent-error": {
+        message: "Dit analysevalg kunne ikke gemmes. Prøv igen.",
+        tone: "error",
+    },
+};
+
+const profileResult = Astro.url.searchParams.get("profile");
+const accountResult = Astro.url.searchParams.get("account");
+const consentResult = Astro.url.searchParams.get("consent");
+const feedbackCode = profileResult
+    ? `profile-${profileResult}`
+    : accountResult
+      ? accountResult
+      : consentResult
+        ? `consent-${consentResult}`
+        : null;
+const feedback = feedbackCode ? feedbackByCode[feedbackCode] : null;
 ---
 
 <SiteLayout
-    title="Profil"
-    description="Din HIGHLIDE profil til favoritter og personlige modefund."
+    title="Min profil"
+    description="Rediger din HIGHLIDE-profil og administrer dit analysevalg."
     noindex={true}
 >
-    <PlaceholderPage
-        title="Din profil kommer snart"
-        description="Profilen bliver stedet for gemte produkter, personlige oplysninger og en mere relevant browsingoplevelse."
-        primaryHref="/Produkt-overblik"
-        primaryLabel="Udforsk produkter"
-    />
+    <div class="mx-auto max-w-3xl">
+        <header class="border-b border-black/10 pb-6">
+            <p class="text-sm font-semibold text-[#6e645d]">Din konto</p>
+            <h1
+                class="mt-1 text-3xl font-semibold tracking-[-0.035em] text-[#1e1a17] sm:text-4xl"
+            >
+                Hej{profile?.first_name ? `, ${profile.first_name}` : ""}
+            </h1>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-[#5e554e]">
+                Her kan du rediger dine oplysninger, administrer dit login og
+                vælge om du vil dele din brug af HIGHLIDE med os.
+            </p>
+        </header>
+
+        {
+            feedback && (
+                <div
+                    class:list={[
+                        "mt-6 border px-4 py-3 text-sm leading-6",
+                        feedback.tone === "success" &&
+                            "border-[#8baa93] bg-[#e4eee5] text-[#25482e]",
+                        feedback.tone === "warning" &&
+                            "border-[#b49a66] bg-[#f3ead5] text-[#57451f]",
+                        feedback.tone === "error" &&
+                            "border-[#ba7b73] bg-[#f2e2dc] text-[#591b17]",
+                    ]}
+                    role={feedback.tone === "error" ? "alert" : "status"}
+                >
+                    {feedback.message}
+                </div>
+            )
+        }
+
+        <section
+            class="mt-8 border-b border-black/10 pb-8"
+            aria-labelledby="personal-heading"
+        >
+            <div class="sm:flex sm:items-start sm:justify-between sm:gap-8">
+                <div>
+                    <h2
+                        id="personal-heading"
+                        class="text-xl font-semibold tracking-[-0.025em]"
+                    >
+                        Personlige oplysninger
+                    </h2>
+                    <p class="mt-1 text-sm leading-6 text-[#5e554e]">
+                        De oplysninger, vi har gemt om vores brugere.
+                    </p>
+                </div>
+                <p class="mt-2 text-xs font-medium text-[#6e645d] sm:mt-1">
+                    {
+                        profile?.age_confirmed_at
+                            ? "Alder bekræftet: 15+"
+                            : "Alder ikke bekræftet"
+                    }
+                </p>
+            </div>
+
+            <form
+                class="mt-5 grid gap-4 sm:grid-cols-2"
+                method="post"
+                action="/api/auth/profile"
+            >
+                <label class="block">
+                    <span class="mb-1.5 block text-sm font-semibold"
+                        >Fornavn</span
+                    >
+                    <input
+                        class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition placeholder:text-[#756b63] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]"
+                        type="text"
+                        name="first_name"
+                        autocomplete="given-name"
+                        maxlength="80"
+                        value={profile?.first_name ?? ""}
+                        required
+                    />
+                </label>
+                <label class="block">
+                    <span class="mb-1.5 block text-sm font-semibold"
+                        >Postnummer</span
+                    >
+                    <input
+                        class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition placeholder:text-[#756b63] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]"
+                        type="text"
+                        name="postal_code"
+                        autocomplete="postal-code"
+                        inputmode="numeric"
+                        pattern="[0-9]{4}"
+                        maxlength="4"
+                        value={profile?.postal_code ?? ""}
+                        required
+                    />
+                </label>
+                <div class="sm:col-span-2 sm:flex sm:justify-end">
+                    <button
+                        class="inline-flex min-h-11 w-full cursor-pointer items-center justify-center bg-[#420e0e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#5b1716] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-2 sm:w-auto"
+                        type="submit">Gem oplysninger</button
+                    >
+                </div>
+            </form>
+        </section>
+
+        <section
+            class="border-b border-black/10 py-8"
+            aria-labelledby="login-heading"
+        >
+            <div>
+                <h2
+                    id="login-heading"
+                    class="text-xl font-semibold tracking-[-0.025em]"
+                >
+                    Login og sikkerhed
+                </h2>
+                <p class="mt-1 text-sm leading-6 text-[#5e554e]">
+                    Opdater den e-mail og adgangskode, du bruger til at logge
+                    ind.
+                </p>
+            </div>
+
+            <div class="mt-5 grid gap-8 md:grid-cols-2 md:gap-10">
+                <form
+                    method="post"
+                    action="/api/auth/account"
+                    class="space-y-3"
+                >
+                    <input type="hidden" name="action" value="email" />
+                    <label class="block">
+                        <span class="mb-1.5 block text-sm font-semibold"
+                            >E-mail</span
+                        >
+                        <input
+                            class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]"
+                            type="email"
+                            name="email"
+                            autocomplete="email"
+                            value={accountEmail}
+                            required
+                        />
+                    </label>
+                    {
+                        pendingEmail && (
+                            <p class="text-xs leading-5 text-[#6e645d]">
+                                Afventer bekræftelse:{" "}
+                                <span class="font-semibold text-[#1e1a17]">
+                                    {pendingEmail}
+                                </span>
+                            </p>
+                        )
+                    }
+                    <button
+                        class="inline-flex min-h-11 w-full cursor-pointer items-center justify-center border border-[#8d8176] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#1e1a17] transition hover:border-[#420e0e] hover:text-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-2 sm:w-auto"
+                        type="submit">Gem e-mail</button
+                    >
+                </form>
+
+                <form
+                    method="post"
+                    action="/api/auth/account"
+                    class="space-y-3"
+                >
+                    <input type="hidden" name="action" value="password" />
+                    <label class="block">
+                        <span class="mb-1.5 block text-sm font-semibold"
+                            >Nuværende adgangskode</span
+                        >
+                        <input
+                            class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]"
+                            type="password"
+                            name="current_password"
+                            autocomplete="current-password"
+                            required
+                        />
+                    </label>
+                    <label class="block">
+                        <span class="mb-1.5 block text-sm font-semibold"
+                            >Ny adgangskode</span
+                        >
+                        <input
+                            class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]"
+                            type="password"
+                            name="new_password"
+                            autocomplete="new-password"
+                            minlength="8"
+                            required
+                        />
+                    </label>
+                    <label class="block">
+                        <span class="mb-1.5 block text-sm font-semibold"
+                            >Gentag ny adgangskode</span
+                        >
+                        <input
+                            class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]"
+                            type="password"
+                            name="confirm_password"
+                            autocomplete="new-password"
+                            minlength="8"
+                            required
+                        />
+                    </label>
+                    <button
+                        class="inline-flex min-h-11 w-full cursor-pointer items-center justify-center border border-[#8d8176] bg-transparent px-4 py-2.5 text-sm font-semibold text-[#1e1a17] transition hover:border-[#420e0e] hover:text-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-2 sm:w-auto"
+                        type="submit">Skift adgangskode</button
+                    >
+                </form>
+            </div>
+        </section>
+
+        <section class="py-8" aria-labelledby="analytics-heading">
+            <div
+                class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8"
+            >
+                <div>
+                    <h2
+                        id="analytics-heading"
+                        class="text-xl font-semibold tracking-[-0.025em]"
+                    >
+                        Produktanalyse
+                    </h2>
+                    <p class="mt-1 max-w-xl text-sm leading-6 text-[#5e554e]">
+                        Når du tillader analyse, logger vi udvalgte sidebesøg,
+                        søgninger og produkthandlinger, for bedre at forstå
+                        hvilke produkter og butikker du er mest interesseret i.
+                    </p>
+                </div>
+                <div
+                    class:list={[
+                        "inline-flex min-h-11 shrink-0 items-center gap-2 self-start border px-3.5 py-2.5 text-sm",
+                        analyticsEnabled
+                            ? "border-[#420e0e] bg-[#420e0e] text-white"
+                            : "border-[#8d8176] bg-white text-[#1e1a17]",
+                    ]}
+                >
+                    <span
+                        class:list={[
+                            "size-2 rounded-full",
+                            analyticsEnabled ? "bg-[#f8f4ec]" : "bg-[#8d8176]",
+                        ]}></span>
+                    <span
+                        class={analyticsEnabled
+                            ? "text-[#eadbd3]"
+                            : "text-[#6e645d]"}>Status:</span
+                    >
+                    <strong>{analyticsStatusLabel}</strong>
+                </div>
+            </div>
+
+            <form
+                class="mt-5"
+                method="post"
+                action="/api/auth/consent"
+                data-reset-analytics-before-submit={analyticsEnabled
+                    ? true
+                    : undefined}
+            >
+                <input
+                    type="hidden"
+                    name="decision"
+                    value={analyticsEnabled ? "withdrawn" : "granted"}
+                />
+                <input type="hidden" name="source" value="profile_settings" />
+                <input type="hidden" name="return_to" value="/Profil" />
+                <button
+                    class:list={[
+                        "inline-flex min-h-11 w-full cursor-pointer items-center justify-center px-5 py-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-2 sm:w-auto",
+                        analyticsEnabled
+                            ? "border border-[#8d8176] text-[#420e0e] hover:border-[#420e0e] hover:bg-white"
+                            : "bg-[#420e0e] text-white hover:bg-[#5b1716]",
+                    ]}
+                    type="submit"
+                >
+                    {
+                        analyticsEnabled
+                            ? "Træk analysesamtykke tilbage"
+                            : "Tillad produktanalyse"
+                    }
+                </button>
+            </form>
+
+            <div class="mt-8 border-t border-black/10 pt-6">
+                <div
+                    class="flex flex-wrap items-baseline justify-between gap-2"
+                >
+                    <h3 class="text-base font-semibold">Samtykkehistorik</h3>
+                    <a
+                        class="text-xs font-semibold text-[#420e0e] underline underline-offset-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]"
+                        href="/Privatlivspolitik#analysevalg"
+                        >Læs privatlivspolitikken</a
+                    >
+                </div>
+                <p class="mt-1 max-w-xl text-sm leading-6 text-[#5e554e]">
+                    Nedenfor kan du se historikken over de gange du har givet,
+                    eller tilbagetrukket, samtykke til at vi må gemme data fra
+                    dig.
+                </p>
+
+                {
+                    consentHistory.length > 0 ? (
+                        <ol class="mt-3 divide-y divide-black/10 border-y border-black/10">
+                            {consentHistory.map((event) => (
+                                <li class="flex flex-col gap-1 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                                    <div class="flex items-center gap-2.5">
+                                        <span
+                                            class:list={[
+                                                "size-2 shrink-0 rounded-full",
+                                                event.status === "granted"
+                                                    ? "bg-[#420e0e]"
+                                                    : "bg-[#8d8176]",
+                                            ]}
+                                        />
+                                        <span class="font-semibold text-[#1e1a17]">
+                                            {consentStatusLabels[
+                                                event.status
+                                            ] ?? event.status}
+                                        </span>
+                                        <span class="text-[#6e645d]">
+                                            {consentSourceLabels[
+                                                event.source
+                                            ] ?? event.source}
+                                        </span>
+                                    </div>
+                                    <time
+                                        class="pl-[1.125rem] text-xs text-[#6e645d] sm:pl-0"
+                                        datetime={event.occurred_at}
+                                    >
+                                        {dateFormatter.format(
+                                            new Date(event.occurred_at),
+                                        )}
+                                    </time>
+                                </li>
+                            ))}
+                        </ol>
+                    ) : (
+                        <p class="mt-3 border-y border-black/10 py-4 text-sm text-[#6e645d]">
+                            Der er endnu ingen registrerede analysevalg.
+                        </p>
+                    )
+                }
+            </div>
+        </section>
+
+        <div
+            class="mt-2 flex flex-col gap-4 border-t border-black/10 pt-6 sm:flex-row sm:items-center sm:justify-between"
+        >
+            <a
+                class="text-sm font-semibold text-[#420e0e] underline underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]"
+                href="/">Tilbage til forsiden</a
+            >
+            <form
+                method="post"
+                action="/api/auth/logout"
+                data-reset-analytics-before-submit
+            >
+                <input
+                    type="hidden"
+                    name="return_to"
+                    value="/Auth?mode=login"
+                />
+                <button
+                    class="inline-flex min-h-11 w-full cursor-pointer items-center justify-center border border-[#420e0e] bg-[#420e0e] px-5 py-2.5 text-sm font-semibold text-white transition hover:border-[#5b1716] hover:bg-[#5b1716] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-2 sm:w-auto"
+                    type="submit">Log ud</button
+                >
+            </form>
+        </div>
+    </div>
 </SiteLayout>
