@@ -2,7 +2,6 @@
 import "../styles/global.css";
 import Footer from "../components/Footer.astro";
 import PostHog from "../components/posthog.astro";
-import AnalyticsConsent from "../components/AnalyticsConsent.astro";
 
 interface Props {
     title?: string;
@@ -24,6 +23,8 @@ const siteName = "HIGHLIDE";
 const pageTitle = title === siteName ? siteName : `${title} | ${siteName}`;
 const canonicalUrl = new URL(canonicalPath, Astro.site ?? Astro.url).toString();
 const imageUrl = new URL(image, Astro.site ?? Astro.url).toString();
+const currentUser = Astro.locals.user;
+const analyticsConsent = Astro.locals.analyticsConsent === "granted";
 
 type NavItem = {
     href: string;
@@ -64,6 +65,16 @@ const navSections: NavSection[] = [
             { href: "/Privatlivspolitik", label: "Privatlivspolitik" },
         ],
     },
+    {
+        heading: "Konto",
+        items: [
+            {
+                href: "/Profil",
+                label: "Min profil",
+                icon: "/icons/Profil_icon.svg",
+            },
+        ],
+    },
 ];
 
 const normalizePath = (path: string) =>
@@ -95,11 +106,9 @@ const isCurrentPath = (href: string) => normalizePath(href) === currentPath;
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={imageUrl} />
         <title>{pageTitle}</title>
-        <PostHog />
+        <PostHog userId={currentUser?.id} analyticsConsent={analyticsConsent} />
     </head>
-    <body
-        class="min-h-screen bg-[#f8f4ec] text-[#1e1a17]"
-    >
+    <body class="min-h-screen bg-[#f8f4ec] text-[#1e1a17]">
         <div
             class="flex min-h-screen flex-col"
             id="site-shell"
@@ -147,12 +156,52 @@ const isCurrentPath = (href: string) => normalizePath(href) === currentPath;
                         />
                     </a>
 
-                    <nav class="hidden items-stretch gap-8 self-stretch lg:flex" aria-label="Primær navigation">
+                    <a
+                        href="/Profil"
+                        aria-label="Min profil"
+                        aria-current={isCurrentPath("/Profil")
+                            ? "page"
+                            : undefined}
+                        class:list={[
+                            "absolute right-4 inline-flex h-11 w-11 items-center justify-center rounded-full border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-2 md:right-8 lg:hidden",
+                            isCurrentPath("/Profil")
+                                ? "border-[#420e0e] bg-[#420e0e] text-[#f8f4ec] hover:bg-[#5b1716]"
+                                : "border-[#420e0e] bg-[#f8f4ec] text-[#420e0e] hover:bg-white",
+                        ]}
+                    >
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            aria-hidden="true"
+                            class="h-5 w-5"
+                        >
+                            <circle
+                                cx="12"
+                                cy="8"
+                                r="3.25"
+                                stroke="currentColor"
+                                stroke-width="1.7"></circle>
+                            <path
+                                d="M5.75 19C6.35 15.75 8.6 14 12 14C15.4 14 17.65 15.75 18.25 19"
+                                stroke="currentColor"
+                                stroke-width="1.7"
+                                stroke-linecap="round"></path>
+                        </svg>
+                    </a>
+
+                    <nav
+                        class="hidden items-stretch gap-8 self-stretch lg:flex"
+                        aria-label="Primær navigation"
+                    >
                         {
                             primaryNavItems.map((item) => (
                                 <a
                                     href={item.href}
-                                    aria-current={isCurrentPath(item.href) ? "page" : undefined}
+                                    aria-current={
+                                        isCurrentPath(item.href)
+                                            ? "page"
+                                            : undefined
+                                    }
                                     class:list={[
                                         "relative inline-flex min-h-11 items-center text-sm font-semibold text-[#1e1a17] transition hover:text-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-4",
                                         isCurrentPath(item.href) &&
@@ -163,6 +212,39 @@ const isCurrentPath = (href: string) => normalizePath(href) === currentPath;
                                 </a>
                             ))
                         }
+                        <a
+                            href="/Profil"
+                            aria-label="Min profil"
+                            title="Min profil"
+                            aria-current={isCurrentPath("/Profil")
+                                ? "page"
+                                : undefined}
+                            class:list={[
+                                "inline-flex h-11 w-11 items-center justify-center self-center rounded-full border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-2",
+                                isCurrentPath("/Profil")
+                                    ? "border-[#420e0e] bg-[#420e0e] text-[#f8f4ec] hover:bg-[#5b1716]"
+                                    : "border-[#c9beb3] bg-white/60 text-[#420e0e] hover:border-[#9e8f82] hover:bg-white",
+                            ]}
+                        >
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                aria-hidden="true"
+                                class="h-5 w-5"
+                            >
+                                <circle
+                                    cx="12"
+                                    cy="8"
+                                    r="3.25"
+                                    stroke="currentColor"
+                                    stroke-width="1.7"></circle>
+                                <path
+                                    d="M5.75 19C6.35 15.75 8.6 14 12 14C15.4 14 17.65 15.75 18.25 19"
+                                    stroke="currentColor"
+                                    stroke-width="1.7"
+                                    stroke-linecap="round"></path>
+                            </svg>
+                        </a>
                     </nav>
                 </div>
             </header>
@@ -225,7 +307,11 @@ const isCurrentPath = (href: string) => normalizePath(href) === currentPath;
                                                         : "font-medium text-[#1e1a17] hover:bg-black/5 hover:text-[#420e0e]",
                                                 ]}
                                                 href={item.href}
-                                                aria-current={isCurrentPath(item.href) ? "page" : undefined}
+                                                aria-current={
+                                                    isCurrentPath(item.href)
+                                                        ? "page"
+                                                        : undefined
+                                                }
                                             >
                                                 {item.icon && (
                                                     <img
@@ -234,7 +320,10 @@ const isCurrentPath = (href: string) => normalizePath(href) === currentPath;
                                                         aria-hidden="true"
                                                         class:list={[
                                                             "h-5 w-5 shrink-0 object-contain",
-                                                            isCurrentPath(item.href) && "brightness-0 invert",
+                                                            isCurrentPath(
+                                                                item.href,
+                                                            ) &&
+                                                                "brightness-0 invert",
                                                         ]}
                                                     />
                                                 )}
@@ -257,8 +346,6 @@ const isCurrentPath = (href: string) => normalizePath(href) === currentPath;
 
             <Footer />
         </div>
-
-        <AnalyticsConsent />
 
         <script is:inline>
             const shell = document.getElementById("site-shell");
@@ -304,6 +391,25 @@ const isCurrentPath = (href: string) => normalizePath(href) === currentPath;
             window.addEventListener("keydown", (event) => {
                 if (event.key === "Escape") setDrawerOpen(false);
             });
+
+            document
+                .querySelectorAll("[data-reset-analytics-before-submit]")
+                .forEach((form) => {
+                    form.addEventListener("submit", () => {
+                        window.posthog?.reset();
+                        window.posthog?.opt_out_capturing();
+                        try {
+                            window.sessionStorage.removeItem(
+                                "highlide-analytics-session-started",
+                            );
+                            window.sessionStorage.removeItem(
+                                "highlide-analytics-traffic-source-recorded",
+                            );
+                        } catch {
+                            // The form still submits if storage is unavailable.
+                        }
+                    });
+                });
         </script>
     </body>
 </html>

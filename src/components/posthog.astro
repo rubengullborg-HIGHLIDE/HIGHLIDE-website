@@ -1,56 +1,77 @@
+---
+interface Props {
+    userId?: string | null;
+    analyticsConsent?: boolean;
+}
+
+const { userId = null, analyticsConsent = false } = Astro.props;
+---
+
+<script is:inline define:vars={{ userId, analyticsConsent }}>
+    window.__highlideAnalytics = { userId, analyticsConsent };
+</script>
+
 <script>
     import posthog from "posthog-js";
 
+    const config = window.__highlideAnalytics;
     const apiKey = import.meta.env.PUBLIC_POSTHOG_PROJECT_TOKEN;
     const apiHost = import.meta.env.PUBLIC_POSTHOG_HOST;
-    const consentStorageKey = "highlide-analytics-consent";
-    const consentEventName = "highlide:analytics-consent-changed";
     const sessionStartedKey = "highlide-analytics-session-started";
     const trafficSourceKey = "highlide-analytics-traffic-source-recorded";
-    let initialized = false;
-    let pageViewCaptured = false;
 
-    const hasConsent = () => {
-        try {
-            return (
-                window.localStorage.getItem(consentStorageKey) === "accepted"
-            );
-        } catch {
-            return false;
-        }
-    };
+    const isLocalEnvironment =
+        import.meta.env.DEV ||
+        ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
 
     const getTrafficSource = () => {
         const url = new URL(window.location.href);
-        const referrer = document.referrer ? new URL(document.referrer) : null;
+        let referrer = null;
+        try {
+            referrer = document.referrer ? new URL(document.referrer) : null;
+        } catch {
+            referrer = null;
+        }
         const referrerHost = referrer?.hostname.replace(/^www\./, "") ?? null;
 
         return {
-            source:
-                url.searchParams.get("utm_source") || referrerHost || "direct",
+            source: url.searchParams.get("utm_source") || referrerHost || "direct",
             medium: url.searchParams.get("utm_medium"),
             campaign: url.searchParams.get("utm_campaign"),
             referrer_host: referrerHost,
-            landing_path: window.location.pathname,
+            landing_path: `${window.location.pathname}${window.location.search}`,
         };
     };
 
-    const captureInitialEvents = () => {
-        if (!initialized || !hasConsent()) return;
+    if (config?.analyticsConsent && config.userId && !isLocalEnvironment && apiKey && apiHost) {
+        posthog.init(apiKey, {
+            api_host: apiHost,
+            defaults: "2026-01-30",
+            autocapture: false,
+            capture_pageview: false,
+            capture_pageleave: true,
+            capture_exceptions: false,
+            disable_session_recording: true,
+            enable_heatmaps: false,
+            person_profiles: "identified_only",
+            advanced_disable_flags: true,
+            opt_out_capturing_by_default: true,
+        });
 
-        if (!pageViewCaptured) {
-            posthog.capture("$pageview", {
-                $current_url: `${window.location.origin}${window.location.pathname}`,
-                pathname: window.location.pathname,
-            });
-            pageViewCaptured = true;
+        if (!posthog.has_opted_in_capturing()) {
+            posthog.opt_in_capturing();
         }
+        posthog.identify(config.userId);
+        window.posthog = posthog;
+
+        posthog.capture("$pageview", {
+            $current_url: window.location.href,
+            pathname: window.location.pathname,
+        });
 
         try {
             if (!window.sessionStorage.getItem(sessionStartedKey)) {
-                posthog.capture("session_started", {
-                    entry_path: window.location.pathname,
-                });
+                posthog.capture("session_started", { entry_path: `${window.location.pathname}${window.location.search}` });
                 window.sessionStorage.setItem(sessionStartedKey, "true");
             }
 
@@ -59,67 +80,7 @@
                 window.sessionStorage.setItem(trafficSourceKey, "true");
             }
         } catch {
-            // Analytics still works when session storage is unavailable.
+            // Page analytics still works when session storage is unavailable.
         }
-    };
-
-    const enableAnalytics = () => {
-        const isLocalEnvironment =
-            import.meta.env.DEV ||
-            ["localhost", "127.0.0.1", "[::1]"].includes(
-                window.location.hostname,
-            );
-
-        if (isLocalEnvironment) return;
-        if (!apiKey || !apiHost) {
-            if (import.meta.env.DEV) {
-                console.info(
-                    "PostHog is disabled until PUBLIC_POSTHOG_PROJECT_TOKEN and PUBLIC_POSTHOG_HOST are configured.",
-                );
-            }
-            return;
-        }
-
-        if (!initialized) {
-            posthog.init(apiKey, {
-                api_host: apiHost,
-                defaults: "2026-01-30",
-                autocapture: false,
-                capture_pageview: false,
-                capture_pageleave: true,
-                capture_exceptions: false,
-                disable_session_recording: true,
-                enable_heatmaps: false,
-                person_profiles: "never",
-                advanced_disable_flags: true,
-                opt_out_capturing_by_default: true,
-            });
-            initialized = true;
-            window.posthog = posthog;
-        } else {
-            posthog.reset();
-        }
-
-        if (!posthog.has_opted_in_capturing()) {
-            posthog.opt_in_capturing();
-        }
-        pageViewCaptured = false;
-        captureInitialEvents();
-    };
-
-    const disableAnalytics = () => {
-        if (!initialized) return;
-
-        posthog.reset();
-        posthog.opt_out_capturing();
-        window.posthog = undefined;
-        pageViewCaptured = false;
-    };
-
-    window.addEventListener(consentEventName, (event) => {
-        if (event.detail?.consent === "accepted") enableAnalytics();
-        else disableAnalytics();
-    });
-
-    if (hasConsent()) enableAnalytics();
+    }
 </script>

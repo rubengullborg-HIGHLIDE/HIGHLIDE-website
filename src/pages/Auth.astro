@@ -1,17 +1,143 @@
 ---
-import PlaceholderPage from "../components/PlaceholderPage.astro";
-import SiteLayout from "../layouts/SiteLayout.astro";
+import "../styles/global.css";
+
+const mode = Astro.url.searchParams.get("mode") === "login" ? "login" : "signup";
+const next = Astro.url.searchParams.get("next") ?? "/";
+const errorCode = Astro.url.searchParams.get("error");
+
+const errorMessages: Record<string, string> = {
+    "invalid-signup":
+        "Tjek at alle felter er udfyldt, at postnummeret har fire cifre, og at adgangskoden er mindst otte tegn.",
+    "signup-failed":
+        "Vi kunne ikke oprette kontoen. Prøv igen, eller log ind hvis du allerede har en konto.",
+    "email-in-use": "Der findes allerede en konto med den e-mail. Prøv at logge ind.",
+    "confirmation-enabled":
+        "E-mailbekræftelse er stadig slået til i Supabase. Slå den fra for betaen, og prøv igen.",
+    "profile-failed":
+        "Kontoen blev oprettet, men profilen kunne ikke gemmes. Kontakt HIGHLIDE, så hjælper vi dig videre.",
+    "consent-failed":
+        "Kontoen blev oprettet, men dit analysevalg kunne ikke gemmes. Kontakt HIGHLIDE, så hjælper vi dig videre.",
+    "invalid-login": "E-mail eller adgangskode er forkert.",
+    service: "Tjenesten er midlertidigt utilgængelig. Prøv igen om lidt.",
+};
+
+const errorMessage = errorCode ? errorMessages[errorCode] : null;
 ---
 
-<SiteLayout
-    title="Log ind"
-    description="Log ind på HIGHLIDE for at gemme produkter og følge lokale butikker."
-    noindex={true}
->
-    <PlaceholderPage
-        title="Log ind kommer snart"
-        description="Vi arbejder på en enkel profiloplevelse, hvor du kan gemme favoritter og gøre HIGHLIDE mere personlig."
-        primaryHref="/Produkt-overblik"
-        primaryLabel="Udforsk produkter"
-    />
-</SiteLayout>
+<!doctype html>
+<html lang="da" translate="no">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="google" content="notranslate" />
+        <meta name="robots" content="noindex,nofollow" />
+        <meta name="description" content="Opret en betakonto eller log ind på HIGHLIDE." />
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <title>{mode === "signup" ? "Opret konto" : "Log ind"} | HIGHLIDE</title>
+    </head>
+    <body class="min-h-dvh bg-[#420e0e] text-[#1e1a17]">
+        <main class="relative isolate flex min-h-dvh items-center justify-center overflow-hidden px-4 py-8 sm:px-6 sm:py-12">
+            <div class="pointer-events-none absolute inset-0 overflow-hidden opacity-25" aria-hidden="true">
+                <svg viewBox="0 0 1200 900" class="h-full w-full min-w-[900px] translate-x-[-28%] sm:translate-x-0" fill="none" preserveAspectRatio="xMidYMid slice">
+                    <path d="M-40 730C180 680 202 535 371 521C548 506 514 305 719 290C895 277 1017 181 1240 71" stroke="#F8F4EC" stroke-width="2" />
+                    <path d="M-65 782C142 731 244 634 398 635C616 636 622 430 799 415C995 398 1059 302 1253 218" stroke="#F8F4EC" stroke-width="1" />
+                    <circle cx="371" cy="521" r="9" fill="#420E0E" stroke="#F8F4EC" stroke-width="2" />
+                    <circle cx="719" cy="290" r="9" fill="#420E0E" stroke="#F8F4EC" stroke-width="2" />
+                    <circle cx="799" cy="415" r="6" fill="#F8F4EC" />
+                    <text x="770" y="770" fill="none" stroke="#F8F4EC" stroke-width="1" font-size="128" font-weight="800" letter-spacing="8">AARHUS</text>
+                </svg>
+            </div>
+
+            <section class="relative z-10 w-full max-w-[29rem] border border-black/10 bg-[#f8f4ec] px-5 py-6 shadow-[0_28px_90px_rgba(20,4,4,0.32)] sm:px-8 sm:py-8" aria-labelledby="auth-title">
+                <a href="/" class="mx-auto flex w-fit items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-4" aria-label="HIGHLIDE forside">
+                    <img src="/HIGHLIDE_logo_dark.png" alt="HIGHLIDE" class="h-8 w-auto" />
+                </a>
+
+                <div class="mt-7 grid grid-cols-2 border-b border-black/15" role="tablist" aria-label="Konto">
+                    <a href={`/Auth?mode=signup${next !== "/" ? `&next=${encodeURIComponent(next)}` : ""}`} role="tab" aria-selected={mode === "signup"} class:list={["relative flex min-h-11 items-center justify-center px-3 pb-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]", mode === "signup" ? "text-[#420e0e] after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-[#420e0e]" : "text-[#6e645d] hover:text-[#1e1a17]"]}>
+                        Opret konto
+                    </a>
+                    <a href={`/Auth?mode=login${next !== "/" ? `&next=${encodeURIComponent(next)}` : ""}`} role="tab" aria-selected={mode === "login"} class:list={["relative flex min-h-11 items-center justify-center px-3 pb-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]", mode === "login" ? "text-[#420e0e] after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-[#420e0e]" : "text-[#6e645d] hover:text-[#1e1a17]"]}>
+                        Log ind
+                    </a>
+                </div>
+
+                <div class="mt-6">
+                    <p class="text-xs font-bold uppercase tracking-[0.12em] text-[#6e645d]">HIGHLIDE beta</p>
+                    <h1 id="auth-title" class="mt-2 text-[1.75rem] font-semibold leading-tight tracking-[-0.035em] text-[#1e1a17]">
+                        {mode === "signup" ? "Find lokalt. Gem det gode." : "Velkommen tilbage"}
+                    </h1>
+                    <p class="mt-2 text-sm leading-6 text-[#6e645d]">
+                        {mode === "signup" ? "Opret din enkle betakonto og gå direkte på opdagelse i Aarhus." : "Log ind for at fortsætte på HIGHLIDE."}
+                    </p>
+                </div>
+
+                {errorMessage && (
+                    <div class="mt-5 border border-[#ba7b73] bg-[#f2e2dc] px-4 py-3 text-sm leading-5 text-[#591b17]" role="alert">{errorMessage}</div>
+                )}
+
+                {mode === "signup" ? (
+                    <form class="mt-6 space-y-4" method="post" action="/api/auth/signup">
+                        <input type="hidden" name="next" value={next} />
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <label class="block">
+                                <span class="mb-1.5 block text-sm font-semibold">Fornavn</span>
+                                <input class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition placeholder:text-[#9a918a] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]" type="text" name="first_name" autocomplete="given-name" maxlength="80" placeholder="Dit fornavn" required />
+                            </label>
+                            <label class="block">
+                                <span class="mb-1.5 block text-sm font-semibold">Postnummer</span>
+                                <input class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition placeholder:text-[#9a918a] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]" type="text" name="postal_code" autocomplete="postal-code" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="8000" required />
+                            </label>
+                            <label class="block">
+                                <span class="mb-1.5 block text-sm font-semibold">E-mail</span>
+                                <input class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition placeholder:text-[#9a918a] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]" type="email" name="email" autocomplete="email" placeholder="dig@eksempel.dk" required />
+                            </label>
+                            <label class="block">
+                                <span class="mb-1.5 block text-sm font-semibold">Adgangskode</span>
+                                <input class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition placeholder:text-[#9a918a] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]" type="password" name="password" autocomplete="new-password" minlength="8" placeholder="Mindst 8 tegn" required />
+                            </label>
+                        </div>
+
+                        <label class="flex cursor-pointer items-start gap-3 border-t border-black/10 pt-4 text-sm leading-5">
+                            <input class="mt-0.5 size-5 shrink-0 accent-[#420e0e]" type="checkbox" name="age_confirmed" required />
+                            <span>Jeg bekræfter, at jeg er fyldt 15 år.</span>
+                        </label>
+
+                        <fieldset class="pt-1">
+                            <legend class="mb-2 text-sm font-semibold text-[#1e1a17]">Vil du hjælpe os med at gøre HIGHLIDE bedre?</legend>
+                            <label class="flex cursor-pointer items-start gap-3 border border-[#c9beb3] bg-white p-4 transition hover:border-[#9e8f82] has-[:checked]:border-[#420e0e] has-[:checked]:bg-[#f3e7e2]">
+                                <input class="mt-0.5 size-5 shrink-0 accent-[#420e0e]" type="checkbox" name="analytics_consent" />
+                                <span class="min-w-0">
+                                    <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                        <span class="text-sm font-semibold text-[#1e1a17]">Ja, del min brug af siden</span>
+                                        <span class="rounded-full bg-[#eee9e3] px-2 py-0.5 text-[0.6875rem] font-semibold text-[#5e554e]">Valgfrit</span>
+                                    </span>
+                                    <span class="mt-1.5 block text-xs leading-5 text-[#5e554e]">Vi bruger udvalgte søgninger, produktvisninger og klik til at forbedre betaen. Ingen skærmoptagelser eller automatisk registrering af alle klik.</span>
+                                    <span class="mt-2 block text-xs font-semibold text-[#420e0e]">Du kan altid ændre valget under Min profil.</span>
+                                </span>
+                            </label>
+                            <a class="mt-2 inline-block text-xs font-semibold text-[#420e0e] underline underline-offset-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]" href="/Privatlivspolitik">Læs om data og samtykke</a>
+                        </fieldset>
+
+                        <button class="inline-flex min-h-12 w-full items-center justify-center bg-[#420e0e] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#5b1716] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-3" type="submit">Opret konto og fortsæt</button>
+                        <p class="text-center text-xs leading-5 text-[#6e645d]">Nødvendige login-cookies bruges til at holde dig sikkert logget ind.</p>
+                    </form>
+                ) : (
+                    <form class="mt-6 space-y-4" method="post" action="/api/auth/login">
+                        <input type="hidden" name="next" value={next} />
+                        <label class="block">
+                            <span class="mb-1.5 block text-sm font-semibold">E-mail</span>
+                            <input class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition placeholder:text-[#9a918a] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]" type="email" name="email" autocomplete="email" placeholder="dig@eksempel.dk" required />
+                        </label>
+                        <label class="block">
+                            <span class="mb-1.5 block text-sm font-semibold">Adgangskode</span>
+                            <input class="min-h-12 w-full border border-black/20 bg-white px-3.5 text-base outline-none transition placeholder:text-[#9a918a] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]" type="password" name="password" autocomplete="current-password" required />
+                        </label>
+                        <button class="inline-flex min-h-12 w-full items-center justify-center bg-[#420e0e] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#5b1716] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] focus-visible:ring-offset-3" type="submit">Log ind</button>
+                        <p class="text-center text-sm text-[#6e645d]">Har du ikke en konto? <a class="font-semibold text-[#420e0e] underline underline-offset-3" href={`/Auth?mode=signup${next !== "/" ? `&next=${encodeURIComponent(next)}` : ""}`}>Opret en her</a>.</p>
+                    </form>
+                )}
+            </section>
+        </main>
+    </body>
+</html>

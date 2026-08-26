@@ -1241,14 +1241,6 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 
         imagePrev?.addEventListener("click", () => showImage(-1));
         imageNext?.addEventListener("click", () => showImage(1));
-        window.addEventListener("highlide:analytics-consent-changed", (event) => {
-            if (
-                event.detail?.consent === "accepted" &&
-                window.highlideCurrentProduct
-            ) {
-                captureProductViewed(window.highlideCurrentProduct);
-            }
-        });
         storeHandoffLink?.addEventListener("click", () => {
             const product = window.highlideCurrentProduct ?? {};
             const analyticsProperties = getProductAnalyticsProperties(product);

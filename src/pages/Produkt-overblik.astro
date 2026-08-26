@@ -765,9 +765,6 @@ const defaultZoom = 3;
             slider.value = String(currentZoom);
         }
         updateStickyHeaderOffset();
-        window.addEventListener("highlide:analytics-consent-changed", (event) => {
-            if (event.detail?.consent === "accepted") captureCompletedSearch();
-        });
         window.addEventListener("resize", updateStickyHeaderOffset);
         updateGrid(false);
 
