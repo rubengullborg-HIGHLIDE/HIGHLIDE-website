@@ -351,6 +351,10 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             "created_at",
             "updated_at",
             "first_seen_at",
+            "last_seen_in_catalog_at",
+            "last seen in catalog at",
+            "LAST SEEN IN CATALOG AT",
+            "lastSeenInCatalogAt",
             "webshop_sizes",
             "current_price",
             "list_price",
@@ -388,6 +392,16 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             "matching_products",
             "related_colors",
         ]);
+        const normalizedTechnicalKeys = new Set(
+            [...technicalKeys].map((key) =>
+                key.toLowerCase().replace(/[\s-]+/g, "_"),
+            ),
+        );
+        const isTechnicalKey = (key) =>
+            technicalKeys.has(key) ||
+            normalizedTechnicalKeys.has(
+                String(key).toLowerCase().replace(/[\s-]+/g, "_"),
+            );
         const sizeKeys = [
             "sizes",
             "size",
@@ -940,7 +954,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             ]);
             const entries = Object.entries(product).filter(
                 ([key, value]) =>
-                    !technicalKeys.has(key) &&
+                    !isTechnicalKey(key) &&
                     !omittedExtraKeys.has(key) &&
                     !structuralKeys.has(key) &&
                     !key.toLowerCase().includes("vector") &&
