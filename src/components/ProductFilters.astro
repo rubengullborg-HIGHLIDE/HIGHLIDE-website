@@ -259,9 +259,12 @@ const dynamicSections = [
         defaultProductSort,
     } from "../lib/productFilters.js";
     import {
-        applyProductSearch,
         productSources,
     } from "../lib/productSources.js";
+    import {
+        getRankedProductSearchCount,
+        getRankedProductSearchParams,
+    } from "../lib/rankedProductSearch.js";
     import { supabase } from "../lib/supabaseClient.js";
 
     const filterRoots = document.querySelectorAll("[data-product-filters]");
@@ -455,6 +458,23 @@ const dynamicSections = [
             applyButton.textContent = "Tæller produkter...";
 
             try {
+                if (query) {
+                    const { data, error } = await supabase.rpc(
+                        "search_products_ranked",
+                        getRankedProductSearchParams({
+                            searchQuery: query,
+                            filters,
+                            limit: 1,
+                        }),
+                    );
+                    if (error) throw error;
+                    if (requestId !== countRequest) return;
+
+                    const total = getRankedProductSearchCount(data);
+                    applyButton.textContent = `Vis ${total} ${total === 1 ? "produkt" : "produkter"}`;
+                    return;
+                }
+
                 const counts = await Promise.all(
                     sources.map(async (source) => {
                         let countQuery = supabase
@@ -462,7 +482,6 @@ const dynamicSections = [
                             .select("id", { count: "exact", head: true });
                         countQuery = source.applyAvailableFilter(countQuery);
                         countQuery = applyProductFilters(countQuery, filters);
-                        countQuery = applyProductSearch(countQuery, source, query);
                         const { count, error } = await countQuery;
                         if (error) throw error;
                         return count ?? 0;

@@ -124,9 +124,14 @@ const defaultZoom = 3;
     <script>
         import {
             getProductHref,
+            getProductSource,
             mapOverviewProduct,
             productSources,
         } from "../lib/productSources.js";
+        import {
+            getRankedProductSearchCount,
+            getRankedProductSearchParams,
+        } from "../lib/rankedProductSearch.js";
         import { buildProductOverviewQuery } from "../lib/productQueries.js";
         import {
             getProductSourcesForFilters,
@@ -545,6 +550,26 @@ const defaultZoom = 3;
             return products;
         };
 
+        const fetchRankedSearchPage = async (amount) => {
+            const { data, error } = await supabase.rpc(
+                "search_products_ranked",
+                getRankedProductSearchParams({
+                    searchQuery,
+                    filters: activeFilters,
+                    limit: amount,
+                    offset: loadedCount,
+                }),
+            );
+
+            if (error) throw error;
+
+            totalCount = getRankedProductSearchCount(data);
+
+            return (data ?? []).map((product) =>
+                mapProduct(product, getProductSource(product.source_key)),
+            );
+        };
+
         const compareNullableNumbers = (left, right, direction) => {
             const leftNumber = getPriceNumber(left);
             const rightNumber = getPriceNumber(right);
@@ -697,7 +722,9 @@ const defaultZoom = 3;
             const products = [];
 
             try {
-                if (activeFilters.newProducts || activeFilters.sort !== "standard") {
+                if (searchQuery) {
+                    products.push(...(await fetchRankedSearchPage(pageSize)));
+                } else if (activeFilters.newProducts || activeFilters.sort !== "standard") {
                     products.push(...(await fetchSortedPage(pageSize)));
                 } else {
                     while (products.length < pageSize) {
@@ -731,10 +758,12 @@ const defaultZoom = 3;
                 return;
             }
 
-            totalCount = [...sourceState.values()].reduce(
-                (total, state) => total + (state.total ?? 0),
-                0,
-            );
+            if (!searchQuery) {
+                totalCount = [...sourceState.values()].reduce(
+                    (total, state) => total + (state.total ?? 0),
+                    0,
+                );
+            }
             const firstResultPosition = loadedCount + 1;
             loadedCount += products.length;
 
