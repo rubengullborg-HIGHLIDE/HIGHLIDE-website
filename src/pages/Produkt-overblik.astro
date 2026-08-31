@@ -123,14 +123,12 @@ const defaultZoom = 3;
 
     <script>
         import {
-            applyProductSearch,
             getProductHref,
             mapOverviewProduct,
             productSources,
         } from "../lib/productSources.js";
+        import { buildProductOverviewQuery } from "../lib/productQueries.js";
         import {
-            applyProductFilters,
-            applyProductSort,
             getProductSourcesForFilters,
             parseProductFilters,
         } from "../lib/productFilters.js";
@@ -518,20 +516,20 @@ const defaultZoom = 3;
             const from = state.loaded;
             const to = from + amount - 1;
 
-            let query = supabase
+            const query = supabase
                 .from(source.table)
-                .select(source.overviewSelect, { count: "exact" })
-                .range(from, to);
+                .select(source.overviewSelect, { count: "exact" });
 
-            query = source.applyAvailableFilter(query);
-            query = applyProductFilters(query, activeFilters);
-            query = applyProductSort(query, activeFilters.sort);
+            const filteredQuery = buildProductOverviewQuery({
+                query,
+                source,
+                filters: activeFilters,
+                searchQuery,
+                from,
+                to,
+            });
 
-            if (searchQuery) {
-                query = applyProductSearch(query, source, searchQuery);
-            }
-
-            const { data, error, count } = await query;
+            const { data, error, count } = await filteredQuery;
 
             if (error) throw error;
 
@@ -564,10 +562,23 @@ const defaultZoom = 3;
                 sensitivity: "base",
             });
 
+        const compareProductsByFirstSeen = (left, right) => {
+            const leftTime = Date.parse(left.firstSeenAt ?? "");
+            const rightTime = Date.parse(right.firstSeenAt ?? "");
+
+            if (!Number.isFinite(leftTime) && !Number.isFinite(rightTime)) return 0;
+            if (!Number.isFinite(leftTime)) return 1;
+            if (!Number.isFinite(rightTime)) return -1;
+
+            return rightTime - leftTime;
+        };
+
         const compareProductsForSort = (left, right) => {
             let comparison = 0;
 
-            if (activeFilters.sort === "price-asc") {
+            if (activeFilters.newProducts) {
+                comparison = compareProductsByFirstSeen(left, right);
+            } else if (activeFilters.sort === "price-asc") {
                 comparison = compareNullableNumbers(
                     left.priceValue,
                     right.priceValue,
@@ -686,7 +697,7 @@ const defaultZoom = 3;
             const products = [];
 
             try {
-                if (activeFilters.sort !== "standard") {
+                if (activeFilters.newProducts || activeFilters.sort !== "standard") {
                     products.push(...(await fetchSortedPage(pageSize)));
                 } else {
                     while (products.length < pageSize) {

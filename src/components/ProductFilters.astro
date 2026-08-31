@@ -177,24 +177,40 @@ const dynamicSections = [
                     </div>
                 </details>
 
-                <div class="grid grid-cols-[minmax(0,1fr)_8.75rem] items-center gap-3 border-b border-[#e3dbd3] py-3">
-                    <label class="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 text-sm transition hover:bg-[#f8f4ec]">
-                        <input
-                            class="filter-checkbox size-5 shrink-0 appearance-none rounded border border-[#a99e94] bg-white"
-                            type="checkbox"
-                            name={productFilterParams.onSale}
-                            value="true"
-                            data-sale-filter
-                        />
-                        <span>
-                            <span class="block font-medium">Kun på udsalg</span>
-                            <span class="mt-0.5 block text-xs text-[#6e645d]">Vis kun produkter med nedsat pris</span>
-                        </span>
-                    </label>
-                    <label class="relative block min-w-0">
+                <div class="border-b border-[#e3dbd3] py-4">
+                    <p class="mb-2 text-sm font-medium text-[#1e1a17]">Hurtige valg</p>
+                    <div class="grid gap-2 sm:grid-cols-2">
+                        <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-lg border border-[#ded6ce] px-3 py-2.5 text-sm transition hover:border-[#b9aaa0] hover:bg-[#f8f4ec] has-[:checked]:border-[#420e0e] has-[:checked]:bg-[#f8eeee]">
+                            <input
+                                class="filter-checkbox size-5 shrink-0 appearance-none rounded border border-[#a99e94] bg-white"
+                                type="checkbox"
+                                name={productFilterParams.newProducts}
+                                value="true"
+                                data-new-products-filter
+                            />
+                            <span class="min-w-0">
+                                <span class="block font-medium">Nyheder</span>
+                                <span class="mt-0.5 block text-xs leading-4 text-[#6e645d]">Tilføjet inden for 14 dage</span>
+                            </span>
+                        </label>
+                        <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-lg border border-[#ded6ce] px-3 py-2.5 text-sm transition hover:border-[#b9aaa0] hover:bg-[#f8f4ec] has-[:checked]:border-[#420e0e] has-[:checked]:bg-[#f8eeee]">
+                            <input
+                                class="filter-checkbox size-5 shrink-0 appearance-none rounded border border-[#a99e94] bg-white"
+                                type="checkbox"
+                                name={productFilterParams.onSale}
+                                value="true"
+                                data-sale-filter
+                            />
+                            <span class="min-w-0">
+                                <span class="block font-medium">Kun på udsalg</span>
+                                <span class="mt-0.5 block text-xs leading-4 text-[#6e645d]">Produkter med nedsat pris</span>
+                            </span>
+                        </label>
+                    </div>
+                    <label class="relative mt-3 block min-w-0">
                         <span class="pointer-events-none absolute left-3 top-1.5 z-[1] text-[0.65rem] leading-3 text-[#6e645d]">Sortér efter</span>
                         <select
-                            class="h-12 w-full appearance-none rounded-lg border border-[#d6ccc1] bg-white pb-1 pl-3 pr-8 pt-4 text-xs font-medium text-[#1e1a17] outline-none transition hover:border-[#420e0e] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]"
+                            class="h-12 w-full appearance-none rounded-lg border border-[#d6ccc1] bg-white pb-1 pl-3 pr-8 pt-4 text-sm font-medium text-[#1e1a17] outline-none transition hover:border-[#420e0e] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]"
                             name={productFilterParams.sort}
                             aria-label="Sortér efter"
                             data-sort-select
@@ -303,6 +319,7 @@ const dynamicSections = [
         const priceValue = root.querySelector("[data-price-value]");
         const priceOutput = root.querySelector("[data-price-output]");
         const saleFilter = root.querySelector("[data-sale-filter]");
+        const newProductsFilter = root.querySelector("[data-new-products-filter]");
         const sortSelect = root.querySelector("[data-sort-select]");
         const action = root.dataset.filterAction || "/Produkt-overblik";
         const searchForm = root.closest("section")?.querySelector('form[role="search"]');
@@ -349,6 +366,7 @@ const dynamicSections = [
             );
 
             if (saleFilter) saleFilter.checked = filters.onSale;
+            if (newProductsFilter) newProductsFilter.checked = filters.newProducts;
             if (sortSelect) sortSelect.value = filters.sort;
 
             const minPrice = form.elements.namedItem(productFilterParams.minPrice);
@@ -551,6 +569,11 @@ const dynamicSections = [
             if (query) destination.searchParams.set("q", query);
             else destination.searchParams.delete("q");
             window.location.assign(`${destination.pathname}${destination.search}`);
+        });
+
+        window.addEventListener("popstate", () => {
+            restoreFromUrl();
+            updateBadge();
         });
 
         searchForm?.addEventListener("submit", () => {

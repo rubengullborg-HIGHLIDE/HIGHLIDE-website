@@ -7,12 +7,14 @@ export const productFilterParams = {
     minPrice: "prisFra",
     maxPrice: "prisTil",
     onSale: "udsalg",
+    newProducts: "nyheder",
     sort: "sortering",
 };
 
 export const productFilterParamNames = Object.values(productFilterParams);
 
 export const defaultProductSort = "standard";
+export const newProductsWindowInDays = 14;
 
 export const productSortOptions = [
     { value: defaultProductSort, label: "Standard" },
@@ -163,8 +165,16 @@ export const parseProductFilters = (params) => ({
     onSale: ["true", "1", "on"].includes(
         String(params.get(productFilterParams.onSale) ?? "").toLowerCase(),
     ),
+    newProducts: ["true", "1", "on"].includes(
+        String(params.get(productFilterParams.newProducts) ?? "").toLowerCase(),
+    ),
     sort: parseSort(params.get(productFilterParams.sort)),
 });
+
+export const getNewProductsCutoffIso = (now = new Date()) =>
+    new Date(
+        now.getTime() - newProductsWindowInDays * 24 * 60 * 60 * 1000,
+    ).toISOString();
 
 export const getActiveFilterCount = (filters) =>
     filters.stores.length +
@@ -175,13 +185,25 @@ export const getActiveFilterCount = (filters) =>
     Number(filters.minPrice != null) +
     Number(filters.maxPrice != null) +
     Number(filters.onSale) +
+    Number(filters.newProducts) +
     Number(filters.sort !== defaultProductSort);
 
-export const getProductSort = (sort) =>
-    productSortOrders[parseSort(sort)] ?? productSortOrders[defaultProductSort];
+export const getProductSort = (sort, filters = {}) => {
+    if (filters.newProducts) {
+        return [
+            { column: "first_seen_at", ascending: false },
+            { column: "id", ascending: false },
+        ];
+    }
 
-export const applyProductSort = (query, sort) =>
-    getProductSort(sort).reduce(
+    return (
+        productSortOrders[parseSort(sort)] ??
+        productSortOrders[defaultProductSort]
+    );
+};
+
+export const applyProductSort = (query, sort, filters = {}) =>
+    getProductSort(sort, filters).reduce(
         (currentQuery, order) =>
             currentQuery.order(order.column, {
                 ascending: order.ascending,
@@ -196,7 +218,7 @@ export const getProductSourcesForFilters = (sources, filters) => {
     return sources.filter((source) => filters.stores.includes(source.key));
 };
 
-export const applyProductFilters = (query, filters) => {
+export const applyProductFilters = (query, filters, options = {}) => {
     if (filters.types.length > 0) {
         const predicates = clothingTypeOptions
             .filter((option) => filters.types.includes(option.value))
@@ -227,6 +249,12 @@ export const applyProductFilters = (query, filters) => {
 
     if (filters.onSale) {
         query = query.not("list_price", "is", null);
+    }
+
+    if (filters.newProducts) {
+        query = query
+            .eq("publication_status", "active")
+            .gte("first_seen_at", getNewProductsCutoffIso(options.now));
     }
 
     return query;

@@ -48,7 +48,7 @@ export const productSources = [
         table: "kaufmann_products",
         storeName: "Kaufmann",
         overviewSelect:
-            "id, name, brand, current_price, list_price, currency, color, category, images, aarhus_total_stock, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, aarhus_total_stock, aarhus_available, first_seen_at",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category"],
         orderColumn: "id",
@@ -62,7 +62,7 @@ export const productSources = [
         table: "romerhus_products",
         storeName: "Rømerhus",
         overviewSelect:
-            "id, name, brand, current_price, list_price, currency, color, category, images, aarhus_total_stock, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, aarhus_total_stock, aarhus_available, first_seen_at",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category"],
         orderColumn: "id",
@@ -76,7 +76,7 @@ export const productSources = [
         table: "lakor_products",
         storeName: "LAKOR",
         overviewSelect:
-            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available, first_seen_at",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category"],
         orderColumn: "id",
@@ -90,7 +90,7 @@ export const productSources = [
         table: "rains_products",
         storeName: "Rains",
         overviewSelect:
-            "id, name, brand, current_price, list_price, currency, color, category, images, aarhus_total_stock, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, aarhus_total_stock, aarhus_available, first_seen_at",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category", "product_type"],
         orderColumn: "id",
@@ -104,7 +104,7 @@ export const productSources = [
         table: "stoy_products",
         storeName: "STOY",
         overviewSelect:
-            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available, first_seen_at",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category", "product_type"],
         orderColumn: "id",
@@ -118,7 +118,7 @@ export const productSources = [
         table: "shoechapter_products",
         storeName: "Shoe Chapter",
         overviewSelect:
-            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available, first_seen_at",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category", "product_type"],
         orderColumn: "id",
@@ -132,7 +132,7 @@ export const productSources = [
         table: "skagen_clothing_products",
         storeName: "Skagen Clothing",
         overviewSelect:
-            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available, first_seen_at",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category", "product_type"],
         orderColumn: "id",
@@ -146,7 +146,7 @@ export const productSources = [
         table: "suitclub_products",
         storeName: "SUIT CLUB",
         overviewSelect:
-            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available, first_seen_at",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category", "product_type"],
         orderColumn: "id",
@@ -161,7 +161,7 @@ export const productSources = [
         table: "cejf_products",
         storeName: "Ćejf",
         overviewSelect:
-            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available",
+            "id, name, brand, current_price, list_price, currency, color, category, images, local_inventory, aarhus_available, first_seen_at",
         detailSelect: "*",
         searchColumns: ["name", "brand", "color", "category"],
         orderColumn: "id",
@@ -236,6 +236,7 @@ export const mapOverviewProduct = (product, source, fallbackImage) => ({
     detail: product.color || product.category || "Produkt",
     image: getFirstImage(product.images, fallbackImage),
     stock: getAarhusTotalStock(product, source),
+    firstSeenAt: product.first_seen_at ?? null,
 });
 
 export const normalizeDetailProduct = (product, source) => ({
