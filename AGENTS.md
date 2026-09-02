@@ -122,6 +122,7 @@ This repo is currently a **frontend prototype**.
 - **Keep naming consistent** with the current Danish route structure unless deliberately refactoring
 - **Use Tailwind pragmatically:** inline utilities first, extraction only when repetition/readability justifies it
 - **Maintain accessibility basics:** semantic HTML, labels, keyboard support, alt text
+- **For Astro framework/API questions, consult the `astro-docs` MCP server before answering or editing code**
 - **Do not over-engineer v1**
 - **Never edit `dist/`**; only edit source files
 
