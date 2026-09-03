@@ -48,6 +48,7 @@ src/
     index.astro
     Produkt-overblik.astro
     Produkt-detaljer.astro
+    Changelog.astro
     Butiks-info.astro
     Om-Highlide.astro
     Hjaelp-kontakt.astro
@@ -92,6 +93,7 @@ PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 - `/` — homepage
 - `/Produkt-overblik` — product listing/search results
 - `/Produkt-detaljer` — product detail
+- `/Changelog` — public release notes for production updates
 - `/Butiks-info` — store overview placeholder
 - `/Om-Highlide` — about page
 - `/Hjaelp-kontakt` — help/contact placeholder
@@ -116,6 +118,7 @@ Build for:
 - keep solutions simple unless complexity is clearly justified
 - prefer reusable Astro components for shared UI
 - treat `dist/` as generated output, not source
+- add one dated Markdown file in `src/content/changelog/` for each production release; the changelog page shows the newest entry first
 
 ## Documentation
 Project-specific agent guidance lives in:

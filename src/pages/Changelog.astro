@@ -1,0 +1,76 @@
+---
+import { getCollection, render } from "astro:content";
+import InfoPageLayout from "../components/InfoPageLayout.astro";
+import SiteLayout from "../layouts/SiteLayout.astro";
+
+const formatDate = (date: Date) =>
+    new Intl.DateTimeFormat("da-DK", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    }).format(date);
+
+const changelogEntries = (await getCollection("changelog")).sort(
+    (first, second) => second.data.date.valueOf() - first.data.date.valueOf(),
+);
+
+const releases = await Promise.all(
+    changelogEntries.map(async (entry) => {
+        const { Content } = await render(entry);
+
+        return {
+            id: entry.id,
+            data: entry.data,
+            Content,
+        };
+    }),
+);
+---
+
+<SiteLayout
+    title="Changelog"
+    description="Se nye funktioner, forbedringer og fejlrettelser i HIGHLIDE."
+    canonicalPath="/Changelog"
+>
+    <InfoPageLayout
+        eyebrow="Changelog · HIGHLIDE i udvikling"
+        title="Nyt fra HIGHLIDE"
+        intro="Vi skriver ned, hvad der ændrer sig, når nye versioner går live. Her kan du følge med i nye funktioner, forbedringer og fejlrettelser."
+    >
+        {releases.length > 0 ? (
+            releases.map(({ id, data, Content }) => (
+                <section
+                    class="changelog-entry"
+                    aria-labelledby={`changelog-${id}-title`}
+                >
+                    <header class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                        <div>
+                            <h2 id={`changelog-${id}-title`}>
+                                HIGHLIDE {data.label.toLowerCase()} {data.version}
+                            </h2>
+                            <p class="mt-2 max-w-2xl">{data.summary}</p>
+                        </div>
+                        <time
+                            class="shrink-0 text-sm font-medium text-[#6e645d]"
+                            datetime={data.date.toISOString().slice(0, 10)}
+                        >
+                            {formatDate(data.date)}
+                        </time>
+                    </header>
+
+                    <div class="changelog-entry-content mt-5 max-w-2xl">
+                        <Content />
+                    </div>
+                </section>
+            ))
+        ) : (
+            <p>Der er endnu ikke udgivet ændringer.</p>
+        )}
+    </InfoPageLayout>
+</SiteLayout>
+
+<style is:global>
+    .changelog-entry-content li + li {
+        margin-top: 0.45rem;
+    }
+</style>
