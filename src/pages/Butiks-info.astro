@@ -128,7 +128,11 @@ const getDirectionsHref = (address: string) =>
     </section>
 
     <script>
-        import { productSources, getFirstImage } from "../lib/productSources.js";
+        import {
+            productSources,
+            getFirstImage,
+            getResponsiveProductImage,
+        } from "../lib/productSources.js";
         import {
             captureAnalyticsEvent,
             getStoreIntentContext,
@@ -176,7 +180,19 @@ const getDirectionsHref = (address: string) =>
                     () => image.classList.add("opacity-100"),
                     { once: true },
                 );
-                image.src = getFirstImage(product.images, fallbackImage);
+                const responsiveImage = getResponsiveProductImage(
+                    getFirstImage(product.images, fallbackImage),
+                    {
+                        widths: [160, 240, 320, 480, 640],
+                        sizes: "(max-width: 768px) 45vw, 240px",
+                    },
+                );
+                image.src = responsiveImage.src;
+                if (responsiveImage.srcset) {
+                    image.srcset = responsiveImage.srcset;
+                    image.sizes = responsiveImage.sizes;
+                }
+                image.decoding = "async";
                 slot.append(image);
             });
         };

@@ -1,7 +1,7 @@
 ---
 ---
 
-<section class="py-14 md:py-20" aria-labelledby="live-products-title" data-live-products>
+<section class="pb-14 pt-0 md:pb-20" aria-labelledby="live-products-title" data-live-products>
     <div class="flex items-end justify-between gap-5 border-t border-black/20 pt-8 md:pt-10">
         <div class="max-w-2xl">
             <h2 id="live-products-title" class="text-balance text-[2rem] font-semibold leading-tight tracking-[-0.035em] text-[#1e1a17] md:text-[2.75rem]">
@@ -13,7 +13,7 @@
         </div>
         <button
             type="button"
-            class="hidden min-h-11 shrink-0 items-center rounded-full border border-black/20 px-4 text-sm font-medium text-[#1e1a17] transition hover:border-[#420e0e] hover:text-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] sm:inline-flex"
+            class="hidden min-h-11 shrink-0 items-center rounded-full border border-black/20 px-4 text-sm font-medium text-[#1e1a17] transition hover:border-[#420e0e] hover:text-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e] md:inline-flex"
             data-ticker-toggle
             aria-pressed="false"
         >
@@ -46,9 +46,11 @@
 <script>
     import {
         getProductHref,
+        getResponsiveProductImage,
         mapOverviewProduct,
         productSources,
     } from "../lib/productSources.js";
+    import { newProductsWindowInDays } from "../lib/productFilters.js";
     import {
         captureAnalyticsEvent,
         getProductAnalyticsProperties,
@@ -101,13 +103,54 @@
             imageWrap.className = "relative aspect-[4/5] overflow-hidden rounded-xl bg-[#f1ece4]";
 
             const image = document.createElement("img");
-            image.src = product.image;
+            const responsiveImage = getResponsiveProductImage(product.image, {
+                widths: [240, 360, 480, 640],
+                sizes: "(max-width: 768px) 13rem, 15rem",
+            });
+            image.src = responsiveImage.src;
+            if (responsiveImage.srcset) {
+                image.srcset = responsiveImage.srcset;
+                image.sizes = responsiveImage.sizes;
+            }
             image.alt = duplicate ? "" : `${product.brand} ${product.name}`;
             image.loading = "lazy";
+            image.decoding = "async";
             image.className = "h-full w-full object-contain p-4 transition duration-300 group-hover:scale-[1.025] motion-reduce:transition-none";
 
+            const currentPrice = Number(product.price);
+            const listPrice = Number(product.listPrice);
+            const discountPercent =
+                Number.isFinite(currentPrice) &&
+                Number.isFinite(listPrice) &&
+                listPrice > currentPrice
+                    ? Math.round(((listPrice - currentPrice) / listPrice) * 100)
+                    : null;
+            const firstSeenTime = Date.parse(product.firstSeenAt ?? "");
+            const isNew =
+                Number.isFinite(firstSeenTime) &&
+                firstSeenTime >=
+                    Date.now() -
+                        newProductsWindowInDays * 24 * 60 * 60 * 1000;
+
+            if (isNew || discountPercent) {
+                const badges = document.createElement("div");
+                badges.className =
+                    "absolute left-3 top-3 z-10 flex flex-col items-start gap-1";
+
+                const addBadge = (label, variant) => {
+                    const badge = document.createElement("span");
+                    badge.className = `ticker-product-flag ticker-product-flag--${variant}`;
+                    badge.textContent = label;
+                    badges.append(badge);
+                };
+
+                if (isNew) addBadge("Nyhed", "new");
+                if (discountPercent) addBadge(`−${discountPercent}%`, "sale");
+                imageWrap.append(badges);
+            }
+
             const status = document.createElement("span");
-            status.className = "absolute bottom-3 left-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#225d35] shadow-[0_2px_8px_rgba(30,26,23,0.12)]";
+            status.className = "mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[#28633a]";
             status.innerHTML = `<span class="size-2 rounded-full bg-[#2d7f46]"></span>${product.stock == null ? "På lager i Aarhus" : `${product.stock} på lager`}`;
 
             const meta = document.createElement("div");
@@ -119,8 +162,8 @@
             name.className = "mt-1 truncate text-sm font-medium text-[#1e1a17]";
             name.textContent = `${product.brand} · ${product.name}`;
 
-            imageWrap.append(image, status);
-            meta.append(store, name);
+            imageWrap.append(image);
+            meta.append(store, name, status);
             link.append(imageWrap, meta);
             return link;
         };
@@ -166,10 +209,63 @@
         animation: highlide-product-stream 52s linear infinite;
     }
 
+    [data-live-products] .ticker-product-flag {
+        display: inline-flex;
+        min-height: 1.45rem;
+        align-items: center;
+        padding: 0.22rem 0.78rem 0.22rem 0.5rem;
+        clip-path: polygon(0 0, calc(100% - 0.38rem) 0, 100% 50%, calc(100% - 0.38rem) 100%, 0 100%);
+        font-size: 0.65rem;
+        font-weight: 700;
+        line-height: 1;
+        color: white;
+    }
+
+    [data-live-products] .ticker-product-flag--sale {
+        background: #6f1618;
+    }
+
+    [data-live-products] .ticker-product-flag--new {
+        background: #315845;
+    }
+
     [data-live-products][data-ticker-paused="true"] .ticker-track,
     [data-live-products] .ticker-window:hover .ticker-track,
     [data-live-products] .ticker-window:focus-within .ticker-track {
         animation-play-state: paused;
+    }
+
+    @media (max-width: 767px), (hover: none) and (pointer: coarse) {
+        [data-live-products] .ticker-window {
+            overflow-x: auto;
+            overflow-y: hidden;
+            overscroll-behavior-inline: contain;
+            scroll-padding-inline: 1rem;
+            scroll-snap-type: inline mandatory;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        [data-live-products] .ticker-window::-webkit-scrollbar {
+            display: none;
+        }
+
+        [data-live-products] .ticker-track {
+            animation: none;
+        }
+
+        [data-live-products] [data-ticker-toggle] {
+            display: none;
+        }
+
+        [data-live-products] .ticker-group[aria-hidden="true"] {
+            display: none;
+        }
+
+        [data-live-products] .ticker-card {
+            scroll-snap-align: start;
+            scroll-snap-stop: normal;
+        }
     }
 
     @keyframes highlide-product-stream {
@@ -189,6 +285,10 @@
         }
 
         [data-live-products] [data-ticker-toggle] {
+            display: none;
+        }
+
+        [data-live-products] .ticker-group[aria-hidden="true"] {
             display: none;
         }
 

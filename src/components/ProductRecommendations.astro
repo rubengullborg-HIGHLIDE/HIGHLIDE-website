@@ -41,6 +41,7 @@ const {
     import {
         getProductHref,
         getProductSource,
+        getResponsiveProductImage,
         mapOverviewProduct,
         productSources,
     } from "../lib/productSources.js";
@@ -93,9 +94,18 @@ const {
             "aspect-[0.78] overflow-hidden rounded-xl bg-[#eee5d9]";
 
         const image = document.createElement("img");
-        image.src = product.image;
+        const responsiveImage = getResponsiveProductImage(product.image, {
+            widths: [160, 240, 320, 480],
+            sizes: "(max-width: 640px) 9.5rem, 11rem",
+        });
+        image.src = responsiveImage.src;
+        if (responsiveImage.srcset) {
+            image.srcset = responsiveImage.srcset;
+            image.sizes = responsiveImage.sizes;
+        }
         image.alt = `${product.brand} ${product.name}`;
         image.loading = "lazy";
+        image.decoding = "async";
         image.className =
             "h-full w-full object-contain transition duration-200 group-hover:scale-[1.03]";
 

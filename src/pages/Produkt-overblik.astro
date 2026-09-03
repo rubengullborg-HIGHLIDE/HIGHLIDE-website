@@ -78,13 +78,24 @@ const defaultZoom = 3;
                     </div>
                 </div>
 
-                <div
-                    class="rounded-[1.5rem] border border-dashed border-black/10 bg-[#f7f2ea] px-6 py-14 text-center"
-                    data-loading-state
-                >
-                    <p class="text-lg font-medium text-[#3e3530]">
-                        Henter produkter...
-                    </p>
+                <div role="status" aria-live="polite" data-loading-state>
+                    <span class="sr-only">Henter produkter...</span>
+                    <div class="product-grid grid gap-4" aria-hidden="true">
+                        {
+                            Array.from({ length: 12 }).map(() => (
+                                <div class="product-card product-skeleton rounded-[1.05rem] border border-transparent">
+                                    <div class="product-image-wrap relative aspect-[0.78] overflow-hidden rounded-[0.9rem] bg-[#eee7dc]"></div>
+                                    <div class="product-meta grid content-start gap-2 px-1 pt-3">
+                                        <span class="h-3 w-16 rounded bg-[#e4dcd1]"></span>
+                                        <span class="h-3 w-24 rounded bg-[#e4dcd1]"></span>
+                                        <span class="h-4 w-4/5 rounded bg-[#ded5c9]"></span>
+                                        <span class="h-4 w-20 rounded bg-[#ded5c9]"></span>
+                                        <span class="h-3 w-3/5 rounded bg-[#e4dcd1]"></span>
+                                    </div>
+                                </div>
+                            ))
+                        }
+                    </div>
                 </div>
 
                 <div
@@ -125,6 +136,7 @@ const defaultZoom = 3;
         import {
             getProductHref,
             getProductSource,
+            getResponsiveProductImage,
             mapOverviewProduct,
             productSources,
         } from "../lib/productSources.js";
@@ -135,6 +147,7 @@ const defaultZoom = 3;
         import { buildProductOverviewQuery } from "../lib/productQueries.js";
         import {
             getProductSourcesForFilters,
+            newProductsWindowInDays,
             parseProductFilters,
         } from "../lib/productFilters.js";
         import {
@@ -214,6 +227,12 @@ const defaultZoom = 3;
             3: { label: "Zoom niveau 3 af 4", pageSize: 12 },
             4: { label: "Zoom niveau 4 af 4", pageSize: 6 },
         };
+        const imageSizesByZoom = {
+            1: "(max-width: 768px) 18vw, 150px",
+            2: "(max-width: 520px) 30vw, (max-width: 768px) 46vw, 300px",
+            3: "(max-width: 768px) 46vw, 480px",
+            4: "(max-width: 768px) 92vw, 960px",
+        };
 
         const formatPrice = (value) => {
             const numberValue =
@@ -251,6 +270,16 @@ const defaultZoom = 3;
             );
 
             return discount > 0 ? discount : null;
+        };
+
+        const isNewProduct = (firstSeenAt) => {
+            const firstSeenTime = Date.parse(firstSeenAt ?? "");
+            if (!Number.isFinite(firstSeenTime)) return false;
+
+            return (
+                firstSeenTime >=
+                Date.now() - newProductsWindowInDays * 24 * 60 * 60 * 1000
+            );
         };
 
         const mapProduct = (product, source) => {
@@ -306,9 +335,18 @@ const defaultZoom = 3;
                 "product-image-wrap relative aspect-[0.78] overflow-hidden rounded-[0.9rem]";
 
             const image = document.createElement("img");
-            image.src = product.image;
+            const responsiveImage = getResponsiveProductImage(product.image, {
+                widths: [160, 240, 320, 480, 640, 800, 960],
+                sizes: imageSizesByZoom[currentZoom],
+            });
+            image.src = responsiveImage.src;
+            if (responsiveImage.srcset) {
+                image.srcset = responsiveImage.srcset;
+                image.sizes = responsiveImage.sizes;
+            }
             image.alt = `${product.brand} ${product.name}`;
             image.loading = "lazy";
+            image.decoding = "async";
             image.className =
                 "product-image h-full w-full object-contain object-center";
 
@@ -342,6 +380,7 @@ const defaultZoom = 3;
                 currentPriceNumber,
                 listPriceNumber,
             );
+            const newProduct = isNewProduct(product.firstSeenAt);
 
             const priceRow = document.createElement("div");
             priceRow.className =
@@ -355,27 +394,30 @@ const defaultZoom = 3;
 
             priceRow.append(price);
 
+            const badgeStack = document.createElement("div");
+            badgeStack.className =
+                "product-badges absolute left-2 top-2 flex flex-col items-start gap-1";
+
+            const addBadge = (label, variant) => {
+                const badge = document.createElement("span");
+                badge.className = `product-flag product-flag--${variant}`;
+                badge.textContent = label;
+                badgeStack.append(badge);
+            };
+
+            if (newProduct) addBadge("Nyhed", "new");
+
             if (isOnSale) {
                 const listPrice = document.createElement("p");
                 listPrice.className =
                     "list-price truncate text-sm font-medium text-[#8a8178] line-through";
                 listPrice.textContent = product.listPrice;
 
-                const desktopSaleBadge = document.createElement("span");
-                desktopSaleBadge.className =
-                    "desktop-sale-badge rounded-full bg-[#420e0e] px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase leading-4 text-white";
-                desktopSaleBadge.textContent = "Udsalg";
-
-                priceRow.append(listPrice, desktopSaleBadge);
-
-                const saleBadge = document.createElement("span");
-                saleBadge.className =
-                    "sale-badge absolute left-2 top-2 rounded-full bg-[#420e0e] px-2 py-1 text-[0.65rem] font-semibold leading-none text-white shadow-[0_2px_8px_rgba(66,14,14,0.18)]";
-                saleBadge.textContent = discountPercent
-                    ? `-${discountPercent}%`
-                    : "Tilbud";
-                imageWrap.append(saleBadge);
+                priceRow.append(listPrice);
+                addBadge(discountPercent ? `−${discountPercent}%` : "Udsalg", "sale");
             }
+
+            if (badgeStack.childElementCount > 0) imageWrap.append(badgeStack);
 
             const details = document.createElement("p");
             details.className =
@@ -451,6 +493,10 @@ const defaultZoom = 3;
 
             cards.forEach((card) => {
                 card.hidden = false;
+                const image = card.querySelector(".product-image");
+                if (image?.srcset) {
+                    image.sizes = imageSizesByZoom[zoom];
+                }
             });
         };
 
@@ -507,6 +553,7 @@ const defaultZoom = 3;
             emptyState?.toggleAttribute("hidden", !empty);
             errorState?.toggleAttribute("hidden", !error);
             grid?.toggleAttribute("hidden", !gridVisible);
+            overview?.setAttribute("aria-busy", String(loading));
             if (error) {
                 loadMoreWrap?.toggleAttribute("hidden", true);
             }
@@ -925,7 +972,7 @@ const defaultZoom = 3;
         #product-overview[data-zoom="1"] .price,
         #product-overview[data-zoom="1"] .price-row,
         #product-overview[data-zoom="1"] .name,
-        #product-overview[data-zoom="1"] .sale-badge,
+        #product-overview[data-zoom="1"] .product-badges,
         #product-overview[data-zoom="1"] .details {
             display: none;
         }
@@ -968,6 +1015,40 @@ const defaultZoom = 3;
                 ),
                 #f2ece2;
             box-shadow: inset 0 0 0 1px rgba(83, 69, 57, 0.08);
+        }
+
+        .product-flag {
+            display: inline-flex;
+            min-height: 1.45rem;
+            align-items: center;
+            padding: 0.22rem 0.78rem 0.22rem 0.5rem;
+            clip-path: polygon(0 0, calc(100% - 0.38rem) 0, 100% 50%, calc(100% - 0.38rem) 100%, 0 100%);
+            font-size: 0.65rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 0.01em;
+            color: white;
+        }
+
+        .product-flag--sale {
+            background: #6f1618;
+        }
+
+        .product-flag--new {
+            background: #315845;
+        }
+
+        .product-skeleton {
+            animation: product-skeleton-pulse 1.35s ease-in-out infinite;
+        }
+
+        #product-overview[data-zoom="1"] .product-skeleton .product-meta {
+            display: none;
+        }
+
+        @keyframes product-skeleton-pulse {
+            0%, 100% { opacity: 0.58; }
+            50% { opacity: 1; }
         }
 
         #product-overview[data-zoom="2"] .product-card,
@@ -1086,10 +1167,6 @@ const defaultZoom = 3;
                 width: 1.85rem;
             }
 
-            #product-overview .desktop-sale-badge {
-                display: none;
-            }
-
             #product-overview[data-zoom="1"] .product-grid {
                 grid-template-columns: repeat(5, minmax(0, 1fr));
             }
@@ -1144,10 +1221,14 @@ const defaultZoom = 3;
                 line-height: 1.15;
             }
 
-            #product-overview[data-zoom="2"] .sale-badge {
+            #product-overview[data-zoom="2"] .product-badges {
                 left: 0.35rem;
                 top: 0.35rem;
-                padding: 0.22rem 0.38rem;
+            }
+
+            #product-overview[data-zoom="2"] .product-flag {
+                min-height: 1.2rem;
+                padding: 0.18rem 0.6rem 0.18rem 0.36rem;
                 font-size: 0.55rem;
             }
 
@@ -1177,6 +1258,12 @@ const defaultZoom = 3;
 
             #product-overview[data-zoom="4"] .product-grid {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .product-skeleton {
+                animation: none;
             }
         }
     </style>

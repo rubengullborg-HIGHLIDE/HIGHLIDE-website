@@ -9,9 +9,10 @@ import { productSources } from "../lib/productSources.js";
 
 interface Props {
     action?: string;
+    showQuickControls?: boolean;
 }
 
-const { action = "/Produkt-overblik" } = Astro.props;
+const { action = "/Produkt-overblik", showQuickControls = false } = Astro.props;
 
 const staticSections = [
     {
@@ -48,20 +49,84 @@ const dynamicSections = [
 ];
 ---
 
-<div class="shrink-0 text-left" data-product-filters data-filter-action={action}>
-    <button
-        type="button"
-        class="inline-flex h-12 items-center gap-2 rounded-full border border-[#d6ccc1] bg-white px-4 text-base font-medium text-[#1e1a17] transition hover:border-[#420e0e] focus:outline-none focus:ring-2 focus:ring-[#420e0e] focus:ring-offset-2 focus:ring-offset-[#f8f4ec]"
-        data-filter-open
-        aria-haspopup="dialog"
-    >
-        <span aria-hidden="true" class="filter-glyph"><i></i><i></i><i></i></span>
-        Filtre
-        <span
-            class="hidden min-w-5 rounded-full bg-[#420e0e] px-1.5 py-0.5 text-center text-xs font-semibold leading-4 text-white"
-            data-filter-badge
-        ></span>
-    </button>
+<div class:list={["shrink-0 text-left", showQuickControls && "w-full"]} data-product-filters data-filter-action={action}>
+    <div class:list={[showQuickControls && "filter-toolbar flex items-center gap-0 overflow-x-auto py-1 sm:gap-1"]}>
+        <button
+            type="button"
+            class:list={[
+                "filter-tool inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg px-3 text-[0.82rem] font-medium text-[#1e1a17] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#420e0e] sm:gap-2 sm:px-3.5 sm:text-sm",
+                showQuickControls
+                    ? "bg-black/[0.045] hover:bg-black/[0.075] active:bg-black/10"
+                    : "border border-[#d6ccc1] bg-white hover:border-[#420e0e] active:bg-[#f5efe8]",
+            ]}
+            data-filter-open
+            aria-haspopup="dialog"
+        >
+            <span aria-hidden="true" class="filter-glyph"><i></i><i></i><i></i></span>
+            Filtre
+            <span
+                class="hidden min-w-5 rounded-full bg-[#420e0e] px-1.5 py-0.5 text-center text-xs font-semibold leading-4 text-white"
+                data-filter-badge
+            ></span>
+        </button>
+
+        {showQuickControls && (
+            <>
+                <button
+                    type="button"
+                    class="quick-filter-control inline-flex h-11 shrink-0 items-center gap-1 rounded-lg px-2.5 text-[0.82rem] font-medium text-[#443b35] transition hover:bg-black/[0.055] active:bg-black/[0.085] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#420e0e] sm:gap-1.5 sm:px-3 sm:text-sm"
+                    data-quick-filter={productFilterParams.newProducts}
+                    aria-pressed="false"
+                >
+                    <svg viewBox="0 0 20 20" fill="none" class="size-4" aria-hidden="true">
+                        <path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M15.3 4.7l-1.4 1.4M6.1 13.9l-1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                        <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5" />
+                    </svg>
+                    Nyheder
+                </button>
+                <button
+                    type="button"
+                    class="quick-filter-control inline-flex h-11 shrink-0 items-center gap-1 rounded-lg px-2.5 text-[0.82rem] font-medium text-[#443b35] transition hover:bg-black/[0.055] active:bg-black/[0.085] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#420e0e] sm:gap-1.5 sm:px-3 sm:text-sm"
+                    data-quick-filter={productFilterParams.onSale}
+                    aria-pressed="false"
+                >
+                    <span class="text-[0.9rem] font-semibold" aria-hidden="true">%</span>
+                    Udsalg
+                </button>
+                <label class="quick-sort-control relative inline-flex h-11 shrink-0 cursor-pointer items-center gap-1 rounded-lg px-2.5 text-[0.82rem] font-medium text-[#443b35] transition hover:bg-black/[0.055] focus-within:ring-2 focus-within:ring-inset focus-within:ring-[#420e0e] sm:gap-1.5 sm:px-3 sm:text-sm">
+                    <svg viewBox="0 0 20 20" fill="none" class="size-4" aria-hidden="true">
+                        <path d="M5 4v12M5 16l-2.5-2.5M5 16l2.5-2.5M15 16V4M15 4l-2.5 2.5M15 4l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <span data-quick-sort-copy>Sortér</span>
+                    <select
+                        class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                        aria-label="Sortér produkter"
+                        data-quick-sort
+                    >
+                        {productSortOptions.map((option) => (
+                            <option value={option.value}>{option.label}</option>
+                        ))}
+                    </select>
+                </label>
+            </>
+        )}
+    </div>
+
+    {showQuickControls && (
+        <div class="hidden pt-2" data-page-active-summary aria-live="polite">
+            <div class="flex items-center justify-between gap-4">
+                <p class="text-xs font-semibold text-[#5c534b]" data-page-active-heading>Aktive filtre</p>
+                <button
+                    type="button"
+                    class="min-h-9 shrink-0 text-xs font-semibold text-[#420e0e] underline decoration-[#420e0e]/35 underline-offset-4 transition hover:decoration-[#420e0e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#420e0e]"
+                    data-page-filter-clear
+                >
+                    Ryd alle
+                </button>
+            </div>
+            <div class="mt-1.5 flex flex-wrap gap-1.5" data-active-filter-list></div>
+        </div>
+    )}
 
     <dialog
         class="filter-dialog m-0 h-auto max-h-[92dvh] w-full max-w-none overflow-hidden border-0 bg-white p-0 text-[#1e1a17] backdrop:bg-black/45 md:m-auto md:max-h-[85dvh] md:w-[36rem] md:rounded-2xl"
@@ -69,10 +134,9 @@ const dynamicSections = [
         aria-labelledby="product-filter-title"
     >
         <form class="flex h-full max-h-[92dvh] flex-col md:max-h-[85dvh]" data-filter-form>
-            <header class="sticky top-0 z-10 border-b border-[#e3dbd3] bg-white px-5 pb-4 pt-2 md:px-6 md:pt-5">
-                <div class="mx-auto mb-3 h-1 w-10 rounded-full bg-[#d6ccc1] md:hidden"></div>
+            <header class="sticky top-0 z-10 border-b border-[#e3dbd3] bg-white px-5 py-4 md:px-6 md:py-5">
                 <div class="flex min-h-11 items-center justify-between gap-4">
-                    <h2 id="product-filter-title" class="text-xl font-semibold">Filtre</h2>
+                    <h2 id="product-filter-title" class="text-xl font-semibold">Filtrér produkter</h2>
                     <button
                         type="button"
                         class="grid size-11 place-items-center rounded-full text-2xl leading-none text-[#1e1a17] transition hover:bg-[#f8f4ec] focus:outline-none focus:ring-2 focus:ring-[#420e0e]"
@@ -85,6 +149,13 @@ const dynamicSections = [
             </header>
 
             <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 md:px-6" data-filter-scroll>
+                <div class="hidden border-b border-[#e3dbd3] py-4" data-modal-active-summary aria-live="polite">
+                    <div class="flex items-center justify-between gap-4">
+                        <p class="text-sm font-semibold text-[#1e1a17]">Valgte filtre</p>
+                        <span class="text-xs font-medium text-[#6e645d]" data-modal-active-count></span>
+                    </div>
+                    <div class="mt-2 flex flex-wrap gap-1.5" data-active-filter-list></div>
+                </div>
                 {
                     staticSections.map((section) => (
                         <details
@@ -177,37 +248,46 @@ const dynamicSections = [
                     </div>
                 </details>
 
-                <div class="border-b border-[#e3dbd3] py-4">
-                    <p class="mb-2 text-sm font-medium text-[#1e1a17]">Hurtige valg</p>
+                <div class="border-b border-[#e3dbd3] py-5">
+                    <p class="mb-3 text-sm font-semibold text-[#1e1a17]">Hurtigfiltre</p>
                     <div class="grid gap-2 sm:grid-cols-2">
-                        <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-lg border border-[#ded6ce] px-3 py-2.5 text-sm transition hover:border-[#b9aaa0] hover:bg-[#f8f4ec] has-[:checked]:border-[#420e0e] has-[:checked]:bg-[#f8eeee]">
+                        <label class="filter-quick-choice grid min-h-[4.5rem] cursor-pointer grid-cols-[2rem_1fr_1.25rem] items-center gap-3 rounded-lg bg-[#f5f0ea] px-3 py-2.5 text-sm transition hover:bg-[#eee6dd]">
                             <input
-                                class="filter-checkbox size-5 shrink-0 appearance-none rounded border border-[#a99e94] bg-white"
+                                class="peer sr-only"
                                 type="checkbox"
                                 name={productFilterParams.newProducts}
                                 value="true"
                                 data-new-products-filter
                             />
-                            <span class="min-w-0">
-                                <span class="block font-medium">Nyheder</span>
-                                <span class="mt-0.5 block text-xs leading-4 text-[#6e645d]">Tilføjet inden for 14 dage</span>
+                            <span class="filter-quick-icon grid size-8 place-items-center rounded-md bg-white text-[#420e0e]" aria-hidden="true">
+                                <svg viewBox="0 0 20 20" fill="none" class="size-4">
+                                    <path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M15.3 4.7l-1.4 1.4M6.1 13.9l-1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                                    <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5" />
+                                </svg>
                             </span>
+                            <span class="filter-quick-copy min-w-0">
+                                <span class="block font-medium">Nyheder</span>
+                                <span class="mt-0.5 block text-xs leading-4 opacity-65">Tilføjet de seneste 14 dage</span>
+                            </span>
+                            <span class="filter-quick-check grid size-5 place-items-center rounded-full border border-[#b8aca2] text-xs text-transparent" aria-hidden="true">✓</span>
                         </label>
-                        <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-lg border border-[#ded6ce] px-3 py-2.5 text-sm transition hover:border-[#b9aaa0] hover:bg-[#f8f4ec] has-[:checked]:border-[#420e0e] has-[:checked]:bg-[#f8eeee]">
+                        <label class="filter-quick-choice grid min-h-[4.5rem] cursor-pointer grid-cols-[2rem_1fr_1.25rem] items-center gap-3 rounded-lg bg-[#f5f0ea] px-3 py-2.5 text-sm transition hover:bg-[#eee6dd]">
                             <input
-                                class="filter-checkbox size-5 shrink-0 appearance-none rounded border border-[#a99e94] bg-white"
+                                class="peer sr-only"
                                 type="checkbox"
                                 name={productFilterParams.onSale}
                                 value="true"
                                 data-sale-filter
                             />
-                            <span class="min-w-0">
-                                <span class="block font-medium">Kun på udsalg</span>
-                                <span class="mt-0.5 block text-xs leading-4 text-[#6e645d]">Produkter med nedsat pris</span>
+                            <span class="filter-quick-icon grid size-8 place-items-center rounded-md bg-white text-sm font-semibold text-[#420e0e]" aria-hidden="true">%</span>
+                            <span class="filter-quick-copy min-w-0">
+                                <span class="block font-medium">Udsalg</span>
+                                <span class="mt-0.5 block text-xs leading-4 opacity-65">Kun produkter med nedsat pris</span>
                             </span>
+                            <span class="filter-quick-check grid size-5 place-items-center rounded-full border border-[#b8aca2] text-xs text-transparent" aria-hidden="true">✓</span>
                         </label>
                     </div>
-                    <label class="relative mt-3 block min-w-0">
+                    <label class="relative mt-4 block min-w-0">
                         <span class="pointer-events-none absolute left-3 top-1.5 z-[1] text-[0.65rem] leading-3 text-[#6e645d]">Sortér efter</span>
                         <select
                             class="h-12 w-full appearance-none rounded-lg border border-[#d6ccc1] bg-white pb-1 pl-3 pr-8 pt-4 text-sm font-medium text-[#1e1a17] outline-none transition hover:border-[#420e0e] focus:border-[#420e0e] focus:ring-1 focus:ring-[#420e0e]"
@@ -256,7 +336,9 @@ const dynamicSections = [
         parseProductFilters,
         productFilterParamNames,
         productFilterParams,
+        clothingTypeOptions,
         defaultProductSort,
+        productSortOptions,
     } from "../lib/productFilters.js";
     import {
         productSources,
@@ -269,6 +351,16 @@ const dynamicSections = [
 
     const filterRoots = document.querySelectorAll("[data-product-filters]");
     const facetColumns = "id, brand, color_group";
+    const storeLabels = new Map(
+        productSources.map((source) => [source.key, source.storeName]),
+    );
+    const typeLabels = new Map(
+        clothingTypeOptions.map((option) => [option.value, option.label]),
+    );
+    const sortLabels = new Map(
+        productSortOptions.map((option) => [option.value, option.label]),
+    );
+    const priceFormatter = new Intl.NumberFormat("da-DK");
     let facetPromise;
 
     const fetchAllRows = async (source) => {
@@ -316,6 +408,7 @@ const dynamicSections = [
         const openButton = root.querySelector("[data-filter-open]");
         const closeButton = root.querySelector("[data-filter-close]");
         const clearButton = root.querySelector("[data-filter-clear]");
+        const pageClearButton = root.querySelector("[data-page-filter-clear]");
         const applyButton = root.querySelector("[data-filter-apply]");
         const badge = root.querySelector("[data-filter-badge]");
         const priceRange = root.querySelector("[data-price-range]");
@@ -324,6 +417,18 @@ const dynamicSections = [
         const saleFilter = root.querySelector("[data-sale-filter]");
         const newProductsFilter = root.querySelector("[data-new-products-filter]");
         const sortSelect = root.querySelector("[data-sort-select]");
+        const quickFilterButtons = [
+            ...root.querySelectorAll("[data-quick-filter]"),
+        ];
+        const quickSort = root.querySelector("[data-quick-sort]");
+        const quickSortControl = root.querySelector(".quick-sort-control");
+        const quickSortCopy = root.querySelector("[data-quick-sort-copy]");
+        const pageActiveSummary = root.querySelector("[data-page-active-summary]");
+        const modalActiveSummary = root.querySelector("[data-modal-active-summary]");
+        const modalActiveCount = root.querySelector("[data-modal-active-count]");
+        const activeFilterLists = [
+            ...root.querySelectorAll("[data-active-filter-list]"),
+        ];
         const action = root.dataset.filterAction || "/Produkt-overblik";
         const searchForm = root.closest("section")?.querySelector('form[role="search"]');
         const searchInput = searchForm?.querySelector('input[name="q"]');
@@ -334,6 +439,54 @@ const dynamicSections = [
         const getFormFilters = () => {
             const data = new FormData(form);
             return parseProductFilters(new URLSearchParams(data));
+        };
+
+        const getActiveFilterLabels = (filters) => {
+            const labels = [
+                ...filters.stores.map(
+                    (value) => `Butik · ${storeLabels.get(value) ?? value}`,
+                ),
+                ...filters.types.map(
+                    (value) => `Kategori · ${typeLabels.get(value) ?? value}`,
+                ),
+                ...filters.brands.map((value) => `Brand · ${value}`),
+                ...filters.colors.map((value) => `Farve · ${value}`),
+                ...filters.fits.map((value) => `Pasform · ${value}`),
+            ];
+
+            if (filters.minPrice != null) {
+                labels.push(`Fra ${priceFormatter.format(filters.minPrice)} kr.`);
+            }
+            if (filters.maxPrice != null) {
+                labels.push(`Op til ${priceFormatter.format(filters.maxPrice)} kr.`);
+            }
+            if (filters.newProducts) labels.push("Nyheder");
+            if (filters.onSale) labels.push("Udsalg");
+            if (filters.sort !== defaultProductSort) {
+                labels.push(`Sortering · ${sortLabels.get(filters.sort) ?? filters.sort}`);
+            }
+
+            return labels;
+        };
+
+        const renderActiveFilters = (filters) => {
+            const labels = getActiveFilterLabels(filters);
+            activeFilterLists.forEach((list) => {
+                list.replaceChildren(
+                    ...labels.map((label) => {
+                        const chip = document.createElement("span");
+                        chip.className = "active-filter-chip";
+                        chip.textContent = label;
+                        return chip;
+                    }),
+                );
+            });
+
+            pageActiveSummary?.classList.toggle("hidden", labels.length === 0);
+            modalActiveSummary?.classList.toggle("hidden", labels.length === 0);
+            if (modalActiveCount) {
+                modalActiveCount.textContent = `${labels.length} ${labels.length === 1 ? "aktivt" : "aktive"}`;
+            }
         };
 
         const setCheckbox = (name, value, checked) => {
@@ -383,6 +536,7 @@ const dynamicSections = [
             }
             syncPriceSlider();
             updateUi();
+            renderActiveFilters(filters);
         };
 
         const renderDynamicOptions = async () => {
@@ -436,17 +590,47 @@ const dynamicSections = [
                     ? Number(filters.minPrice != null) + Number(filters.maxPrice != null)
                     : selectedByName.get(key) ?? 0;
                 element.textContent = count > 0 ? `${count} valgt` : "";
+                element
+                    .closest("[data-filter-section]")
+                    ?.toggleAttribute("data-active", count > 0);
             });
-
+            renderActiveFilters(filters);
         };
 
         const updateBadge = () => {
-            const count = getActiveFilterCount(
-                parseProductFilters(new URL(window.location.href).searchParams),
+            const filters = parseProductFilters(
+                new URL(window.location.href).searchParams,
             );
+            const count = getActiveFilterCount(filters);
             badge.textContent = String(count);
             badge.classList.toggle("hidden", count === 0);
-            openButton.classList.toggle("border-[#420e0e]", count > 0);
+            openButton.toggleAttribute("data-active", count > 0);
+
+            quickFilterButtons.forEach((button) => {
+                const active =
+                    button.dataset.quickFilter === productFilterParams.newProducts
+                        ? filters.newProducts
+                        : filters.onSale;
+                button.setAttribute("aria-pressed", String(active));
+            });
+
+            if (quickSort) quickSort.value = filters.sort;
+            if (quickSortControl) {
+                quickSortControl.toggleAttribute(
+                    "data-active",
+                    filters.sort !== defaultProductSort,
+                );
+            }
+            if (quickSortCopy) {
+                quickSortCopy.textContent =
+                    {
+                        "price-asc": "Pris ↑",
+                        "price-desc": "Pris ↓",
+                        "name-asc": "Navn A–Å",
+                        "brand-asc": "Brand A–Å",
+                    }[filters.sort] ?? "Sortér";
+            }
+            renderActiveFilters(filters);
         };
 
         const updateResultCount = async () => {
@@ -503,24 +687,80 @@ const dynamicSections = [
             countTimer = window.setTimeout(updateResultCount, 250);
         };
 
-        const openDialog = () => {
+        const openFirstActiveSection = () => {
+            if (form.querySelector("[data-filter-section][open]")) return;
+            const activeSection = form.querySelector(
+                "[data-filter-section][data-active]",
+            );
+            if (activeSection) activeSection.open = true;
+        };
+
+        const openDialog = async () => {
             restoreFromUrl();
             form.querySelectorAll("[data-filter-section]").forEach((section) => {
                 section.open = false;
             });
             dialog.showModal();
             document.documentElement.classList.add("filter-dialog-open");
-            renderDynamicOptions();
+            await renderDynamicOptions();
+            openFirstActiveSection();
             scheduleCount();
         };
 
         openButton?.addEventListener("click", openDialog);
+        quickFilterButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                const destination = new URL(window.location.href);
+                const parameter = button.dataset.quickFilter;
+                if (!parameter) return;
+
+                const isActive = button.getAttribute("aria-pressed") === "true";
+                destination.pathname = action;
+                destination.searchParams.delete("page");
+                if (isActive) destination.searchParams.delete(parameter);
+                else destination.searchParams.set(parameter, "true");
+                window.posthog?.capture("product_quick_filter_toggled", {
+                    filter: parameter,
+                    enabled: !isActive,
+                });
+                window.location.assign(`${destination.pathname}${destination.search}`);
+            });
+        });
+        quickSort?.addEventListener("change", () => {
+            const destination = new URL(window.location.href);
+            destination.pathname = action;
+            destination.searchParams.delete("page");
+            if (quickSort.value === defaultProductSort) {
+                destination.searchParams.delete(productFilterParams.sort);
+            } else {
+                destination.searchParams.set(
+                    productFilterParams.sort,
+                    quickSort.value,
+                );
+            }
+            window.posthog?.capture("product_sort_changed", {
+                sort: quickSort.value,
+            });
+            window.location.assign(`${destination.pathname}${destination.search}`);
+        });
         closeButton?.addEventListener("click", () => dialog.close());
         clearButton?.addEventListener("click", () => {
             form.reset();
             syncPriceSlider();
             updateUi();
             scheduleCount();
+        });
+        pageClearButton?.addEventListener("click", () => {
+            const destination = new URL(window.location.href);
+            destination.pathname = action;
+            destination.searchParams.delete("page");
+            productFilterParamNames.forEach((name) =>
+                destination.searchParams.delete(name),
+            );
+            window.posthog?.capture("product_filters_cleared", {
+                surface: "overview_toolbar",
+            });
+            window.location.assign(`${destination.pathname}${destination.search}`);
         });
 
         dialog?.addEventListener("click", (event) => {
@@ -622,6 +862,64 @@ const dynamicSections = [
         border-radius: 1rem 1rem 0 0;
     }
 
+    .filter-toolbar {
+        scrollbar-width: none;
+    }
+
+    .filter-toolbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .quick-filter-control[aria-pressed="true"] {
+        background: #420e0e;
+        color: white;
+    }
+
+    .active-filter-chip {
+        display: inline-flex;
+        min-height: 1.75rem;
+        align-items: center;
+        border-radius: 0.375rem;
+        background: #eee1df;
+        padding: 0.3rem 0.55rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        line-height: 1.1;
+        color: #420e0e;
+    }
+
+    .filter-quick-choice:has(input:checked) {
+        background: #420e0e;
+        color: white;
+    }
+
+    .filter-quick-choice:focus-within {
+        outline: 2px solid #420e0e;
+        outline-offset: 2px;
+    }
+
+    .filter-quick-choice:has(input:checked):focus-within {
+        outline-color: #7a3b3b;
+    }
+
+    .filter-quick-choice:has(input:checked) .filter-quick-icon {
+        background: rgb(255 255 255 / 0.14);
+        color: white;
+    }
+
+    .filter-quick-choice:has(input:checked) .filter-quick-check {
+        border-color: white;
+        background: white;
+        color: #420e0e;
+        opacity: 1;
+    }
+
+    .filter-tool[data-active],
+    .quick-sort-control[data-active] {
+        background: #eee1df;
+        color: #420e0e;
+    }
+
     .filter-dialog[open] {
         animation: filter-sheet-in 180ms ease-out;
     }
@@ -656,6 +954,10 @@ const dynamicSections = [
 
     .filter-section[open] .accordion-mark {
         transform: rotate(45deg);
+    }
+
+    .filter-section[data-active] > summary {
+        color: #420e0e;
     }
 
     .accordion-mark {

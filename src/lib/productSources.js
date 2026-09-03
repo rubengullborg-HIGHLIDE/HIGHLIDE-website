@@ -195,6 +195,61 @@ export const getFirstImage = (images, fallbackImage) => {
     );
 };
 
+const isShopifyImageUrl = (url) => {
+    try {
+        const parsedUrl = new URL(url, "https://highlide.dk");
+        const hostname = parsedUrl.hostname.toLowerCase();
+
+        return (
+            hostname === "cdn.shopify.com" ||
+            hostname.endsWith(".myshopify.com") ||
+            parsedUrl.pathname.startsWith("/cdn/shop/")
+        );
+    } catch {
+        return false;
+    }
+};
+
+const withShopifyImageWidth = (url, width) => {
+    const parsedUrl = new URL(url, "https://highlide.dk");
+    parsedUrl.searchParams.set("width", String(width));
+
+    return parsedUrl.toString();
+};
+
+export const getResponsiveProductImage = (
+    imageUrl,
+    {
+        widths = [240, 360, 480, 640, 800, 960],
+        sizes = "100vw",
+    } = {},
+) => {
+    const cleanUrl = typeof imageUrl === "string" ? imageUrl.trim() : "";
+    const cleanWidths = [...new Set(widths)]
+        .map((width) => Number(width))
+        .filter((width) => Number.isInteger(width) && width > 0)
+        .sort((left, right) => left - right);
+
+    if (!cleanUrl || !isShopifyImageUrl(cleanUrl) || cleanWidths.length === 0) {
+        return {
+            src: cleanUrl,
+            srcset: "",
+            sizes: "",
+        };
+    }
+
+    return {
+        src: withShopifyImageWidth(cleanUrl, cleanWidths.at(-1)),
+        srcset: cleanWidths
+            .map(
+                (width) =>
+                    `${withShopifyImageWidth(cleanUrl, width)} ${width}w`,
+            )
+            .join(", "),
+        sizes,
+    };
+};
+
 export const getProductPrice = (product) =>
     product.current_price ?? product.pris ?? product.price;
 

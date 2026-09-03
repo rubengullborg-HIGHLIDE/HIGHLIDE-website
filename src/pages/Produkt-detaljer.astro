@@ -41,13 +41,14 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 
             <div class="relative aspect-[4/5] w-full px-3 py-5 sm:aspect-[3/4] sm:px-5 sm:py-7">
                 <div
-                    class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-[#6f655b]"
+                    class="absolute inset-0"
                     data-image-loading
                 >
-                    <span
-                        class="h-8 w-8 animate-spin rounded-full border-2 border-[#c9beb3] border-t-[#420e0e]"
-                    ></span>
-                    <p class="text-sm font-medium">Henter billede...</p>
+                    <span class="sr-only">Henter produktbillede...</span>
+                    <div
+                        class="product-detail-skeleton absolute inset-3 rounded-xl bg-[#e8dfd2] sm:inset-5"
+                        aria-hidden="true"
+                    ></div>
                 </div>
                 <img
                     alt=""
@@ -117,11 +118,33 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             </div>
         </noscript>
 
-        <div
-            class="mt-6 rounded-[1.25rem] border border-black/10 bg-[#f8f4ec] px-5 py-5 text-[#3e3530]"
-            data-loading-state
-        >
-            <p class="text-base font-semibold">Henter produkt...</p>
+        <div class="mt-6" role="status" aria-live="polite" data-loading-state>
+            <span class="sr-only">Henter produkt...</span>
+            <div
+                class="product-detail-skeleton rounded-xl border border-[#e4dbd0] bg-[#fffbf5] px-5 py-6 sm:px-6 sm:py-7"
+                aria-hidden="true"
+            >
+                <div class="flex items-start justify-between gap-5">
+                    <div class="min-w-0 flex-1">
+                        <div class="h-3 w-20 rounded bg-[#dfd6ca]"></div>
+                        <div class="mt-3 h-7 w-4/5 max-w-sm rounded bg-[#d8cec1]"></div>
+                    </div>
+                    <div class="h-6 w-24 rounded bg-[#d8cec1]"></div>
+                </div>
+                <div class="mt-6 border-t border-[#e4dbd0] pt-5">
+                    <div class="h-3 w-28 rounded bg-[#dfd6ca]"></div>
+                    <div class="mt-3 flex gap-2">
+                        {Array.from({ length: 4 }).map(() => (
+                            <div class="h-11 w-12 rounded-lg bg-[#e2d9ce]"></div>
+                        ))}
+                    </div>
+                </div>
+                <div class="mt-6 border-t border-[#e4dbd0] pt-5">
+                    <div class="h-3 w-32 rounded bg-[#dfd6ca]"></div>
+                    <div class="mt-3 h-4 w-full max-w-lg rounded bg-[#e2d9ce]"></div>
+                    <div class="mt-2 h-4 w-3/4 max-w-md rounded bg-[#e2d9ce]"></div>
+                </div>
+            </div>
         </div>
 
         <div
@@ -154,30 +177,21 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                             </h1>
                         </div>
                         <div class="shrink-0 pt-1 text-right">
-                            <div class="flex items-center justify-end gap-2">
+                            <div class="mb-2 flex items-center justify-end gap-1">
                                 <span
-                                    class="hidden items-center gap-1 rounded-full bg-[#420e0e] px-2 py-1 text-xs font-semibold text-white"
+                                    class="detail-product-flag detail-product-flag--new hidden"
+                                    data-product-new-badge
+                                >
+                                    Nyhed
+                                </span>
+                                <span
+                                    class="detail-product-flag detail-product-flag--sale hidden"
                                     data-product-sale-badge
                                 >
-                                    <svg
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        aria-hidden="true"
-                                        class="h-3.5 w-3.5"
-                                    >
-                                        <path
-                                            d="M9 9h.01M15 15h.01M8 16 16 8"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"></path>
-                                        <path
-                                            d="M4.5 12.5 11.5 5.5h7v7l-7 7-7-7Z"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                            stroke-linejoin="round"></path>
-                                    </svg>
                                     Udsalg
                                 </span>
+                            </div>
+                            <div class="flex items-center justify-end gap-2">
                                 <p
                                     class="text-[1.35rem] font-semibold text-[#171411] sm:text-[1.5rem]"
                                     data-product-price
@@ -305,8 +319,10 @@ import SiteLayout from "../layouts/SiteLayout.astro";
     <script>
         import {
             getProductSource,
+            getResponsiveProductImage,
             normalizeDetailProduct,
         } from "../lib/productSources.js";
+        import { newProductsWindowInDays } from "../lib/productFilters.js";
         import {
             getStoreDirectoryEntry,
             getStoreDirectoryHref,
@@ -454,6 +470,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
         const price = detail?.querySelector("[data-product-price]");
         const listPrice = detail?.querySelector("[data-product-list-price]");
         const saleBadge = detail?.querySelector("[data-product-sale-badge]");
+        const newBadge = detail?.querySelector("[data-product-new-badge]");
         const stock = detail?.querySelector("[data-product-stock]");
         const storeName = detail?.querySelector("[data-product-store]");
         const variantsSection = detail?.querySelector(
@@ -620,7 +637,17 @@ import SiteLayout from "../layouts/SiteLayout.astro";
 
             image.classList.add("opacity-0");
             imageLoading?.toggleAttribute("hidden", false);
-            image.src = currentImages[currentImageIndex] ?? fallbackImage;
+            const responsiveImage = getResponsiveProductImage(
+                currentImages[currentImageIndex] ?? fallbackImage,
+                {
+                    widths: [480, 640, 800, 960, 1280, 1600],
+                    sizes: "(max-width: 640px) 100vw, 56rem",
+                },
+            );
+            image.src = responsiveImage.src;
+            image.srcset = responsiveImage.srcset;
+            image.sizes = responsiveImage.sizes;
+            image.decoding = "async";
         };
 
         const updateImageControls = () => {
@@ -900,9 +927,21 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 );
 
                 const optionImage = document.createElement("img");
-                optionImage.src = getProductImages(variant)[0];
+                const responsiveImage = getResponsiveProductImage(
+                    getProductImages(variant)[0],
+                    {
+                        widths: [120, 180, 240],
+                        sizes: "7.5rem",
+                    },
+                );
+                optionImage.src = responsiveImage.src;
+                if (responsiveImage.srcset) {
+                    optionImage.srcset = responsiveImage.srcset;
+                    optionImage.sizes = responsiveImage.sizes;
+                }
                 optionImage.alt = "";
                 optionImage.loading = "lazy";
+                optionImage.decoding = "async";
                 optionImage.className =
                     "aspect-square w-full rounded-md bg-[#f3eee6] object-contain";
 
@@ -1062,6 +1101,7 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             loadingState?.toggleAttribute("hidden", !loading);
             errorState?.toggleAttribute("hidden", !error);
             content?.toggleAttribute("hidden", !visible);
+            detail?.setAttribute("aria-busy", String(loading));
         };
 
         const renderProduct = (product) => {
@@ -1091,6 +1131,16 @@ import SiteLayout from "../layouts/SiteLayout.astro";
             if (brand) brand.textContent = productBrand;
             if (name) name.textContent = productName;
             if (price) price.textContent = productPrice;
+            if (newBadge) {
+                const firstSeenTime = Date.parse(product.first_seen_at ?? "");
+                const isNew =
+                    Number.isFinite(firstSeenTime) &&
+                    firstSeenTime >=
+                        Date.now() -
+                            newProductsWindowInDays * 24 * 60 * 60 * 1000;
+                newBadge.classList.toggle("hidden", !isNew);
+                newBadge.classList.toggle("inline-flex", isNew);
+            }
             if (listPrice && saleBadge) {
                 const currentPriceNumber = getPriceNumber(productPriceValue);
                 const listPriceNumber = getPriceNumber(productListPriceValue);
@@ -1104,6 +1154,15 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 saleBadge.classList.toggle("hidden", !isOnSale);
                 saleBadge.classList.toggle("inline-flex", isOnSale);
                 if (isOnSale) {
+                    const discountPercent = Math.round(
+                        ((listPriceNumber - currentPriceNumber) /
+                            listPriceNumber) *
+                            100,
+                    );
+                    saleBadge.textContent =
+                        discountPercent > 0
+                            ? `−${discountPercent}%`
+                            : "Udsalg";
                     listPrice.textContent = formatPrice(
                         productListPriceValue,
                         product.currency,
@@ -1293,6 +1352,40 @@ import SiteLayout from "../layouts/SiteLayout.astro";
                 ),
                 #f2ece2;
             box-shadow: inset 0 0 0 1px rgba(83, 69, 57, 0.08);
+        }
+
+        .product-detail-skeleton {
+            animation: product-detail-skeleton-pulse 1.35s ease-in-out infinite;
+        }
+
+        .detail-product-flag {
+            min-height: 1.45rem;
+            align-items: center;
+            padding: 0.22rem 0.78rem 0.22rem 0.5rem;
+            clip-path: polygon(0 0, calc(100% - 0.38rem) 0, 100% 50%, calc(100% - 0.38rem) 100%, 0 100%);
+            font-size: 0.65rem;
+            font-weight: 700;
+            line-height: 1;
+            color: white;
+        }
+
+        .detail-product-flag--sale {
+            background: #6f1618;
+        }
+
+        .detail-product-flag--new {
+            background: #315845;
+        }
+
+        @keyframes product-detail-skeleton-pulse {
+            0%, 100% { opacity: 0.58; }
+            50% { opacity: 1; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .product-detail-skeleton {
+                animation: none;
+            }
         }
     </style>
 </SiteLayout>
