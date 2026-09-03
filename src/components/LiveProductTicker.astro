@@ -150,7 +150,7 @@
             }
 
             const status = document.createElement("span");
-            status.className = "mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[#28633a]";
+            status.className = "flex shrink-0 items-center gap-1.5 text-[0.7rem] font-medium text-[#28633a]";
             status.innerHTML = `<span class="size-2 rounded-full bg-[#2d7f46]"></span>${product.stock == null ? "På lager i Aarhus" : `${product.stock} på lager`}`;
 
             const meta = document.createElement("div");
@@ -162,8 +162,29 @@
             name.className = "mt-1 truncate text-sm font-medium text-[#1e1a17]";
             name.textContent = `${product.brand} · ${product.name}`;
 
+            const price = document.createElement("span");
+            price.className = "text-sm font-semibold text-[#1e1a17]";
+            const priceValue = product.price == null || product.price === ""
+                ? NaN
+                : Number(product.price);
+            const currency = /^[A-Z]{3}$/.test(product.currency ?? "")
+                ? product.currency
+                : "DKK";
+            price.textContent = Number.isFinite(priceValue)
+                ? new Intl.NumberFormat("da-DK", {
+                    style: "currency",
+                    currency,
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2,
+                }).format(priceValue)
+                : "Pris ikke angivet";
+
+            const priceAndStock = document.createElement("div");
+            priceAndStock.className = "mt-1.5 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1";
+            priceAndStock.append(price, status);
+
             imageWrap.append(image);
-            meta.append(store, name, status);
+            meta.append(store, name, priceAndStock);
             link.append(imageWrap, meta);
             return link;
         };

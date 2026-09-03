@@ -4,6 +4,7 @@ import HomeDiscovery from "../components/HomeDiscovery.astro";
 import HowItWorksSection from "../components/HowItWorksSection.astro";
 import LiveProductTicker from "../components/LiveProductTicker.astro";
 import SearchSection from "../components/SearchSection.astro";
+import StoreSpotlight from "../components/StoreSpotlight.astro";
 import StorePartnersSection from "../components/StorePartnersSection.astro";
 import SiteLayout from "../layouts/SiteLayout.astro";
 ---
@@ -12,10 +13,11 @@ import SiteLayout from "../layouts/SiteLayout.astro";
     title="HIGHLIDE"
     description="Find tøj fra mindre lokale modebutikker i Aarhus med HIGHLIDE."
 >
-    <SearchSection action="/Produkt-overblik" />
-    <HowItWorksSection />
+    <SearchSection action="/Produkt-overblik" suggestions />
     <HomeDiscovery />
+    <HowItWorksSection />
     <LiveProductTicker />
+    <StoreSpotlight />
     <StorePartnersSection />
     <div class="mb-12 pt-12 md:mb-20 md:pt-16">
         <AboutUsSection />

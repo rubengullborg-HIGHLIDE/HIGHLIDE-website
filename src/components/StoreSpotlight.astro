@@ -1,0 +1,92 @@
+---
+import { Picture } from 'astro:assets';
+import { getStoreDirectoryEntry, getStoreDirectoryHref, getStoreProductsHref } from '../lib/storeDirectory.js';
+import lakorPhoto from '../assets/stores/lakor-aarhus.jpg';
+import stoyPhoto from '../assets/stores/stoy-aarhus.jpg';
+
+const stores = [
+    { ...getStoreDirectoryEntry('lakor'), photo: lakorPhoto, alt: 'Indenfor hos LAKOR i Aarhus med synlige træbjælker og farverige T-shirts', description: 'Vestkyst på bøjlen. Gå på opdagelse i LAKORs afslappede tøj og finurlige illustrationer midt i Latinerkvarteret.' },
+    { ...getStoreDirectoryEntry('stoy'), photo: stoyPhoto, alt: 'Sko, støvler og tøj i STOYs butik ved Store Torv i Aarhus', description: 'Et nyt blik på garderoben. Find internationale modebrands og udvalgte favoritter hos STOY ved Store Torv.' },
+];
+---
+<section id="butiks-kig" class="scroll-mt-24 pb-14 md:pb-20" aria-labelledby="store-spotlight-title" data-store-spotlight>
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-5">
+        <div>
+            <h2 id="store-spotlight-title" class="text-balance text-[2rem] font-semibold leading-tight tracking-[-0.035em] md:text-[2.75rem]">Et kig indenfor</h2>
+            <p class="mt-3 text-base leading-7 text-[#5c534b]">Mød en af butikkerne bag dit næste fund.</p>
+        </div>
+        <div class="store-picker" role="group" aria-label="Vælg butik at udforske" data-store-picker hidden>
+            {stores.map((store, index) => (
+                <button type="button" data-store-choice={store.key} aria-pressed={index === 0 ? 'true' : 'false'} aria-controls={`spotlight-${store.key}`}>{store.name}</button>
+            ))}
+        </div>
+    </div>
+    {stores.map((store, index) => (
+        <article id={`spotlight-${store.key}`} class="spotlight-panel" data-store-panel={store.key} hidden={index !== 0} aria-labelledby={`spotlight-title-${store.key}`}>
+            <div class="store-photo">
+                <Picture
+                    src={store.photo}
+                    formats={['webp']}
+                    fallbackFormat="webp"
+                    widths={[480, 800, 1200]}
+                    sizes="(min-width: 1184px) 600px, (min-width: 768px) calc((100vw - 64px) * 0.535), calc(100vw - 32px)"
+                    quality={65}
+                    alt={store.alt}
+                    loading="lazy"
+                    decoding="async"
+                />
+                <a class="photo-credit" href={store.website} target="_blank" rel="noreferrer">Foto: {store.name} <span aria-hidden="true">↗</span></a>
+            </div>
+            <div class="store-copy">
+                <p class="store-area">{store.area}</p>
+                <h3 id={`spotlight-title-${store.key}`}>{store.name}</h3>
+                <p class="store-description">{store.description}</p>
+                <address>{store.locations[0].address}</address>
+                <a class="store-products" href={getStoreProductsHref(store.key)}>Se butikkens produkter <span aria-hidden="true">↗</span></a>
+                <a class="store-details" href={getStoreDirectoryHref(store.key)}>Adresse og åbningstider <span aria-hidden="true">→</span></a>
+            </div>
+        </article>
+    ))}
+</section>
+
+<script>
+    document.querySelectorAll<HTMLElement>('[data-store-spotlight]').forEach((root) => {
+        const picker = root.querySelector<HTMLElement>('[data-store-picker]');
+        const choices = root.querySelectorAll<HTMLButtonElement>('[data-store-choice]');
+        const panels = root.querySelectorAll<HTMLElement>('[data-store-panel]');
+        if (picker) picker.hidden = false;
+        choices.forEach((choice) => {
+            choice.addEventListener('click', () => {
+                choices.forEach((button) => button.setAttribute('aria-pressed', String(button === choice)));
+                panels.forEach((panel) => { panel.hidden = panel.dataset.storePanel !== choice.dataset.storeChoice; });
+            });
+        });
+    });
+</script>
+
+<style>
+    .store-picker:not([hidden]) {display:flex; gap:4px; padding:4px; border:1px solid #c9beb3; border-radius:999px;}
+    .store-picker button {min-width:88px; min-height:44px; padding:0 1.25rem; border-radius:999px; font-size:.875rem; font-weight:600; cursor:pointer; color:#420e0e; transition:background-color .2s,color .2s;}
+    .store-picker button[aria-pressed="true"] {background:#420e0e; color:#fff;}
+    .store-picker button[aria-pressed="false"]:hover {background:#e9e0d7;}
+    .spotlight-panel:not([hidden]) {display:grid; grid-template-columns:1.15fr 1fr; overflow:hidden; border-radius:12px; background:#eee7de;}
+    .store-photo {position:relative; min-height:420px;}
+    .store-photo :global(img) {position:absolute; width:100%; height:100%; object-fit:cover;}
+    .photo-credit {position:absolute; bottom:12px; left:12px; display:flex; align-items:center; gap:8px; min-height:44px; padding:0 12px; border-radius:6px; background:#211a16d9; color:white; font-size:.7rem;}
+    .store-copy {display:flex; flex-direction:column; align-items:flex-start; justify-content:center; padding:2.5rem 3rem;}
+    .store-area {font-size:.85rem; font-weight:500; color:#6a302d;}
+    h3 {font-size:clamp(2.7rem,4vw,3.5rem); line-height:1.1; font-weight:600; letter-spacing:-.035em; margin-top:.6rem; text-wrap:balance;}
+    .store-description {font-size:1rem; line-height:1.75; color:#51483f; margin-top:1rem; max-width:38ch; text-wrap:pretty;}
+    address {font-style:normal; font-size:.8rem; line-height:1.6; color:#5c534b; margin-top:1rem;}
+    .store-products {display:flex; align-items:center; justify-content:space-between; gap:1.8rem; min-height:48px; margin-top:1.5rem; padding:.75rem 1.2rem; border-radius:999px; background:#420e0e; color:white; font-size:.85rem; font-weight:600; transition:background-color .2s;}
+    .store-products:hover {background:#5b1716;}
+    .store-details {display:flex; align-items:center; gap:.6rem; min-height:44px; margin-top:.4rem; color:#420e0e; font-size:.8rem; text-decoration:underline; text-underline-offset:4px;}
+    a:focus-visible,button:focus-visible {outline:2px solid #420e0e; outline-offset:4px;}
+    .photo-credit:focus-visible {outline-color:#fff;}
+    @media(max-width:767px) {
+        .spotlight-panel:not([hidden]) {grid-template-columns:1fr;}
+        .store-photo {min-height:0; aspect-ratio:4/3;}
+        .store-copy {padding:1.75rem 1.5rem;}
+    }
+    @media(prefers-reduced-motion:reduce) {.store-picker button,.store-products{transition:none;}}
+</style>
