@@ -11,6 +11,8 @@ interface Props {
 }
 
 import ProductFilters from "./ProductFilters.astro";
+import { Picture } from "astro:assets";
+import walkingPeople from "../assets/walking-people.webp";
 
 const {
     heading = "Find din stil lokalt",
@@ -38,7 +40,7 @@ const {
                         type="search"
                         placeholder={placeholder}
                         value={value}
-                        class="min-w-0 flex-1 cursor-text border-0 bg-transparent px-4 py-4 text-[1.05rem] text-[#1e1a17] placeholder:text-[#8a8178] focus:outline-none"
+                        class="min-w-0 flex-1 cursor-text border-0 bg-transparent px-4 py-4 text-[1.05rem] text-[#1e1a17] placeholder:text-[#6f655b] focus:outline-none"
                     />
                     <button
                         type="submit"
@@ -54,11 +56,17 @@ const {
         </section>
     ) : (
         <section class="relative -mx-4 -mt-8 min-h-[34rem] overflow-hidden bg-[#312a25] md:-mx-8 md:min-h-[38rem] lg:mx-0 lg:rounded-b-xl">
-            <img
-                src="/images/background/Walking_people.jpg"
+            {/* Account for the full image width when object-cover crops the tall hero. */}
+            <Picture
+                src={walkingPeople}
+                formats={['avif', 'webp']}
+                widths={[1024, 1280, 1600, 2048]}
+                sizes="(min-width: 1184px) 1120px, (min-width: 768px) max(1080px, 100vw), max(967px, 100vw)"
+                quality={60}
                 alt="Personer foran en lokal modebutik i byen"
                 class="absolute inset-0 h-full w-full object-cover object-center"
                 fetchpriority="high"
+                loading="eager"
             />
             <div
                 class="absolute inset-0 bg-[linear-gradient(90deg,rgba(22,18,15,0.78)_0%,rgba(22,18,15,0.5)_45%,rgba(22,18,15,0.08)_78%)]"
