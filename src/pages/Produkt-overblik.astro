@@ -19,6 +19,7 @@ const defaultZoom = 3;
         <SearchSection
             action="/Produkt-overblik"
             compact={true}
+            value={Astro.url.searchParams.get("q") ?? ""}
             placeholder="Søg efter brands, produkter eller butikker"
         />
 
@@ -164,7 +165,7 @@ const defaultZoom = 3;
             console.error("Missing product overview root element.");
         }
 
-        const searchInput = document.getElementById("frontpage-search");
+        const searchInput = document.getElementById("product-search");
         const searchForm = searchInput?.closest("form");
         const slider = overview?.querySelector("[data-zoom-slider]");
         const zoomLabel = overview?.querySelector("[data-zoom-label]");
